@@ -48,12 +48,12 @@ export class ServicesService {
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto) {
-    const service = await this.serviceRepository.preload({
-      id,
-      ...updateServiceDto,
-    });
-    if (!service) throw new NotFoundException();
     try {
+      const service = await this.serviceRepository.preload({
+        id,
+        ...updateServiceDto,
+      });
+      if (!service) throw new NotFoundException();
       await this.serviceRepository.save(service);
       return service;
     } catch (error) {
