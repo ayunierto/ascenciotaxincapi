@@ -13,8 +13,9 @@ import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Auth } from 'src/auth/decorators';
+import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('services')
 export class ServicesController {
@@ -22,8 +23,8 @@ export class ServicesController {
 
   @Post()
   @Auth(ValidRoles.admin)
-  create(@Body() createServiceDto: CreateServiceDto) {
-    return this.servicesService.create(createServiceDto);
+  create(@Body() createServiceDto: CreateServiceDto, @GetUser() user: User) {
+    return this.servicesService.create(createServiceDto, user);
   }
 
   @Get()
@@ -41,8 +42,9 @@ export class ServicesController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateServiceDto: UpdateServiceDto,
+    @GetUser() user: User,
   ) {
-    return this.servicesService.update(id, updateServiceDto);
+    return this.servicesService.update(id, updateServiceDto, user);
   }
 
   @Delete(':id')

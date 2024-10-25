@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class ServicesService {
@@ -22,9 +23,12 @@ export class ServicesService {
     private readonly serviceRepository: Repository<Service>,
   ) {}
 
-  async create(createServiceDto: CreateServiceDto) {
+  async create(createServiceDto: CreateServiceDto, user: User) {
     try {
-      const service = this.serviceRepository.create(createServiceDto);
+      const service = this.serviceRepository.create({
+        ...createServiceDto,
+        user,
+      });
       await this.serviceRepository.save(service);
       return service;
     } catch (error) {
@@ -47,11 +51,12 @@ export class ServicesService {
     return service;
   }
 
-  async update(id: string, updateServiceDto: UpdateServiceDto) {
+  async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
     try {
       const service = await this.serviceRepository.preload({
         id,
         ...updateServiceDto,
+        user,
       });
       if (!service) throw new NotFoundException();
       await this.serviceRepository.save(service);
