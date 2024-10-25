@@ -1,8 +1,10 @@
+import { Service } from '../../services/entities/service.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -23,6 +25,9 @@ export class User {
 
   @Column('text')
   fullName: string;
+
+  @OneToMany(() => Service, (service) => service.user)
+  service: Service;
 
   @Column('bool', {
     default: false,
