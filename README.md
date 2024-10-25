@@ -1,6 +1,6 @@
 # Api Auth Nestjs template
 
-This repository provides a base template to develop APIS in Nestjs with the authentication and authorization functions with user roles already implemented. Designed to be reusable in future projects, this template offers a robust structure that facilitates the rapid creation of safe and scalable applications.
+AscencioTaxInc
 
 ## Getting started
 
