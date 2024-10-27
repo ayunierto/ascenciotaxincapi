@@ -36,7 +36,7 @@ export class ServicesService {
         ),
       });
       await this.serviceRepository.save(service);
-      return { ...service, images };
+      return service;
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -44,10 +44,15 @@ export class ServicesService {
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return await this.serviceRepository.find({
+    const services = await this.serviceRepository.find({
       take: limit,
       skip: offset,
+      relations: {
+        images: true,
+      },
     });
+
+    return services;
   }
 
   async findOne(id: string) {

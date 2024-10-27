@@ -40,6 +40,9 @@ export class Service {
   })
   isActive: boolean;
 
-  @OneToMany(() => ServiceImage, (image) => image.service, { cascade: true })
+  @OneToMany(() => ServiceImage, (image) => image.service, {
+    cascade: true,
+    eager: true,
+  })
   images?: ServiceImage[];
 }

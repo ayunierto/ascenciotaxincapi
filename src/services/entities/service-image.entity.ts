@@ -9,6 +9,6 @@ export class ServiceImage {
   @Column('text')
   url: string;
 
-  @ManyToOne(() => Service, (service) => service.images, { eager: true })
+  @ManyToOne(() => Service, (service) => service.images)
   service: Service;
 }
