@@ -1,5 +1,12 @@
 import { User } from 'src/auth/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ServiceImage } from './service-image.entity';
 
 @Entity()
 export class Service {
@@ -32,4 +39,7 @@ export class Service {
     default: true,
   })
   isActive: boolean;
+
+  @OneToMany(() => ServiceImage, (image) => image.service, { cascade: true })
+  images?: ServiceImage;
 }

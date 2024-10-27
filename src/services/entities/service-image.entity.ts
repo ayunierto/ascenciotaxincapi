@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Service } from './service.entity';
 
 @Entity()
 export class ServiceImage {
@@ -7,4 +8,7 @@ export class ServiceImage {
 
   @Column('text')
   url: string;
+
+  @ManyToOne(() => Service, (service) => service.images, { eager: true })
+  service: Service;
 }
