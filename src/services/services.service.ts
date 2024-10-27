@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/auth/entities/user.entity';
@@ -22,6 +22,8 @@ export class ServicesService {
     private readonly serviceRepository: Repository<Service>,
     @InjectRepository(ServiceImage)
     private readonly serviceImageRepository: Repository<ServiceImage>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createServiceDto: CreateServiceDto, user: User) {
@@ -63,17 +65,36 @@ export class ServicesService {
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
+    const { images, ...toUpdate } = updateServiceDto;
+    const service = await this.serviceRepository.preload({
+      id,
+      ...toUpdate,
+      user,
+    });
+    if (!service) throw new NotFoundException(`Image not found`);
+
+    // Create queryRunner
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const service = await this.serviceRepository.preload({
-        id,
-        ...updateServiceDto,
-        user,
-        images: [],
-      });
-      if (!service) throw new NotFoundException();
-      await this.serviceRepository.save(service);
-      return service;
+      if (images) {
+        await queryRunner.manager.delete(ServiceImage, { service: { id: id } });
+        service.images = images.map((img) =>
+          this.serviceImageRepository.create({ url: img }),
+        );
+      }
+
+      await queryRunner.manager.save(service);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+      // await this.serviceRepository.save(service);
+      return this.findOne(id);
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
       this.handleDBExceptions(error);
     }
   }
