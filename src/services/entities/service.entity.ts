@@ -41,5 +41,5 @@ export class Service {
   isActive: boolean;
 
   @OneToMany(() => ServiceImage, (image) => image.service, { cascade: true })
-  images?: ServiceImage;
+  images?: ServiceImage[];
 }

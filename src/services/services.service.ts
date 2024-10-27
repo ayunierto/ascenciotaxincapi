@@ -4,15 +4,14 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  Query,
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Service } from './entities/service.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/auth/entities/user.entity';
+import { ServiceImage, Service } from './entities';
 
 @Injectable()
 export class ServicesService {
@@ -21,16 +20,23 @@ export class ServicesService {
   constructor(
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+    @InjectRepository(ServiceImage)
+    private readonly serviceImageRepository: Repository<ServiceImage>,
   ) {}
 
   async create(createServiceDto: CreateServiceDto, user: User) {
     try {
+      const { images = [], ...productsRest } = createServiceDto;
+
       const service = this.serviceRepository.create({
-        ...createServiceDto,
+        ...productsRest,
         user,
+        images: images.map((img) =>
+          this.serviceImageRepository.create({ url: img }),
+        ),
       });
       await this.serviceRepository.save(service);
-      return service;
+      return { ...service, images };
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -57,6 +63,7 @@ export class ServicesService {
         id,
         ...updateServiceDto,
         user,
+        images: [],
       });
       if (!service) throw new NotFoundException();
       await this.serviceRepository.save(service);
