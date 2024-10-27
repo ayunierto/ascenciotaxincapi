@@ -69,7 +69,7 @@ export class ServicesService {
     const service = await this.serviceRepository.preload({
       id,
       ...toUpdate,
-      user,
+      // user,
     });
     if (!service) throw new NotFoundException(`Image not found`);
 
@@ -86,6 +86,7 @@ export class ServicesService {
         );
       }
 
+      service.user = user;
       await queryRunner.manager.save(service);
       await queryRunner.commitTransaction();
       await queryRunner.release();
@@ -113,5 +114,15 @@ export class ServicesService {
     throw new InternalServerErrorException(
       'Unexpected error, check server logs.',
     );
+  }
+
+  async deleteAllServices() {
+    const query = this.serviceRepository.createQueryBuilder('service');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 }
