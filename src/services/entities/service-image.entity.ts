@@ -9,6 +9,8 @@ export class ServiceImage {
   @Column('text')
   url: string;
 
-  @ManyToOne(() => Service, (service) => service.images)
+  @ManyToOne(() => Service, (service) => service.images, {
+    onDelete: 'CASCADE',
+  })
   service: Service;
 }
