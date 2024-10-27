@@ -1,4 +1,4 @@
-# Api Auth Nestjs template
+# Api AscencioTaxInc
 
 AscencioTaxInc
 
@@ -27,13 +27,13 @@ sudo npm install -g @nestjs/cli
 1. Start cloning this repository.
 
 ```sh
-git clone https://github.com/ayunierto/api-auth-nestjs-base.git my-project
+git clone https://github.com/ayunierto/ascenciotaxincapi.git
 ```
 
 2. The next thing will be to install all the dependencies of the project.
 
 ```sh
-cd ./my-project
+cd ./ascenciotaxincapi
 yarn
 ```
 
@@ -78,4 +78,10 @@ yarn run start:dev
 
 # production mode
 yarn run start:prod
+```
+
+### Execute Seed 
+
+```
+localhost:3000/api/seed
 ```
