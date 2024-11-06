@@ -13,6 +13,7 @@ interface SeedUser {
   fullName: string;
   password: string;
   roles: string[];
+  isActive: boolean;
 }
 
 interface SeedData {
@@ -27,18 +28,21 @@ export const initialData: SeedData = {
       fullName: 'Test One',
       password: bcrypt.hashSync('Abc123', 10),
       roles: ['admin'],
+      isActive: true,
     },
     {
       email: 'test2@google.com',
       fullName: 'Test Two',
       password: bcrypt.hashSync('Abc123', 10),
       roles: ['super-admin'],
+      isActive: true,
     },
     {
       email: 'test3@google.com',
       fullName: 'Test Three',
       password: bcrypt.hashSync('Abc123', 10),
       roles: ['user'],
+      isActive: true,
     },
   ],
   services: [
