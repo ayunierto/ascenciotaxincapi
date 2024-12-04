@@ -61,6 +61,23 @@ cp .env.example .env
 - **`JWT_SECRET`**: The secret key used to sign and verify the tokens JWT (JSON Web tokens) in the authentication process. It is important that this key is complex and remains safe.  
   _Example:_ `thisismysecretpasswordforjwt`
 
+- **`GOOGLE_CALENDAR_ACCOUNT`**: Calendar account to use to list, add and delete appointments.
+
+### Create a service account to access Google Calendar events.
+
+1. Create a Google Cloud Console service account:
+
+2. Go to Google Cloud Console.
+   2.1 Go to IAM and Administration> Service Accounts.
+   2.2 Create a service account and set access to Google Calendar API.
+   2.3 Download the JSON file with the credentials of the service account.
+
+3. Share the calendar with the service account:
+
+3.1 Open Google Calendar in the browser.
+3.2 In the calendar configuration you want to access, add the service account as a user and give permission "make changes to events" or "see all the details of the event" (as necessary). 4. Configure authentication in your backend:
+4.1 Copy the credential file in the project root with the name`credentials.json`
+
 ### Create and start database container
 
 ```sh
@@ -80,7 +97,7 @@ yarn run start:dev
 yarn run start:prod
 ```
 
-### Execute Seed 
+### Execute Seed
 
 ```
 localhost:3000/api/seed

@@ -2,6 +2,7 @@
 .env
 /postgres
 yarn.lock
+credentials.json
 
 # compiled output
 /dist

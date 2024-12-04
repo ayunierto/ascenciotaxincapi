@@ -26,6 +26,11 @@ export class User {
   @Column('text')
   fullName: string;
 
+  @Column('text', {
+    nullable: true,
+  })
+  phoneNumber: string;
+
   @OneToMany(() => Service, (service) => service.user)
   service: Service;
 
