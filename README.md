@@ -61,6 +61,12 @@ cp .env.example .env
 - **`JWT_SECRET`**: The secret key used to sign and verify the tokens JWT (JSON Web tokens) in the authentication process. It is important that this key is complex and remains safe.  
   _Example:_ `thisismysecretpasswordforjwt`
 
+- Credentials to access [Zoom APIs](https://marketplace.zoom.us/user/build) from your app:
+
+  - **`ZOOM_ACCOUNT_ID`**: 
+  - **`ZOOM_CLIENT_ID`**: 
+  - **`ZOOM_CLIENT_SECRET`**: 
+
 - **`GOOGLE_CALENDAR_ACCOUNT`**: Calendar account to use to list, add and delete appointments.
 
 ### Create a service account to access Google Calendar events.
@@ -88,17 +94,17 @@ docker-compose up -d
 
 ```bash
 # development
-yarn run start
+yarn start
 
 # development watch mode
-yarn run start:dev
+yarn start:dev
 
 # production mode
-yarn run start:prod
+yarn start:prod
 ```
 
 ### Execute Seed
 
 ```
-localhost:3000/api/seed
+http://localhost:3000/api/seed
 ```
