@@ -2,11 +2,14 @@ import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ServiceImage } from './service-image.entity';
+import { Staff } from 'src/staff/entities/staff.entity';
 
 @Entity()
 export class Service {
@@ -45,4 +48,8 @@ export class Service {
     eager: true,
   })
   images?: ServiceImage[];
+
+  @ManyToMany(() => Staff, (staff) => staff.services)
+  @JoinTable()
+  staffMembers: Staff[];
 }

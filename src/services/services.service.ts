@@ -7,11 +7,12 @@ import {
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/auth/entities/user.entity';
 import { ServiceImage, Service } from './entities';
+import { Staff } from 'src/staff/entities/staff.entity';
 
 @Injectable()
 export class ServicesService {
@@ -22,20 +23,27 @@ export class ServicesService {
     private readonly serviceRepository: Repository<Service>,
     @InjectRepository(ServiceImage)
     private readonly serviceImageRepository: Repository<ServiceImage>,
+    @InjectRepository(Staff)
+    private staffRepository: Repository<Staff>,
 
     private readonly dataSource: DataSource,
   ) {}
 
   async create(createServiceDto: CreateServiceDto, user: User) {
     try {
-      const { images = [], ...productsRest } = createServiceDto;
+      const { images = [], staffMembers, ...productsRest } = createServiceDto;
+
+      const staff = await this.staffRepository.findBy({
+        name: In(staffMembers),
+      });
 
       const service = this.serviceRepository.create({
-        ...productsRest,
         user,
         images: images.map((img) =>
           this.serviceImageRepository.create({ url: img }),
         ),
+        staffMembers: staff,
+        ...productsRest,
       });
       await this.serviceRepository.save(service);
       return service;
@@ -51,6 +59,10 @@ export class ServicesService {
       skip: offset,
       relations: {
         images: true,
+        staffMembers: true,
+      },
+      order: {
+        title: 'ASC',
       },
     });
 
@@ -58,16 +70,28 @@ export class ServicesService {
   }
 
   async findOne(id: string) {
-    const service = await this.serviceRepository.findOneBy({ id });
+    const service = await this.serviceRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        images: true,
+        staffMembers: true,
+      },
+    });
     if (!service) throw new NotFoundException();
 
     return service;
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
-    const { images, ...toUpdate } = updateServiceDto;
+    const { images, staffMembers = [], ...toUpdate } = updateServiceDto;
+    const staff = await this.staffRepository.findBy({
+      name: In(staffMembers),
+    });
     const service = await this.serviceRepository.preload({
       id,
+      staffMembers: staff,
       ...toUpdate,
       // user,
     });

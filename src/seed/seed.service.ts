@@ -4,6 +4,7 @@ import { initialData } from './data/seed-data';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
+import { Staff } from 'src/staff/entities/staff.entity';
 
 @Injectable()
 export class SeedService {
@@ -12,12 +13,17 @@ export class SeedService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Staff)
+    private readonly staffRepository: Repository<Staff>,
   ) {}
 
   async runSeed() {
     await this.delteTables();
 
     const firstUser = await this.insertNewUsers();
+
+    await this.insertNewStaff();
 
     await this.insertNewServices(firstUser);
 
@@ -29,6 +35,10 @@ export class SeedService {
 
     const queryBuilder = this.userRepository.createQueryBuilder();
     await queryBuilder.delete().where({}).execute();
+
+    const deleteAllStaffMembersQueryBuilder =
+      this.staffRepository.createQueryBuilder();
+    await deleteAllStaffMembersQueryBuilder.delete().where({}).execute();
   }
 
   private async insertNewUsers() {
@@ -43,6 +53,20 @@ export class SeedService {
     const dbUsers = await this.userRepository.save(seedUsers);
 
     return dbUsers[0];
+  }
+
+  private async insertNewStaff() {
+    const seedStaff = initialData.staff;
+
+    const staffMembers: Staff[] = [];
+
+    seedStaff.forEach((member) => {
+      staffMembers.push(this.staffRepository.create(member));
+    });
+
+    const dbStaff = await this.staffRepository.save(seedStaff);
+
+    return dbStaff;
   }
 
   private async insertNewServices(user: User) {

@@ -28,4 +28,8 @@ export class CreateServiceDto {
   @IsArray()
   @IsOptional()
   images?: string[];
+
+  @IsString({ each: true })
+  @IsArray()
+  staffMembers: string[];
 }
