@@ -9,13 +9,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signUp(@Body() createUserDto: CreateUserDto) {
-    return this.authService.signUp(createUserDto);
+  signup(@Body() createUserDto: CreateUserDto) {
+    return this.authService.signup(createUserDto);
   }
 
   @Post('signin')
-  signIn(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.signIn(loginUserDto);
+  signin(@Body() loginUserDto: LoginUserDto) {
+    return this.authService.signin(loginUserDto);
   }
 
   @Get('check-status')

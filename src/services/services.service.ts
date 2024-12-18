@@ -31,18 +31,18 @@ export class ServicesService {
 
   async create(createServiceDto: CreateServiceDto, user: User) {
     try {
-      const { images = [], staffMembers, ...productsRest } = createServiceDto;
+      const { images = [], ...productsRest } = createServiceDto;
 
-      const staff = await this.staffRepository.findBy({
-        name: In(staffMembers),
-      });
+      // const staffdb = await this.staffRepository.findBy({
+      //   name: In(staffMembers),
+      // });
 
       const service = this.serviceRepository.create({
         user,
         images: images.map((img) =>
           this.serviceImageRepository.create({ url: img }),
         ),
-        staffMembers: staff,
+        // staffMembers: staffdb,
         ...productsRest,
       });
       await this.serviceRepository.save(service);
@@ -59,10 +59,10 @@ export class ServicesService {
       skip: offset,
       relations: {
         images: true,
-        staffMembers: true,
+        staff: true,
       },
       order: {
-        title: 'ASC',
+        name: 'ASC',
       },
     });
 
@@ -76,7 +76,7 @@ export class ServicesService {
       },
       relations: {
         images: true,
-        staffMembers: true,
+        staff: true,
       },
     });
     if (!service) throw new NotFoundException();
@@ -85,15 +85,13 @@ export class ServicesService {
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
-    const { images, staffMembers = [], ...toUpdate } = updateServiceDto;
-    const staff = await this.staffRepository.findBy({
-      name: In(staffMembers),
-    });
+    const { images, ...toUpdate } = updateServiceDto;
+    // const staff = await this.staffRepository.findBy({
+    //   name: In(staffMembers),
+    // });
     const service = await this.serviceRepository.preload({
       id,
-      staffMembers: staff,
       ...toUpdate,
-      // user,
     });
     if (!service) throw new NotFoundException(`Image not found`);
 

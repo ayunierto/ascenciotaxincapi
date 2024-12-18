@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
+import { Appointment } from 'src/appointment/entities/appointment.entity';
 
 @Entity()
 export class Service {
@@ -19,18 +20,13 @@ export class Service {
   @Column('text', {
     unique: true,
   })
-  title: string;
+  name: string;
 
-  @ManyToOne(() => User, (user) => user.service, { eager: true })
-  user: User;
+  @Column('int')
+  duration: number;
 
-  @Column('bool', {
-    default: false,
-  })
-  isAvailableOnline: boolean;
-
-  @Column('text')
-  duration: string;
+  @Column('numeric')
+  price: number;
 
   @Column({
     type: 'text',
@@ -38,10 +34,13 @@ export class Service {
   })
   description: string;
 
+  @Column('bool')
+  is_available_online: boolean;
+
   @Column('bool', {
     default: true,
   })
-  isActive: boolean;
+  is_active: boolean;
 
   @OneToMany(() => ServiceImage, (image) => image.service, {
     cascade: true,
@@ -51,5 +50,11 @@ export class Service {
 
   @ManyToMany(() => Staff, (staff) => staff.services)
   @JoinTable()
-  staffMembers: Staff[];
+  staff: Staff[];
+
+  @ManyToOne(() => User, (user) => user.services, { eager: true })
+  user: User;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.service)
+  appointments: Appointment[];
 }

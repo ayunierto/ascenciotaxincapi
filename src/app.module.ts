@@ -9,6 +9,7 @@ import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { StaffModule } from './staff/staff.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { StaffModule } from './staff/staff.module';
     FilesModule,
     CalendarModule,
     StaffModule,
+    AppointmentModule,
   ],
   controllers: [],
   providers: [],

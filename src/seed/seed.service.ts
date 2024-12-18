@@ -5,11 +5,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Staff } from 'src/staff/entities/staff.entity';
+import { Service } from 'src/services/entities';
 
 @Injectable()
 export class SeedService {
   constructor(
     private readonly servicesService: ServicesService,
+
+    @InjectRepository(Service)
+    private readonly servicesRepository: Repository<Service>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -31,14 +35,18 @@ export class SeedService {
   }
 
   private async delteTables() {
-    await this.servicesService.deleteAllServices();
+    // await this.servicesService.deleteAllServices();
 
-    const queryBuilder = this.userRepository.createQueryBuilder();
-    await queryBuilder.delete().where({}).execute();
+    const queryBuilderForDeleteServices =
+      this.servicesRepository.createQueryBuilder();
+    await queryBuilderForDeleteServices.delete().where({}).execute();
 
-    const deleteAllStaffMembersQueryBuilder =
+    const queryBuilderForDeleteUsers = this.userRepository.createQueryBuilder();
+    await queryBuilderForDeleteUsers.delete().where({}).execute();
+
+    const queryBuilderForDeleteStaff =
       this.staffRepository.createQueryBuilder();
-    await deleteAllStaffMembersQueryBuilder.delete().where({}).execute();
+    await queryBuilderForDeleteStaff.delete().where({}).execute();
   }
 
   private async insertNewUsers() {

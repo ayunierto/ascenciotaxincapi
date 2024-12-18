@@ -1,43 +1,38 @@
+import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Service } from '../../services/entities/service.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text', {
-    unique: true,
-  })
-  email: string;
-
-  @Column('text', {
-    select: false,
-  })
-  password: string;
+  @Column('text')
+  name: string;
 
   @Column('text')
-  fullName: string;
+  last_name: string;
 
-  @Column('text', {
-    nullable: true,
-  })
-  phoneNumber: string;
+  @Column('text', { unique: true })
+  email: string;
 
-  @OneToMany(() => Service, (service) => service.user)
-  service: Service;
+  @Column('text', { unique: true })
+  phone_number: string;
 
-  @Column('bool', {
-    default: false,
-  })
-  isActive: boolean;
+  @Column('text', { select: false })
+  password: string;
+
+  @Column('date', { nullable: true })
+  birthdate: Date;
+
+  @Column('bool', { default: false })
+  is_active: boolean;
+
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  registration_date: Date;
+
+  @Column('timestamp', { nullable: true })
+  last_login: Date;
 
   @Column('text', {
     array: true,
@@ -45,12 +40,9 @@ export class User {
   })
   roles: string[];
 
-  @BeforeInsert()
-  checkFieldsBeforeInsert() {
-    this.email = this.email.toLocaleLowerCase().trim();
-  }
-  @BeforeUpdate()
-  checkFieldsBeforeUpdate() {
-    this.checkFieldsBeforeInsert();
-  }
+  @OneToMany(() => Service, (service) => service.user)
+  services: Service[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
 }

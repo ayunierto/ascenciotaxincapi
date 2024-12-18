@@ -1,5 +1,11 @@
 import {
+  IsBoolean,
+  IsDate,
+  IsDateString,
   IsEmail,
+  IsLowercase,
+  IsMobilePhone,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -8,8 +14,22 @@ import {
 
 export class CreateUserDto {
   @IsString()
+  @MinLength(3, { message: 'The name must have a minimum of 3 characters' })
+  name: string;
+
+  @IsString()
+  @MinLength(3, {
+    message: 'The last name must have a minimum of 3 characters',
+  })
+  last_name: string;
+
+  @IsString()
   @IsEmail()
+  @IsLowercase()
   email: string;
+
+  @IsMobilePhone()
+  phone_number: string;
 
   @IsString()
   @MinLength(6)
@@ -20,10 +40,21 @@ export class CreateUserDto {
   })
   password: string;
 
-  @IsString()
-  @MinLength(3)
-  fullName: string;
+  @IsDateString()
+  @IsOptional()
+  birthdate?: Date;
 
-  @IsString()
-  phoneNumber: string;
+  // @IsBoolean()
+  // is_active: boolean;
+
+  // @IsDate()
+  // @IsOptional()
+  // registration_date: Date;
+
+  @IsDate()
+  @IsOptional()
+  last_login?: Date;
+
+  // @IsArray()
+  // roles: string[];
 }
