@@ -6,11 +6,13 @@ import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Service } from 'src/services/entities';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class SeedService {
   constructor(
     private readonly servicesService: ServicesService,
+    private readonly usersService: UsersService,
 
     @InjectRepository(Service)
     private readonly servicesRepository: Repository<Service>,
@@ -27,9 +29,9 @@ export class SeedService {
 
     const firstUser = await this.insertNewUsers();
 
-    await this.insertNewStaff();
+    // await this.insertNewStaff();
 
-    await this.insertNewServices(firstUser);
+    // await this.insertNewServices(firstUser);
 
     return 'Seed Executed';
   }
@@ -52,15 +54,9 @@ export class SeedService {
   private async insertNewUsers() {
     const seedUsers = initialData.users;
 
-    const users: User[] = [];
-
-    seedUsers.forEach((user) => {
-      users.push(this.userRepository.create(user));
+    seedUsers.forEach(async (user) => {
+      await this.usersService.create(user);
     });
-
-    const dbUsers = await this.userRepository.save(seedUsers);
-
-    return dbUsers[0];
   }
 
   private async insertNewStaff() {

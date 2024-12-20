@@ -33,11 +33,11 @@ export const initialData: SeedData = {
   users: [
     {
       email: 'test1@google.com',
-      name: 'Test One (super-admin)',
-      password: bcrypt.hashSync('Abc123', 10),
+      name: 'Test',
+      password: bcrypt.hashSync('Abcd1234', 10),
       // roles: ['super-admin', 'admin'],
       // is_active: true,
-      last_name: '',
+      last_name: 'OneOne',
       phone_number: '',
       birthdate: new Date('2000-01-01'),
       // registration_date: undefined,
@@ -46,7 +46,7 @@ export const initialData: SeedData = {
     {
       email: 'test2@google.com',
       name: 'Test Two (admin)',
-      password: bcrypt.hashSync('Abc123', 10),
+      password: bcrypt.hashSync('Abcd1234', 10),
       // roles: ['admin'],
       // is_active: true,
       last_name: '',
@@ -58,7 +58,7 @@ export const initialData: SeedData = {
     {
       email: 'test3@google.com',
       name: 'Test Three (user)',
-      password: bcrypt.hashSync('Abc123', 10),
+      password: bcrypt.hashSync('Abcd1234', 10),
       // roles: ['user'],
       // is_active: true,
       last_name: '',

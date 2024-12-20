@@ -41,4 +41,6 @@ export class Staff {
 
   @OneToMany(() => Appointment, (appointment) => appointment.staff)
   appointments: Appointment[];
+
+  // TODO: Agregar user id.
 }

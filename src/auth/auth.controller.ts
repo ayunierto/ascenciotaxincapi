@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
 import { GetUser, Auth } from './decorators';
+import { VerifyUserDto } from './dto/verify-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -25,5 +26,10 @@ export class AuthController {
     user: User,
   ) {
     return this.authService.checkStatus(user);
+  }
+
+  @Post('verify-code')
+  verifyCode(@Body() verifyUserDto: VerifyUserDto) {
+    return this.authService.verifyCode(verifyUserDto);
   }
 }

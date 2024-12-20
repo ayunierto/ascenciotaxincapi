@@ -1,6 +1,7 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Service } from '../../services/entities/service.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { IsOptional } from 'class-validator';
 
 @Entity('users')
 export class User {
@@ -39,6 +40,10 @@ export class User {
     default: ['user'],
   })
   roles: string[];
+
+  @Column('text', { nullable: true })
+  @IsOptional()
+  verification_code: string;
 
   @OneToMany(() => Service, (service) => service.user)
   services: Service[];

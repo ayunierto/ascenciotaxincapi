@@ -57,4 +57,8 @@ export class CreateUserDto {
 
   // @IsArray()
   // roles: string[];
+
+  @IsString()
+  @IsOptional()
+  verfication_code?: string;
 }

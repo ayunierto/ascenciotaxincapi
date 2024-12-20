@@ -1,7 +1,8 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { VerifyUserDto } from './dto/verify-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,34 +25,60 @@ export class AuthService {
 
   async signup(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
-    // Send SMS
-    const accountSid = '';
-    const authToken = '';
-    const client = require('twilio')(accountSid, authToken);
-
-    client.verify.v2
-      .services('')
-      .verificationChecks.create({ to: '+51917732227', code: '033588' })
-      .then((verification_check) => console.log(verification_check.status));
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
 
     try {
       const user = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
+        verification_code: verificationCode,
       });
-      await this.userRepository.save(user);
-      delete user.password;
-      return { ...user, token: this.getJwtToken({ id: user.id }) };
+      const savedUser = await this.userRepository.save(user);
+
+      if (savedUser) {
+        await this.sendSMSVerificationCodeWithTwillio(
+          createUserDto.phone_number,
+          verificationCode,
+        );
+      }
+
+      return savedUser;
     } catch (error) {
-      this.handleDBError(error);
+      if (error.code === '23505') {
+        const err: string = error.detail;
+        const regex: RegExp = /\(([^)]+)\)/;
+        const match = err.match(regex);
+        const word = match ? match[1] : null;
+
+        throw new HttpException(
+          {
+            code: HttpStatus.CONFLICT,
+            message: 'Resource already exists',
+            error: 'Conflict',
+            cause: word,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+      throw new HttpException(
+        {
+          code: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Please check the server log for more information',
+          error: 'Internal server error',
+          cause: 'Unknown',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // TODO: Probar si quitando el select  evia todos los campos menos el password que esta quitado en la entidad
   async signin(loginUserDto: LoginUserDto) {
-    const { password, email } = loginUserDto;
+    const { password, username } = loginUserDto;
     const user = await this.userRepository.findOne({
-      where: { email },
+      where: [{ email: username }, { phone_number: username }],
       select: {
         email: true,
         password: true,
@@ -67,14 +95,40 @@ export class AuthService {
       },
     });
 
-    console.log(user);
-
     if (!user) {
-      throw new UnauthorizedException(`${email} does not exist, please signup`);
+      throw new HttpException(
+        {
+          code: HttpStatus.UNAUTHORIZED,
+          message: 'User or password incorrect',
+          error: 'Unauthorized',
+          cause: 'email',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (!user.is_active) {
+      throw new HttpException(
+        {
+          code: HttpStatus.UNAUTHORIZED,
+          message:
+            'The user is inactive, please check your account or contact the administration',
+          error: 'Inactive',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     if (!bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException('The provided password is not valid');
+      throw new HttpException(
+        {
+          code: HttpStatus.UNAUTHORIZED,
+          message: 'User or password incorrect',
+          error: 'Unauthorized',
+          cause: 'password',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     return {
@@ -94,12 +148,48 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  private handleDBError(error: any): never {
-    if (error.code === '23505') {
-      throw new BadRequestException(error.detail);
+  async sendSMSVerificationCodeWithTwillio(
+    phoneNumber: string,
+    verificationCode: string,
+  ) {
+    // Generar código de verificación de 6 dígitos
+
+    // const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
+    // const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
+    // const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
+    // client.messages
+    //   .create({
+    //     body: `Your Ascenciotax verification code is: ${verificationCode}`,
+    //     from: '+12542800440',
+    //     to: phoneNumber,
+    //   })
+    //   .then((message) => console.log(message.sid));
+
+    return verificationCode;
+  }
+
+  async verifyCode(verifyUserDto: VerifyUserDto) {
+    const { phone_number, verfication_code } = verifyUserDto;
+    const user = await this.userRepository.findOne({
+      where: { phone_number: phone_number },
+    });
+
+    console.log(phone_number, verfication_code);
+    if (!user) {
+      throw new BadRequestException('User not found');
     }
 
-    console.error(error);
-    throw new InternalServerErrorException('Please see server logs');
+    if (user.verification_code !== verfication_code) {
+      throw new UnauthorizedException('Invalid verification code');
+    }
+
+    user.is_active = true;
+    user.verification_code = null;
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Phone number verified successfully',
+      token: this.getJwtToken({ id: user.id }),
+    };
   }
 }

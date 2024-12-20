@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsPhoneNumber,
   IsString,
   Matches,
   MaxLength,
@@ -8,8 +9,7 @@ import {
 
 export class LoginUserDto {
   @IsString()
-  @IsEmail()
-  email: string;
+  username: string;
 
   @IsString()
   @MinLength(6)
