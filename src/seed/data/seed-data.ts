@@ -1,23 +1,7 @@
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/auth/dto';
+import { ValidRoles } from 'src/auth/interfaces';
 import { CreateServiceDto } from 'src/services/dto/create-service.dto';
-
-interface SeedService {
-  name: string;
-  isAvailableOnline: boolean;
-  is_active: boolean;
-  duration: string;
-  description?: string;
-  images: string[];
-  staff: string[];
-}
-interface SeedUser {
-  email: string;
-  name: string;
-  password: string;
-  roles: string[];
-  is_active: boolean;
-}
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 interface SeedStaff {
   name: string;
@@ -32,40 +16,37 @@ interface SeedData {
 export const initialData: SeedData = {
   users: [
     {
-      email: 'test1@google.com',
-      name: 'Test',
-      password: bcrypt.hashSync('Abcd1234', 10),
-      // roles: ['super-admin', 'admin'],
-      // is_active: true,
-      last_name: 'OneOne',
-      phone_number: '',
+      name: 'Admin',
+      last_name: 'Administrator',
+      email: 'admin@ascenciotaxinc.com',
+      phone_number: '+10000000000',
+      password: 'Abcd1234',
       birthdate: new Date('2000-01-01'),
-      // registration_date: undefined,
-      last_login: undefined,
+      registration_date: new Date(),
+      is_active: true,
+      roles: [ValidRoles.admin],
     },
     {
-      email: 'test2@google.com',
-      name: 'Test Two (admin)',
-      password: bcrypt.hashSync('Abcd1234', 10),
-      // roles: ['admin'],
-      // is_active: true,
-      last_name: '',
-      phone_number: '',
+      name: 'Test 1',
+      last_name: 'User',
+      email: 'test1@ascenciotaxinc.com',
+      phone_number: '+10000000001',
+      password: 'Abcd1234',
       birthdate: new Date('2000-01-01'),
-      // registration_date: undefined,
-      last_login: undefined,
+      registration_date: new Date(),
+      is_active: true,
+      roles: [ValidRoles.user],
     },
     {
-      email: 'test3@google.com',
-      name: 'Test Three (user)',
-      password: bcrypt.hashSync('Abcd1234', 10),
-      // roles: ['user'],
-      // is_active: true,
-      last_name: '',
-      phone_number: '',
+      name: 'Test 2',
+      last_name: 'User',
+      email: 'test2@ascenciotaxinc.com',
+      phone_number: '+10000000002',
+      password: 'Abcd1234',
       birthdate: new Date('2000-01-01'),
-      // registration_date: undefined,
-      last_login: undefined,
+      registration_date: new Date(),
+      is_active: true,
+      roles: [ValidRoles.user],
     },
   ],
   staff: [

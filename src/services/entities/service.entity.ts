@@ -12,7 +12,7 @@ import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
-@Entity()
+@Entity('services')
 export class Service {
   @PrimaryGeneratedColumn('uuid')
   id: string;

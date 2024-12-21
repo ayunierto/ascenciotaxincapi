@@ -11,9 +11,10 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { VerifyUserDto } from './dto/verify-user.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,12 +24,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signup(createUserDto: CreateUserDto) {
-    const { password, ...userData } = createUserDto;
+  async signup(signupUserDto: SignupUserDto) {
+    const { password, ...userData } = signupUserDto;
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-
+    console.warn(password);
     try {
       const user = this.userRepository.create({
         ...userData,
@@ -39,7 +40,7 @@ export class AuthService {
 
       if (savedUser) {
         await this.sendSMSVerificationCodeWithTwillio(
-          createUserDto.phone_number,
+          signupUserDto.phone_number,
           verificationCode,
         );
       }
@@ -174,7 +175,6 @@ export class AuthService {
       where: { phone_number: phone_number },
     });
 
-    console.log(phone_number, verfication_code);
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -188,7 +188,7 @@ export class AuthService {
     await this.userRepository.save(user);
 
     return {
-      message: 'Phone number verified successfully',
+      ...user,
       token: this.getJwtToken({ id: user.id }),
     };
   }

@@ -1,81 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ServicesService } from 'src/services/services.service';
-import { initialData } from './data/seed-data';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
-import { Repository } from 'typeorm';
-import { Staff } from 'src/staff/entities/staff.entity';
-import { Service } from 'src/services/entities';
-import { UsersService } from 'src/users/users.service';
+import { initialData } from './data/seed-data';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class SeedService {
   constructor(
-    private readonly servicesService: ServicesService,
     private readonly usersService: UsersService,
-
-    @InjectRepository(Service)
-    private readonly servicesRepository: Repository<Service>,
-
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-
-    @InjectRepository(Staff)
-    private readonly staffRepository: Repository<Staff>,
+    private readonly servicesService: ServicesService,
   ) {}
 
   async runSeed() {
-    await this.delteTables();
+    await this.deleteData();
 
-    const firstUser = await this.insertNewUsers();
+    const createdUsers = await this.seedUsers();
+    const createdServices = await this.seedServices(createdUsers[0]);
 
-    // await this.insertNewStaff();
-
-    // await this.insertNewServices(firstUser);
-
-    return 'Seed Executed';
+    throw new HttpException(
+      {
+        code: HttpStatus.CREATED,
+        message: 'Seed Executed',
+      },
+      HttpStatus.CREATED,
+    );
   }
 
-  private async delteTables() {
-    // await this.servicesService.deleteAllServices();
-
-    const queryBuilderForDeleteServices =
-      this.servicesRepository.createQueryBuilder();
-    await queryBuilderForDeleteServices.delete().where({}).execute();
-
-    const queryBuilderForDeleteUsers = this.userRepository.createQueryBuilder();
-    await queryBuilderForDeleteUsers.delete().where({}).execute();
-
-    const queryBuilderForDeleteStaff =
-      this.staffRepository.createQueryBuilder();
-    await queryBuilderForDeleteStaff.delete().where({}).execute();
+  private async deleteData() {
+    await this.servicesService.removeAll();
+    await this.usersService.removeAll();
   }
 
-  private async insertNewUsers() {
-    const seedUsers = initialData.users;
+  private async seedUsers() {
+    const users = initialData.users;
 
-    seedUsers.forEach(async (user) => {
-      await this.usersService.create(user);
-    });
-  }
+    const insertPromises = [];
 
-  private async insertNewStaff() {
-    const seedStaff = initialData.staff;
-
-    const staffMembers: Staff[] = [];
-
-    seedStaff.forEach((member) => {
-      staffMembers.push(this.staffRepository.create(member));
+    users.forEach((user) => {
+      insertPromises.push(this.usersService.create(user));
     });
 
-    const dbStaff = await this.staffRepository.save(seedStaff);
+    const result = await Promise.all(insertPromises);
 
-    return dbStaff;
+    return result;
   }
 
-  private async insertNewServices(user: User) {
-    await this.servicesService.deleteAllServices();
-
+  private async seedServices(user: User) {
     const services = initialData.services;
 
     const insertPromises = [];
@@ -84,8 +54,30 @@ export class SeedService {
       insertPromises.push(this.servicesService.create(service, user));
     });
 
-    await Promise.all(insertPromises);
+    const result = await Promise.all(insertPromises);
 
-    return true;
+    return result;
   }
+
+  // private async insertNewUsers() {
+  //   const seedUsers = initialData.users;
+
+  //   seedUsers.forEach(async (user) => {
+  //     await this.usersService.create(user);
+  //   });
+  // }
+
+  // private async insertNewStaff() {
+  //   const seedStaff = initialData.staff;
+
+  //   const staffMembers: Staff[] = [];
+
+  //   seedStaff.forEach((member) => {
+  //     staffMembers.push(this.staffRepository.create(member));
+  //   });
+
+  //   const dbStaff = await this.staffRepository.save(seedStaff);
+
+  //   return dbStaff;
+  // }
 }

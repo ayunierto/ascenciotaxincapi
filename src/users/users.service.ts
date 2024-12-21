@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -74,6 +76,24 @@ export class UsersService {
       return user;
     } catch (error) {
       this.handleDBExceptions(error);
+    }
+  }
+
+  async removeAll() {
+    const query = this.userRepository.createQueryBuilder('user');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      throw new HttpException(
+        {
+          code: HttpStatus.BAD_REQUEST,
+          message: 'Can not delete users',
+          error: error,
+          cause: 'Unknown',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

@@ -12,7 +12,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class SignupUserDto {
   @IsString()
   @MinLength(3, { message: 'The name must have a minimum of 3 characters' })
   name: string;
@@ -44,19 +44,9 @@ export class CreateUserDto {
   @IsOptional()
   birthdate?: Date;
 
-  // @IsBoolean()
-  // is_active: boolean;
-
-  // @IsDate()
-  // @IsOptional()
-  // registration_date: Date;
-
   @IsDate()
   @IsOptional()
   last_login?: Date;
-
-  // @IsArray()
-  // roles: string[];
 
   @IsString()
   @IsOptional()
