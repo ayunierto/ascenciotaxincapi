@@ -153,18 +153,16 @@ export class AuthService {
     phoneNumber: string,
     verificationCode: string,
   ) {
-    // Generar código de verificación de 6 dígitos
-
-    // const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
-    // const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
-    // const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
-    // client.messages
-    //   .create({
-    //     body: `Your Ascenciotax verification code is: ${verificationCode}`,
-    //     from: '+12542800440',
-    //     to: phoneNumber,
-    //   })
-    //   .then((message) => console.log(message.sid));
+    const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
+    const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
+    const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
+    client.messages
+      .create({
+        body: `Your Ascenciotax verification code is: ${verificationCode}`,
+        from: '+12542800440',
+        to: phoneNumber,
+      })
+      .then((message) => console.log(message.sid));
 
     return verificationCode;
   }
