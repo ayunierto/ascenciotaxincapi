@@ -1,21 +1,50 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ServicesService } from 'src/services/services.service';
-import { User } from 'src/auth/entities/user.entity';
 import { initialData } from './data/seed-data';
 import { UsersService } from '../users/users.service';
+import { ScheduleService } from 'src/schedule/schedule.service';
+import { StaffService } from 'src/staff/staff.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Staff } from 'src/staff/entities/staff.entity';
 
 @Injectable()
 export class SeedService {
   constructor(
     private readonly usersService: UsersService,
     private readonly servicesService: ServicesService,
+    private readonly scheduleService: ScheduleService,
+    private readonly staffService: StaffService,
+
+    @InjectRepository(Staff)
+    private readonly staffRepository: Repository<Staff>,
   ) {}
 
   async runSeed() {
     await this.deleteData();
 
-    const createdUsers = await this.seedUsers();
-    const createdServices = await this.seedServices(createdUsers[0]);
+    const users = initialData.users;
+    const insertUserPromises = [];
+    users.forEach((user) => {
+      insertUserPromises.push(this.usersService.create(user));
+    });
+    const createdUsers = await Promise.all(insertUserPromises);
+
+    const services = initialData.services;
+    const insertServicesPromises = [];
+    services.forEach((service) => {
+      insertServicesPromises.push(
+        this.servicesService.create(service, createdUsers[0]),
+      );
+    });
+    const createdServices = await Promise.all(insertUserPromises);
+
+    const staff = initialData.staff;
+    const insertStaffPromises = [];
+    staff.forEach((staff) => {
+      insertStaffPromises.push(this.staffService.create(staff));
+    });
+    const createdStaff = await Promise.all(insertStaffPromises);
 
     throw new HttpException(
       {
@@ -29,55 +58,11 @@ export class SeedService {
   private async deleteData() {
     await this.servicesService.removeAll();
     await this.usersService.removeAll();
+
+    this.staffRepository
+      .createQueryBuilder('staff')
+      .delete()
+      .where({})
+      .execute();
   }
-
-  private async seedUsers() {
-    const users = initialData.users;
-
-    const insertPromises = [];
-
-    users.forEach((user) => {
-      insertPromises.push(this.usersService.create(user));
-    });
-
-    const result = await Promise.all(insertPromises);
-
-    return result;
-  }
-
-  private async seedServices(user: User) {
-    const services = initialData.services;
-
-    const insertPromises = [];
-
-    services.forEach((service) => {
-      insertPromises.push(this.servicesService.create(service, user));
-    });
-
-    const result = await Promise.all(insertPromises);
-
-    return result;
-  }
-
-  // private async insertNewUsers() {
-  //   const seedUsers = initialData.users;
-
-  //   seedUsers.forEach(async (user) => {
-  //     await this.usersService.create(user);
-  //   });
-  // }
-
-  // private async insertNewStaff() {
-  //   const seedStaff = initialData.staff;
-
-  //   const staffMembers: Staff[] = [];
-
-  //   seedStaff.forEach((member) => {
-  //     staffMembers.push(this.staffRepository.create(member));
-  //   });
-
-  //   const dbStaff = await this.staffRepository.save(seedStaff);
-
-  //   return dbStaff;
-  // }
 }

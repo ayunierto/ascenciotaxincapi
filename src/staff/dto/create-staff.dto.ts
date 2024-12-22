@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsDate,
   IsEmail,
+  IsPhoneNumber,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -19,30 +20,11 @@ export class CreateStaffDto {
   @MinLength(3, {
     message: 'The last name must have a minimum of 3 characters',
   })
-  last_name: string;
-
-  @IsString()
-  @MinLength(3, {
-    message: 'The last name must have a minimum of 3 characters',
-  })
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @MinLength(9, {
-    message: 'The phone number must have a minimum of 9 characters',
-  })
-  phone_number: string;
-
-  @IsDate()
-  start_time: Date;
-
-  @IsDate()
-  end_time: Date;
+  lastName: string;
 
   @IsBoolean()
-  is_active: boolean;
+  isActive: boolean;
 
   @IsArray()
-  services: Service[];
+  services: string[];
 }

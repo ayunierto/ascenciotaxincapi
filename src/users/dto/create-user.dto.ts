@@ -20,14 +20,14 @@ export class CreateUserDto {
 
   @IsString()
   @MinLength(3)
-  last_name: string;
+  lastName: string;
 
   @IsString()
   @IsEmail()
   email: string;
 
   @IsPhoneNumber()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsString()
   @MinLength(6)
@@ -39,13 +39,13 @@ export class CreateUserDto {
   password: string;
 
   @IsBoolean()
-  is_active: boolean;
+  isActive: boolean;
 
   @IsDate()
   birthdate: Date;
 
   @IsDate()
-  registration_date: Date;
+  registrationDate: Date;
 
   @IsString({ each: true })
   @IsArray()

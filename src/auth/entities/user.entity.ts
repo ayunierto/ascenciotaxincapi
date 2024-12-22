@@ -12,13 +12,13 @@ export class User {
   name: string;
 
   @Column('text')
-  last_name: string;
+  lastName: string;
 
   @Column('text', { unique: true })
   email: string;
 
   @Column('text', { unique: true })
-  phone_number: string;
+  phoneNumber: string;
 
   @Column('text', { select: false })
   password: string;
@@ -27,13 +27,13 @@ export class User {
   birthdate: Date;
 
   @Column('bool', { default: false })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  registration_date: Date;
+  registrationDate: Date;
 
   @Column('timestamp', { nullable: true })
-  last_login: Date;
+  lastLogin: Date;
 
   @Column('text', {
     array: true,
@@ -43,7 +43,7 @@ export class User {
 
   @Column('text', { nullable: true })
   @IsOptional()
-  verification_code: string;
+  verificationCode: string;
 
   @OneToMany(() => Service, (service) => service.user)
   services: Service[];

@@ -33,19 +33,19 @@ export class ServicesService {
 
   async create(createServiceDto: CreateServiceDto, user: User) {
     try {
-      const { images = [], ...productsRest } = createServiceDto;
+      const { images = [], staff, ...rest } = createServiceDto;
 
-      // const staffdb = await this.staffRepository.findBy({
-      //   name: In(staffMembers),
-      // });
+      const dbStaff = await this.staffRepository.findBy({
+        id: In(staff),
+      });
 
       const service = this.serviceRepository.create({
         user,
         images: images.map((img) =>
           this.serviceImageRepository.create({ url: img }),
         ),
-        // staffMembers: staffdb,
-        ...productsRest,
+        staff: dbStaff,
+        ...rest,
       });
       await this.serviceRepository.save(service);
       return service;
@@ -87,13 +87,14 @@ export class ServicesService {
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
-    const { images, ...toUpdate } = updateServiceDto;
-    // const staff = await this.staffRepository.findBy({
-    //   name: In(staffMembers),
-    // });
+    const { images, staff, ...rest } = updateServiceDto;
+    const dbStaff = await this.staffRepository.findBy({
+      id: In(staff),
+    });
     const service = await this.serviceRepository.preload({
       id,
-      ...toUpdate,
+      staff: dbStaff,
+      ...rest,
     });
     if (!service) throw new NotFoundException(`Image not found`);
 

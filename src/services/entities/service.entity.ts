@@ -2,7 +2,6 @@ import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
   Entity,
-  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -35,12 +34,12 @@ export class Service {
   description: string;
 
   @Column('bool')
-  is_available_online: boolean;
+  isAvailableOnline: boolean;
 
   @Column('bool', {
     default: true,
   })
-  is_active: boolean;
+  isActive: boolean;
 
   @OneToMany(() => ServiceImage, (image) => image.service, {
     cascade: true,
@@ -49,7 +48,6 @@ export class Service {
   images?: ServiceImage[];
 
   @ManyToMany(() => Staff, (staff) => staff.services)
-  @JoinTable()
   staff: Staff[];
 
   @ManyToOne(() => User, (user) => user.services, { eager: true })

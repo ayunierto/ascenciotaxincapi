@@ -3,10 +3,12 @@ import { SeedService } from './seed.service';
 import { SeedController } from './seed.controller';
 import { ServicesModule } from 'src/services/services.module';
 import { UsersModule } from 'src/users/users.module';
+import { ScheduleModule } from 'src/schedule/schedule.module';
+import { StaffModule } from 'src/staff/staff.module';
 
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
-  imports: [ServicesModule, UsersModule],
+  imports: [ServicesModule, UsersModule, ScheduleModule, StaffModule],
 })
 export class SeedModule {}

@@ -2,8 +2,8 @@ import { IsMobilePhone, IsString, MinLength } from 'class-validator';
 
 export class VerifyUserDto {
   @IsString()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsString()
-  verfication_code: string;
+  verficationCode: string;
 }

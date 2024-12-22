@@ -10,6 +10,8 @@ import {
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { Auth } from 'src/auth/decorators';
+import { ValidRoles } from 'src/auth/interfaces';
 
 @Controller('staff')
 export class StaffController {

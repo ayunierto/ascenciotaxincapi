@@ -8,10 +8,10 @@ import { Staff } from 'src/staff/entities/staff.entity';
 @Entity()
 export class CreateAppointmentDto {
   @IsDate()
-  start_date_and_time: Date;
+  startDateAndTime: Date;
 
   @IsDate()
-  end_date_and_time: Date;
+  endDateAndTime: Date;
 
   @IsString()
   state: AppointmentState;
@@ -20,10 +20,10 @@ export class CreateAppointmentDto {
   comments: string;
 
   @IsString()
-  additional_remarks: string;
+  additionalRemarks: string;
 
   @IsDate()
-  created_at: Date;
+  createdAt: Date;
 
   @IsObject()
   service: Service;

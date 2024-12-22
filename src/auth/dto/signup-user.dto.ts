@@ -21,7 +21,7 @@ export class SignupUserDto {
   @MinLength(3, {
     message: 'The last name must have a minimum of 3 characters',
   })
-  last_name: string;
+  lastName: string;
 
   @IsString()
   @IsEmail()
@@ -29,7 +29,7 @@ export class SignupUserDto {
   email: string;
 
   @IsMobilePhone()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsString()
   @MinLength(6)
@@ -46,9 +46,9 @@ export class SignupUserDto {
 
   @IsDate()
   @IsOptional()
-  last_login?: Date;
+  lastLogin?: Date;
 
   @IsString()
   @IsOptional()
-  verfication_code?: string;
+  verficationCode?: string;
 }

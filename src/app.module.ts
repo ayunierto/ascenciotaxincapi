@@ -7,9 +7,9 @@ import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
-import { CalendarModule } from './calendar/calendar.module';
 import { StaffModule } from './staff/staff.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -30,9 +30,9 @@ import { AppointmentModule } from './appointment/appointment.module';
     UsersModule,
     SeedModule,
     FilesModule,
-    CalendarModule,
     StaffModule,
     AppointmentModule,
+    ScheduleModule,
   ],
   controllers: [],
   providers: [],

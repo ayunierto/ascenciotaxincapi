@@ -26,21 +26,22 @@ export class AuthService {
 
   async signup(signupUserDto: SignupUserDto) {
     const { password, ...userData } = signupUserDto;
+
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-    console.warn(password);
+
     try {
       const user = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
-        verification_code: verificationCode,
+        verificationCode,
       });
       const savedUser = await this.userRepository.save(user);
 
       if (savedUser) {
-        await this.sendSMSVerificationCodeWithTwillio(
-          signupUserDto.phone_number,
+        await this.sendWhatsAppVerificationCodeWithTwillio(
+          signupUserDto.phoneNumber,
           verificationCode,
         );
       }
@@ -63,6 +64,7 @@ export class AuthService {
           HttpStatus.CONFLICT,
         );
       }
+      console.warn(error);
       throw new HttpException(
         {
           code: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -79,20 +81,20 @@ export class AuthService {
   async signin(loginUserDto: LoginUserDto) {
     const { password, username } = loginUserDto;
     const user = await this.userRepository.findOne({
-      where: [{ email: username }, { phone_number: username }],
+      where: [{ email: username }, { phoneNumber: username }],
       select: {
         email: true,
         password: true,
         id: true,
         roles: true,
-        is_active: true,
+        isActive: true,
         name: true,
         appointments: true,
         birthdate: true,
-        last_login: true,
-        last_name: true,
-        phone_number: true,
-        registration_date: true,
+        lastLogin: true,
+        lastName: true,
+        phoneNumber: true,
+        registrationDate: true,
       },
     });
 
@@ -108,7 +110,7 @@ export class AuthService {
       );
     }
 
-    if (!user.is_active) {
+    if (!user.isActive) {
       throw new HttpException(
         {
           code: HttpStatus.UNAUTHORIZED,
@@ -149,6 +151,38 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
+  async sendWhatsAppVerificationCodeWithTwillio(
+    phoneNumber: string,
+    verificationCode: string,
+  ) {
+    const accountSid = process.env.TWILLIO_ACCOUNTSID;
+    const authToken = process.env.TWILLIO_AUTHTOKEN;
+    const client = require('twilio')(accountSid, authToken);
+
+    client.messages
+      .create({
+        from: 'whatsapp:+14155238886',
+        contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
+        contentVariables: `{"1":"${verificationCode}"}`,
+        to: `whatsapp:${phoneNumber}`,
+      })
+      .then((message) => console.log(message));
+
+    // Sin plantillas
+    // const client = require('twilio')(accountSid, authToken);
+
+    // client.messages
+    //   .create({
+    //     body: 'Your appointment is coming up on July 21 at 3PM',
+    //     from: 'whatsapp:+14155238886',
+    //     to: 'whatsapp:+51917732227',
+    //   })
+    //   .then((message) => console.log(message.sid))
+    //   .done();
+
+    return verificationCode;
+  }
+
   async sendSMSVerificationCodeWithTwillio(
     phoneNumber: string,
     verificationCode: string,
@@ -162,27 +196,27 @@ export class AuthService {
         from: '+12542800440',
         to: phoneNumber,
       })
-      .then((message) => console.log(message.sid));
+      .then((message) => console.log(message.body));
 
     return verificationCode;
   }
 
   async verifyCode(verifyUserDto: VerifyUserDto) {
-    const { phone_number, verfication_code } = verifyUserDto;
+    const { phoneNumber, verficationCode } = verifyUserDto;
     const user = await this.userRepository.findOne({
-      where: { phone_number: phone_number },
+      where: { phoneNumber },
     });
 
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
-    if (user.verification_code !== verfication_code) {
+    if (user.verificationCode !== verficationCode) {
       throw new UnauthorizedException('Invalid verification code');
     }
 
-    user.is_active = true;
-    user.verification_code = null;
+    user.isActive = true;
+    user.verificationCode = null;
     await this.userRepository.save(user);
 
     return {

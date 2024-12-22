@@ -25,10 +25,10 @@ export class CreateServiceDto {
   description?: string;
 
   @IsBoolean()
-  is_available_online: boolean;
+  isAvailableOnline: boolean;
 
   @IsBoolean()
-  is_active: boolean;
+  isActive: boolean;
 
   @IsString({ each: true })
   @IsArray()
@@ -36,5 +36,5 @@ export class CreateServiceDto {
   images?: string[];
 
   @IsArray()
-  staff: Staff[];
+  staff: string[];
 }

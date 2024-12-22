@@ -10,10 +10,10 @@ export class Appointment {
   id: string;
 
   @Column('timestamp with time zone')
-  start_date_and_time: Date;
+  startDateAndTime: Date;
 
   @Column('timestamp with time zone')
-  end_date_and_time: Date;
+  endDateAndTime: Date;
 
   @Column('text')
   state: AppointmentState;
@@ -22,10 +22,10 @@ export class Appointment {
   comments: string;
 
   @Column('text')
-  additional_remarks: string;
+  additionalRemarks: string;
 
   @Column('timestamp with time zone')
-  created_at: string;
+  createdAt: string;
 
   @ManyToOne(() => Service, (service) => service.appointments)
   service: Service;
