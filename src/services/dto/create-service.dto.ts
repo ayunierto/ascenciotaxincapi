@@ -1,4 +1,5 @@
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsInt,
@@ -7,7 +8,6 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { Staff } from 'src/staff/entities/staff.entity';
 
 export class CreateServiceDto {
   @IsString()
@@ -30,11 +30,12 @@ export class CreateServiceDto {
   @IsBoolean()
   isActive: boolean;
 
-  @IsString({ each: true })
   @IsArray()
+  @IsString({ each: true })
   @IsOptional()
   images?: string[];
 
   @IsArray()
+  @ArrayMinSize(1)
   staff: string[];
 }

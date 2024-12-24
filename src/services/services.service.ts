@@ -33,10 +33,10 @@ export class ServicesService {
 
   async create(createServiceDto: CreateServiceDto, user: User) {
     try {
-      const { images = [], staff, ...rest } = createServiceDto;
+      const { images = [], staff: staffIds, ...rest } = createServiceDto;
 
-      const dbStaff = await this.staffRepository.findBy({
-        id: In(staff),
+      const staff = await this.staffRepository.findBy({
+        id: In(staffIds),
       });
 
       const service = this.serviceRepository.create({
@@ -44,7 +44,7 @@ export class ServicesService {
         images: images.map((img) =>
           this.serviceImageRepository.create({ url: img }),
         ),
-        staff: dbStaff,
+        staff,
         ...rest,
       });
       await this.serviceRepository.save(service);

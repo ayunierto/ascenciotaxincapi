@@ -10,6 +10,7 @@ import {
 import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { IsArray } from 'class-validator';
 
 @Entity('services')
 export class Service {
@@ -50,7 +51,10 @@ export class Service {
   @ManyToMany(() => Staff, (staff) => staff.services)
   staff: Staff[];
 
-  @ManyToOne(() => User, (user) => user.services, { eager: true })
+  @ManyToOne(() => User, (user) => user.services, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)

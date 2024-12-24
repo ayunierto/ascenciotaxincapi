@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -11,6 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from './entities/staff.entity';
 import { In, Repository } from 'typeorm';
 import { Service } from 'src/services/entities';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 
 @Injectable()
 export class StaffService {
@@ -21,18 +24,30 @@ export class StaffService {
     private readonly staffRepository: Repository<Staff>,
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+    @InjectRepository(Schedule)
+    private readonly scheduleRepository: Repository<Schedule>,
   ) {}
 
   async create(createStaffDto: CreateStaffDto) {
-    const { services, ...rest } = createStaffDto;
+    const {
+      services: servicesIds,
+      schedules: schedulesIds,
+      ...rest
+    } = createStaffDto;
 
-    const dbServices = await this.serviceRepository.findBy({
-      id: In(services),
+    // Get services
+    const services = await this.serviceRepository.findBy({
+      id: In(servicesIds),
+    });
+    // Get schedules
+    const schedules = await this.scheduleRepository.findBy({
+      id: In(schedulesIds),
     });
 
     try {
       const staff = this.staffRepository.create({
-        services: dbServices,
+        services,
+        schedules,
         ...rest,
       });
       await this.staffRepository.save(staff);
@@ -46,6 +61,7 @@ export class StaffService {
     return await this.staffRepository.find({
       relations: {
         services: true,
+        schedules: true,
       },
     });
   }
@@ -58,15 +74,25 @@ export class StaffService {
   }
 
   async update(id: string, updateStaffDto: UpdateStaffDto) {
-    const { services, ...rest } = updateStaffDto;
+    const {
+      services: servicesIds,
+      schedules: schedulesIds,
+      ...rest
+    } = updateStaffDto;
 
-    const dbServices = await this.serviceRepository.findBy({
-      id: In(services),
+    // Get services
+    const services = await this.serviceRepository.findBy({
+      id: In(servicesIds),
+    });
+    // Get schedules
+    const schedules = await this.scheduleRepository.findBy({
+      id: In(schedulesIds),
     });
 
     const staff = await this.staffRepository.preload({
       id,
-      services: dbServices,
+      services,
+      schedules,
       ...rest,
     });
     if (!staff) throw new NotFoundException();
@@ -92,5 +118,23 @@ export class StaffService {
     throw new InternalServerErrorException(
       'Unexpected error, check server logs.',
     );
+  }
+
+  async removeAll() {
+    const query = this.staffRepository.createQueryBuilder('staff');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      throw new HttpException(
+        {
+          code: HttpStatus.BAD_REQUEST,
+          message: 'Can not delete staff members',
+          error: 'Can not delete staff members',
+          cause: 'Unknown',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

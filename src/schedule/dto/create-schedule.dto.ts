@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateScheduleDto {
   @IsNumber()
@@ -11,5 +11,6 @@ export class CreateScheduleDto {
   endTime: string;
 
   @IsString()
-  staff: string;
+  @IsOptional()
+  staff?: string;
 }

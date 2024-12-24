@@ -1,4 +1,4 @@
-import { IsDate, IsObject, IsString } from 'class-validator';
+import { IsDate, IsObject, IsOptional, IsString } from 'class-validator';
 import { Entity } from 'typeorm';
 import { AppointmentState } from '../interfaces/appointment-state.interface';
 import { Service } from 'src/services/entities';
@@ -7,14 +7,14 @@ import { Staff } from 'src/staff/entities/staff.entity';
 
 @Entity()
 export class CreateAppointmentDto {
-  @IsDate()
-  startDateAndTime: Date;
-
-  @IsDate()
-  endDateAndTime: Date;
+  @IsString()
+  startDateAndTime: string;
 
   @IsString()
-  state: AppointmentState;
+  endDateAndTime: string;
+
+  @IsString()
+  state: string;
 
   @IsString()
   comments: string;
@@ -22,15 +22,9 @@ export class CreateAppointmentDto {
   @IsString()
   additionalRemarks: string;
 
-  @IsDate()
-  createdAt: Date;
+  @IsString()
+  service: string;
 
-  @IsObject()
-  service: Service;
-
-  @IsObject()
-  user: User;
-
-  @IsObject()
-  staff: Staff;
+  @IsString()
+  staff: string;
 }

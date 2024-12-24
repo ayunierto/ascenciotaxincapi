@@ -16,15 +16,15 @@ export class ScheduleService {
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto) {
-    const { staff, ...rest } = createScheduleDto;
+    const { staff: id, ...rest } = createScheduleDto;
 
-    const dbStaff = await this.staffRepository.findOneBy({
-      id: staff,
+    const staff = await this.staffRepository.findOneBy({
+      id,
     });
 
     try {
       const schedule = this.scheduleRepository.create({
-        staff: dbStaff,
+        staff,
         ...rest,
       });
       await this.scheduleRepository.save(schedule);

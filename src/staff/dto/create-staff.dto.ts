@@ -7,6 +7,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Service } from 'src/services/entities';
 
 export class CreateStaffDto {
@@ -27,4 +28,7 @@ export class CreateStaffDto {
 
   @IsArray()
   services: string[];
+
+  @IsArray()
+  schedules: string[];
 }

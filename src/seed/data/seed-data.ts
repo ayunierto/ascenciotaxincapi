@@ -14,6 +14,17 @@ interface SeedData {
 export const initialData: SeedData = {
   users: [
     {
+      name: 'Alcides Yunier',
+      lastName: 'Turruellas Osorio',
+      email: 'ayunierto@gmail.com',
+      phoneNumber: '+51917732227',
+      password: 'Abcd1234',
+      birthdate: new Date('1992-10-28'),
+      registrationDate: new Date(),
+      isActive: true,
+      roles: [ValidRoles.superUser, ValidRoles.admin],
+    },
+    {
       name: 'Yulier',
       lastName: 'Rondon',
       email: 'yrondon@ascenciotaxinc.com',
@@ -33,7 +44,7 @@ export const initialData: SeedData = {
       birthdate: new Date('2000-01-01'),
       registrationDate: new Date(),
       isActive: true,
-      roles: [ValidRoles.staff],
+      roles: [ValidRoles.superUser],
     },
   ],
   staff: [
@@ -42,12 +53,14 @@ export const initialData: SeedData = {
       lastName: 'Rondon',
       isActive: true,
       services: [],
+      schedules: [],
     },
     {
       name: 'Lucia',
       lastName: 'Ascencio',
       isActive: true,
       services: [],
+      schedules: [],
     },
   ],
   services: [

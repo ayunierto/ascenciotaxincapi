@@ -33,7 +33,7 @@ export class Staff {
   @OneToMany(() => Appointment, (appointment) => appointment.staff)
   appointments: Appointment[];
 
-  @OneToMany(() => Schedule, (schedule) => schedule.staff)
+  @OneToMany(() => Schedule, (schedule) => schedule.staff) // Relación uno a muchos
   schedules: Schedule[];
 
   // TODO: Agregar user id.

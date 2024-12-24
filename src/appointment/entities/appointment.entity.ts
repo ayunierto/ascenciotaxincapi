@@ -16,7 +16,7 @@ export class Appointment {
   endDateAndTime: Date;
 
   @Column('text')
-  state: AppointmentState;
+  state: string;
 
   @Column('text')
   comments: string;
@@ -24,8 +24,8 @@ export class Appointment {
   @Column('text')
   additionalRemarks: string;
 
-  @Column('timestamp with time zone')
-  createdAt: string;
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
 
   @ManyToOne(() => Service, (service) => service.appointments)
   service: Service;
