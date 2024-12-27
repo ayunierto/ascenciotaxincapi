@@ -10,6 +10,9 @@ import { FilesModule } from './files/files.module';
 import { StaffModule } from './staff/staff.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { AvailabilityModule } from './availability/availability.module';
+import { CalendarModule } from './calendar/calendar.module';
+import { ZoomModule } from './zoom/zoom.module';
 
 @Module({
   imports: [
@@ -33,6 +36,9 @@ import { ScheduleModule } from './schedule/schedule.module';
     StaffModule,
     AppointmentModule,
     ScheduleModule,
+    AvailabilityModule,
+    CalendarModule,
+    ZoomModule,
   ],
   controllers: [],
   providers: [],

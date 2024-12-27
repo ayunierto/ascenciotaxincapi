@@ -15,10 +15,10 @@ export class Schedule {
   @Column('integer')
   weekday: number;
 
-  @Column('time without time zone')
+  @Column('time')
   startTime: string;
 
-  @Column('time without time zone')
+  @Column('time')
   endTime: string;
 
   @ManyToOne(() => Staff, (staff) => staff.schedules, { onDelete: 'CASCADE' })

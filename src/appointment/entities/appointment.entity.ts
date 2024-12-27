@@ -15,14 +15,16 @@ export class Appointment {
   @Column('timestamp with time zone')
   endDateAndTime: Date;
 
-  @Column('text')
+  @Column('text', { default: 'pending' })
+  // @Column({
+  //   type: 'enum',
+  //   enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+  //   default: 'pending',
+  // })
   state: string;
 
   @Column('text')
   comments: string;
-
-  @Column('text')
-  additionalRemarks: string;
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

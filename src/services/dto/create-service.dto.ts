@@ -24,6 +24,9 @@ export class CreateServiceDto {
   @IsOptional()
   description?: string;
 
+  @IsString()
+  address: string;
+
   @IsBoolean()
   isAvailableOnline: boolean;
 

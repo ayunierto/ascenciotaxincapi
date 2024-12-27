@@ -10,7 +10,6 @@ import {
 import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { IsArray } from 'class-validator';
 
 @Entity('services')
 export class Service {
@@ -33,6 +32,9 @@ export class Service {
     nullable: true,
   })
   description: string;
+
+  @Column('text')
+  address: string;
 
   @Column('bool')
   isAvailableOnline: boolean;
