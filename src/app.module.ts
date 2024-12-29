@@ -18,15 +18,10 @@ import { ZoomModule } from './zoom/zoom.module';
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      ssl: process.env.STAGE === 'prod' ? true : false,
-      extra: {
-        ssl:
-          process.env.STAGE === 'prod'
-            ? {
-                rejectsUnauthorized: false,
-              }
-            : null,
-      },
+      ssl:
+        process.env.STAGE !== 'development'
+          ? { rejectUnauthorized: false }
+          : false,
 
       type: 'postgres',
       host: process.env.DB_HOST,
