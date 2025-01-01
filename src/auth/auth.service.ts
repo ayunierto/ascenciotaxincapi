@@ -53,8 +53,12 @@ export class AuthService {
       //   );
       // }
 
-      return savedUser;
+      return {
+        ...user,
+        token: this.getJwtToken({ id: user.id }),
+      };
     } catch (error) {
+      console.warn(error.detail);
       if (error.code === '23505') {
         const err: string = error.detail;
         const regex: RegExp = /\(([^)]+)\)/;
@@ -64,7 +68,7 @@ export class AuthService {
         throw new HttpException(
           {
             code: HttpStatus.CONFLICT,
-            message: 'Resource already exists',
+            message: `${word} already exists`,
             error: 'Conflict',
             cause: word,
           },
@@ -89,20 +93,6 @@ export class AuthService {
     const { password, username } = loginUserDto;
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
-      select: {
-        email: true,
-        password: true,
-        id: true,
-        roles: true,
-        isActive: true,
-        name: true,
-        appointments: true,
-        birthdate: true,
-        lastLogin: true,
-        lastName: true,
-        phoneNumber: true,
-        registrationDate: true,
-      },
     });
 
     if (!user) {
