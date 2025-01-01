@@ -54,8 +54,8 @@ export class AuthService {
       // }
 
       return {
-        ...user,
-        token: this.getJwtToken({ id: user.id }),
+        ...savedUser,
+        token: this.getJwtToken({ id: savedUser.id }),
       };
     } catch (error) {
       console.warn(error.detail);
@@ -93,6 +93,20 @@ export class AuthService {
     const { password, username } = loginUserDto;
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
+      select: {
+        email: true,
+        password: true,
+        id: true,
+        roles: true,
+        isActive: true,
+        name: true,
+        appointments: true,
+        birthdate: true,
+        lastLogin: true,
+        lastName: true,
+        phoneNumber: true,
+        registrationDate: true,
+      },
     });
 
     if (!user) {
