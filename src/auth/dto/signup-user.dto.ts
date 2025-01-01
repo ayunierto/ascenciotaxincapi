@@ -28,6 +28,9 @@ export class SignupUserDto {
   @IsLowercase()
   email: string;
 
+  @IsString()
+  countryCode: string;
+
   @IsMobilePhone()
   phoneNumber: string;
 
