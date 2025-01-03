@@ -10,6 +10,7 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { DateUtils } from './utils/date.utils';
 import { CalendarModule } from 'src/calendar/calendar.module';
 import { ZoomModule } from 'src/zoom/zoom.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   controllers: [AppointmentController],
@@ -19,6 +20,7 @@ import { ZoomModule } from 'src/zoom/zoom.module';
     AuthModule,
     CalendarModule,
     ZoomModule,
+    MailModule,
   ],
   exports: [AppointmentService, TypeOrmModule],
 })
