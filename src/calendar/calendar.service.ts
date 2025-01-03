@@ -2,25 +2,44 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { calendar_v3, google } from 'googleapis';
 import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
 
+import * as fs from 'fs';
+
 @Injectable()
 export class CalendarService {
   // Google
   private calendar: calendar_v3.Calendar;
-  private SCOPE = ['https://www.googleapis.com/auth/calendar'];
   private calendarId = process.env.GOOGLE_CALENDAR_ACCOUNT;
-  private client_email = process.env.GOOGLE_CALENDAR_CLIENT_EMAIL;
-  private private_key = process.env.GOOGLE_CALENDAR_PRIVATE_KEY;
+  // private client_email = process.env.GOOGLE_CALENDAR_CLIENT_EMAIL;
+  // private private_key = process.env.GOOGLE_CALENDAR_PRIVATE_KEY;
 
   constructor() {
-    // Configurar el cliente JWT
-    const authClient = new google.auth.JWT({
-      email: this.client_email,
-      key: this.private_key,
-      // keyFile: this.CREDENTIALS_PATH,
-      scopes: this.SCOPE,
+    const credentialsBase64 = process.env.CREDENTIALS_BASE64;
+    const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString(
+      'utf-8',
+    );
+
+    fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Guarda el archivo temporalmente
+
+    const auth = new google.auth.GoogleAuth({
+      keyFile: '/tmp/credentials.json', // Usa el archivo temporal
+      scopes: ['https://www.googleapis.com/auth/calendar'],
     });
 
-    this.calendar = google.calendar({ version: 'v3', auth: authClient });
+    // ... después de usar la auth, puedes borrar el archivo:
+    // fs.unlinkSync('/tmp/credentials.json');
+
+    // ... después de usar la auth, puedes borrar el archivo:
+    // fs.unlinkSync('/tmp/credentials.json');
+
+    // Configurar el cliente JWT
+    // const auth = new google.auth.JWT({
+    //   email: this.client_email,
+    //   key: this.private_key,
+    //   // keyFile: this.CREDENTIALS_PATH,
+    //   scopes: this.SCOPE,
+    // });
+
+    this.calendar = google.calendar({ version: 'v3', auth });
   }
 
   // Método para crear un evento en Google Calendar
