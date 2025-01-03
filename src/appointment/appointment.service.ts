@@ -18,6 +18,7 @@ import { DateUtils } from './utils/date.utils';
 import { CalendarService } from 'src/calendar/calendar.service';
 import { ZoomService } from 'src/zoom/zoom.service';
 import { MailService } from 'src/mail/mail.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class AppointmentService {
@@ -222,16 +223,22 @@ export class AppointmentService {
       });
 
       // Send email
-      const endDateAndTimeToronto = this.dateUtils.converToIso8601ToToronto(
-        new Date(endDateAndTime).toISOString(),
-      );
+
       const startDateAndTimeToronto = this.dateUtils.converToIso8601ToToronto(
         new Date(startDateAndTime).toISOString(),
       );
       this.mailService.sendMail({
         serviceName: service.name,
-        appointmentDate: startDateAndTimeToronto,
-        appointmentTime: endDateAndTimeToronto,
+        appointmentDate: DateTime.fromISO(startDateAndTime, {
+          zone: 'utc',
+        })
+          .setZone('America/Toronto')
+          .toFormat('yyyy-MM-dd'),
+        appointmentTime: DateTime.fromISO(startDateAndTime, {
+          zone: 'utc',
+        })
+          .setZone('America/Toronto')
+          .toFormat('HH:mm:ss'),
         clientName: `${user.name} ${user.lastName}`,
         location: service.address,
         staffName: `${staff.name} ${staff.lastName}`,
