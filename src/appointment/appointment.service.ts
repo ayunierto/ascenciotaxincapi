@@ -88,8 +88,9 @@ export class AppointmentService {
     startDateAndTime: Date,
     endDateAndTime: Date,
   ): Promise<boolean> {
-    // Get the day of the selected date (0-6) 0: Sunday, 6: Saturday
-    const weekday = new Date(startDateAndTime).getDay() - 1;
+    // Get the day of the selected date (1-7) 1: Monday, ..., 7: Sunday
+    const startDateTime = startDateAndTime.toISOString();
+    const weekday = DateTime.fromISO(startDateTime).weekday;
 
     // Check if the staff has a defined schedule for that day
     const staffSchedule = await this.scheduleRepository.findOne({
@@ -223,11 +224,8 @@ export class AppointmentService {
       });
 
       // Send email
-
-      const startDateAndTimeToronto = this.dateUtils.converToIso8601ToToronto(
-        new Date(startDateAndTime).toISOString(),
-      );
       this.mailService.sendMail({
+        to: user.email,
         serviceName: service.name,
         appointmentDate: DateTime.fromISO(startDateAndTime, {
           zone: 'utc',
@@ -242,6 +240,7 @@ export class AppointmentService {
         clientName: `${user.name} ${user.lastName}`,
         location: service.address,
         staffName: `${staff.name} ${staff.lastName}`,
+        meetingLink: meeting.join_url,
       });
 
       return appointment;

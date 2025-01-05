@@ -9,8 +9,8 @@ export class CalendarService {
   // Google
   private calendar: calendar_v3.Calendar;
   private calendarId = process.env.GOOGLE_CALENDAR_ACCOUNT;
-  // private client_email = process.env.GOOGLE_CALENDAR_CLIENT_EMAIL;
-  // private private_key = process.env.GOOGLE_CALENDAR_PRIVATE_KEY;
+  private alternativeCalendarId =
+    process.env.GOOGLE_CALENDAR_ACCOUNT_ALTERNATIVE;
 
   constructor() {
     const credentialsBase64 = process.env.CREDENTIALS_BASE64;
@@ -26,18 +26,7 @@ export class CalendarService {
     });
 
     // ... después de usar la auth, puedes borrar el archivo:
-    // fs.unlinkSync('/tmp/credentials.json');
-
-    // ... después de usar la auth, puedes borrar el archivo:
-    // fs.unlinkSync('/tmp/credentials.json');
-
-    // Configurar el cliente JWT
-    // const auth = new google.auth.JWT({
-    //   email: this.client_email,
-    //   key: this.private_key,
-    //   // keyFile: this.CREDENTIALS_PATH,
-    //   scopes: this.SCOPE,
-    // });
+    fs.unlinkSync('/tmp/credentials.json');
 
     this.calendar = google.calendar({ version: 'v3', auth });
   }
@@ -62,6 +51,25 @@ export class CalendarService {
         },
       });
 
+      // Crear enevento en calendario alternativo
+      const alternativCalendarResponse = await this.calendar.events.insert({
+        calendarId: this.alternativeCalendarId,
+        requestBody: {
+          summary: event.summary,
+          location: event.location,
+          start: {
+            dateTime: event.startTime,
+            timeZone: event.timeZone,
+          },
+          end: {
+            dateTime: event.endTime,
+            timeZone: event.timeZone,
+          },
+          description: `${event.description}`,
+        },
+      });
+
+      console.log('Event created:', response.data);
       return response.data;
     } catch (error) {
       console.log(error);

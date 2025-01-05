@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DateTime } from 'luxon';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Between, Repository } from 'typeorm';
@@ -13,59 +14,83 @@ export class AvailabilityService {
     private readonly scheduleRepository: Repository<Schedule>,
   ) {}
 
-  async getAvailability(staffMemberId: string, date: string) {
-    const dateISO = new Date(date).toISOString();
-    const weekday = new Date(dateISO).getDay(); // Obtener el día de la semana (0-6)
+  async getAvailability(staffId: string, date: string) {
+    console.warn('===============================================');
+    console.warn('===============================================');
+    console.warn({ now: new Date() });
+    console.warn({ date });
+    // Obtener el día de la semana (1-7) 1: Lunes
+    const weekday = DateTime.fromISO(date).weekday;
+    console.warn({ weekday });
     const schedule = await this.scheduleRepository.findOne({
-      where: { staff: { id: staffMemberId }, weekday: weekday },
+      where: { staff: { id: staffId }, weekday },
     });
 
     if (!schedule) {
       // throw new BadRequestException('No schedule for this day');
+      console.warn('No hay horario para este día');
       return []; // No hay horario para este día
     }
 
     // Buscar citas para el día seleccionado
+    // Hora de inicio de la jornada
+    let currentStartDateTime = this.createDateTimeISO(date, schedule.startTime);
+
+    // Si ya ha pasado la hora de inicio de la jornada, buscar citas a partir de la hora actual
+    if (currentStartDateTime < new Date()) {
+      currentStartDateTime = new Date();
+    }
+    console.warn({ startTime: schedule.startTime });
+    console.warn({ currentStartDateTime });
+    // Hora de fin de la jornada
+    const scheduleEndDateTime = this.createDateTimeISO(date, schedule.endTime);
+    console.warn({ endTime: schedule.endTime });
+    console.warn({ scheduleEndDateTime });
+
+    // Buscar cita entre el horario de inicio y fin del dia seleccionado
     const appointments = await this.appointmentRepository.find({
       where: {
-        staff: { id: staffMemberId },
-        startDateAndTime: Between(
-          new Date(`${date}T00:00:00.000Z`),
-          new Date(`${date}T23:59:59.999Z`),
-        ),
+        staff: { id: staffId },
+        startDateAndTime: Between(currentStartDateTime, scheduleEndDateTime),
       }, // Filtrar por fecha
       order: { startDateAndTime: 'ASC' },
     });
 
     const availableSlots = []; // Espacios disponibles
-    let currentStartTime = this.createDateTime(date, schedule.startTime); // Hora de inicio de la jornada
-    const scheduleEndTime = this.createDateTime(date, schedule.endTime); // Hora de fin de la jornada
 
     for (const appointment of appointments) {
       const appointmentStartTime = new Date(appointment.startDateAndTime); // Hora de inicio de la cita
       // Si hay un espacio disponible antes de la cita
-      if (appointmentStartTime > currentStartTime) {
+      if (appointmentStartTime > currentStartDateTime) {
         // Agregar el espacio disponible a la lista
         availableSlots.push({
-          start: currentStartTime.toISOString(),
+          start: currentStartDateTime.toISOString(),
           end: appointmentStartTime.toISOString(),
         });
       }
-      currentStartTime = new Date(appointment.endDateAndTime); // Actualizar la hora de inicio
+      // Actualizar la hora de inicio
+      currentStartDateTime = new Date(appointment.endDateAndTime);
     }
 
     // Si hay un espacio disponible después de la última cita
-    if (currentStartTime < scheduleEndTime) {
+    if (currentStartDateTime < scheduleEndDateTime) {
       availableSlots.push({
-        start: currentStartTime.toISOString(),
-        end: scheduleEndTime.toISOString(),
+        start: currentStartDateTime.toISOString(),
+        end: scheduleEndDateTime.toISOString(),
       });
     }
 
+    console.warn(availableSlots);
     return availableSlots;
   }
 
-  private createDateTime(date: string, time: string): Date {
+  /**
+   *
+   * @param date "2025-01-20"
+   * @param time "09:30:00"
+   * @returns "2025-01-20T14:30:00.000Z"
+   */
+  private createDateTimeISO(date: string, time: string): Date {
     const [year, month, day] = date.split('-').map(Number);
     const [hours, minutes, seconds] = time.split(':').map(Number);
 

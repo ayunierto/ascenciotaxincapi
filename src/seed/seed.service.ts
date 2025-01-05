@@ -56,54 +56,55 @@ export class SeedService {
       });
 
       // Create Schedule
-      // 0: Monday, 1: Tuesday, 2: Wednesday, 3: Thursday, 4: Friday, 5: Saturday, 6: Sunday
+      // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
+      // for luxon
       const scheduleMondayYulier = await this.scheduleService.create({
-        weekday: 0,
+        weekday: 1,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
       const scheduleTuesdayYulier = await this.scheduleService.create({
-        weekday: 1,
+        weekday: 2,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
       const scheduleWednesdayYulier = await this.scheduleService.create({
-        weekday: 2,
+        weekday: 3,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
       const scheduleThursdayYulier = await this.scheduleService.create({
-        weekday: 3,
+        weekday: 4,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
       const scheduleFridayYulier = await this.scheduleService.create({
-        weekday: 4,
+        weekday: 5,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
       const scheduleMondayLucia = await this.scheduleService.create({
-        weekday: 0,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleTuesdayLucia = await this.scheduleService.create({
         weekday: 1,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
-      const scheduleWednesdayLucia = await this.scheduleService.create({
+      const scheduleTuesdayLucia = await this.scheduleService.create({
         weekday: 2,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
-      const scheduleThursdayLucia = await this.scheduleService.create({
+      const scheduleWednesdayLucia = await this.scheduleService.create({
         weekday: 3,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });
-      const scheduleFridayLucia = await this.scheduleService.create({
+      const scheduleThursdayLucia = await this.scheduleService.create({
         weekday: 4,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleFridayLucia = await this.scheduleService.create({
+        weekday: 5,
         startTime: '09:30:00',
         endTime: '19:30:00',
       });

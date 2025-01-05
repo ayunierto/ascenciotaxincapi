@@ -49,6 +49,7 @@ export class DateUtils {
    * @param {string} fechaISO - The ISO 8601 date string to be converted.
    * @returns {string | null} - The time in Toronto in 'HH:MM:SS' format, or null if the input date is invalid.
    *
+   *
    * @throws {Error} - If an error occurs during the date processing.
    */
   converToIso8601ToToronto(fechaISO: string): string | null {
@@ -63,9 +64,9 @@ export class DateUtils {
         return null;
       }
 
-      const fechaToronto = fechaUTC.setZone('America/Toronto'); // Convierte a la zona horaria de Toronto
+      const torontoDate = fechaUTC.setZone('America/Toronto'); // Convierte a la zona horaria de Toronto
 
-      return new Date(fechaToronto.toISO()).toLocaleTimeString('es-ES', {
+      return new Date(torontoDate.toISO()).toLocaleTimeString('es-ES', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -78,10 +79,4 @@ export class DateUtils {
       Settings.defaultZone = undefined; // Restore the default time zone.
     }
   }
-
-  // Ejemplos:
-  // const fechaISO1 = "2024-01-01T10:00:00Z"; // 1 de enero de 2024, 10:00 UTC (invierno en Toronto)
-  // const fechaISO2 = "2024-07-15T10:00:00Z"; // 15 de julio de 2024, 10:00 UTC (verano en Toronto)
-  // const fechaISO3 = "2024-12-25T15:30:00Z"
-  // const fechaISO4 = "fecha incorrecta";
 }
