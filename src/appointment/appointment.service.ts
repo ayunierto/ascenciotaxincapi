@@ -171,7 +171,6 @@ export class AppointmentService {
       // Check if the staff member exists
       const staff = await this.staffRepository.findOneBy({ id: staffId });
       if (!staff) throw new BadRequestException('Staff member not found');
-
       // Check if the service exists
       const service = await this.serviceRepository.findOneBy({ id: serviceId });
       if (!service) throw new BadRequestException('Service not found');
@@ -184,17 +183,6 @@ export class AppointmentService {
       );
       if (!isAvailable)
         throw new ConflictException('The selected time slot is not available');
-
-      // Save appointment
-      const appointment = this.appointmentRepository.create({
-        user,
-        staff,
-        service,
-        startDateAndTime: new Date(startDateAndTime),
-        endDateAndTime: new Date(endDateAndTime),
-        ...rest,
-      });
-      await this.appointmentRepository.save(appointment);
 
       // Crear una reunión de Zoom
       const meeting = await this.zoomService.createZoomMeeting({
@@ -212,6 +200,7 @@ export class AppointmentService {
         topic: service.name,
         type: 2,
       });
+      console.warn({ meeting });
 
       // Create event in calendar
       const event = await this.calendarService.createEvent({
@@ -222,6 +211,20 @@ export class AppointmentService {
         timeZone: 'America/Toronto',
         location: `${service.address}`,
       });
+      console.warn({ event });
+
+      // Save appointment
+      const appointment = this.appointmentRepository.create({
+        user,
+        staff,
+        service,
+        startDateAndTime: new Date(startDateAndTime),
+        endDateAndTime: new Date(endDateAndTime),
+        calendarEventId: typeof event === 'string' ? event : '',
+        zoomMeetingId: meeting.id,
+        ...rest,
+      });
+      await this.appointmentRepository.save(appointment);
 
       // Send email
       this.mailService.sendMail({
@@ -262,7 +265,12 @@ export class AppointmentService {
   }
 
   async remove(id: string) {
-    return `This action removes a #${id} appointment`;
+    const appointment = await this.appointmentRepository.findOneBy({ id });
+    if (!appointment) throw new BadRequestException('Appointment not found');
+    await this.appointmentRepository.remove(appointment);
+    await this.zoomService.remove(appointment.zoomMeetingId);
+    await this.calendarService.remove(appointment.calendarEventId);
+    return appointment;
   }
 
   async removeAll() {

@@ -69,10 +69,10 @@ export class CalendarService {
         },
       });
 
-      return response.data;
+      return response.data.id;
     } catch (error) {
       console.error(error);
-      return new BadRequestException('Error when creating event');
+      return new BadRequestException('Error creating event');
     }
   }
 
@@ -104,5 +104,13 @@ export class CalendarService {
       orderBy: 'startTime',
     });
     return response.data.items;
+  }
+
+  async remove(id: string) {
+    const response = await this.calendar.events.delete({
+      calendarId: this.calendarId,
+      eventId: id,
+    });
+    return response;
   }
 }

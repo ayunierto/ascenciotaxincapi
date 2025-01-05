@@ -28,6 +28,23 @@ export class ZoomService {
     }
   }
 
+  async remove(id: string) {
+    const token = (await this.getZoomToken()).access_token;
+
+    const request = await axios.delete(
+      `${this.ZOOM_API_BASE_URL}/meetings/${id}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return request.data;
+  }
+
   /**
    * Retrieve token from Zoom API
    *

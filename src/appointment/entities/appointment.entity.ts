@@ -26,6 +26,12 @@ export class Appointment {
   @Column('text')
   comments: string;
 
+  @Column('text')
+  calendarEventId: string;
+
+  @Column('text')
+  zoomMeetingId: string;
+
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
