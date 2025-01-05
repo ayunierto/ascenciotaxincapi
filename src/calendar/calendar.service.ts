@@ -26,7 +26,7 @@ export class CalendarService {
     });
 
     // ... después de usar la auth, puedes borrar el archivo:
-    fs.unlinkSync('/tmp/credentials.json');
+    // fs.unlinkSync('/tmp/credentials.json');
 
     this.calendar = google.calendar({ version: 'v3', auth });
   }
@@ -69,10 +69,9 @@ export class CalendarService {
         },
       });
 
-      console.log('Event created:', response.data);
       return response.data;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return new BadRequestException('Error when creating event');
     }
   }
@@ -90,7 +89,7 @@ export class CalendarService {
 
       return response.data.items;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return [];
     }
   }

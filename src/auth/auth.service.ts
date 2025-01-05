@@ -58,7 +58,7 @@ export class AuthService {
         token: this.getJwtToken({ id: savedUser.id }),
       };
     } catch (error) {
-      console.warn(error.detail);
+      console.error(error.detail);
       if (error.code === '23505') {
         const err: string = error.detail;
         const regex: RegExp = /\(([^)]+)\)/;
@@ -75,7 +75,7 @@ export class AuthService {
           HttpStatus.CONFLICT,
         );
       }
-      console.warn(error);
+      console.error(error);
       throw new HttpException(
         {
           code: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -162,55 +162,43 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  // async sendWhatsAppVerificationCodeWithTwillio(
-  //   phoneNumber: string,
-  //   verificationCode: string,
-  // ) {
-  //   const accountSid = process.env.TWILLIO_ACCOUNTSID;
-  //   const authToken = process.env.TWILLIO_AUTHTOKEN;
-  //   const client = require('twilio')(accountSid, authToken);
+  async sendWhatsAppVerificationCodeWithTwillio(
+    phoneNumber: string,
+    verificationCode: string,
+  ) {
+    const accountSid = process.env.TWILLIO_ACCOUNTSID;
+    const authToken = process.env.TWILLIO_AUTHTOKEN;
+    const client = require('twilio')(accountSid, authToken);
 
-  //   client.messages
-  //     .create({
-  //       from: 'whatsapp:+14155238886',
-  //       contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
-  //       contentVariables: `{"1":"${verificationCode}"}`,
-  //       to: `whatsapp:${phoneNumber}`,
-  //     })
-  //     .then((message) => console.log(message));
+    client.messages
+      .create({
+        from: 'whatsapp:+14155238886',
+        contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
+        contentVariables: `{"1":"${verificationCode}"}`,
+        to: `whatsapp:${phoneNumber}`,
+      })
+      .then((message) => console.log(message));
 
-  //   // Sin plantillas
-  //   // const client = require('twilio')(accountSid, authToken);
+    return verificationCode;
+  }
 
-  //   // client.messages
-  //   //   .create({
-  //   //     body: 'Your appointment is coming up on July 21 at 3PM',
-  //   //     from: 'whatsapp:+14155238886',
-  //   //     to: 'whatsapp:+51917732227',
-  //   //   })
-  //   //   .then((message) => console.log(message.sid))
-  //   //   .done();
+  async sendSMSVerificationCodeWithTwillio(
+    phoneNumber: string,
+    verificationCode: string,
+  ) {
+    const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
+    const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
+    const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
+    client.messages
+      .create({
+        body: `Your Ascenciotax verification code is: ${verificationCode}`,
+        from: '+12542800440',
+        to: phoneNumber,
+      })
+      .then((message) => console.log(message.body));
 
-  //   return verificationCode;
-  // }
-
-  // async sendSMSVerificationCodeWithTwillio(
-  //   phoneNumber: string,
-  //   verificationCode: string,
-  // ) {
-  //   const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
-  //   const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
-  //   const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
-  //   client.messages
-  //     .create({
-  //       body: `Your Ascenciotax verification code is: ${verificationCode}`,
-  //       from: '+12542800440',
-  //       to: phoneNumber,
-  //     })
-  //     .then((message) => console.log(message.body));
-
-  //   return verificationCode;
-  // }
+    return verificationCode;
+  }
 
   async verifyCode(verifyUserDto: VerifyUserDto) {
     const { phoneNumber, verficationCode } = verifyUserDto;

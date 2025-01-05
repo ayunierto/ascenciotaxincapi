@@ -37,7 +37,7 @@ export class FilesController {
         .upload(`data:image/png;base64,${base64Image}`)
         .then((r) => r.secure_url);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return new BadRequestException('Upload Failed');
     }
 

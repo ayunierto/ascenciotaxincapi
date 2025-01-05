@@ -303,47 +303,12 @@ export class SeedService {
         },
         alcidesUser,
       );
-
-      // const appointment1 = await this.appointmentService.create(
-      //   {
-      //     startDateAndTime: 'Tue Dec 24 2024 08:00:00 GMT-0500',
-      //     endDateAndTime: 'Tue Dec 24 2024 09:00:00 GMT-0500',
-      //     state: 'pending',
-      //     service: inPerson.id,
-      //     staff: yulierStaff.id,
-      //     comments: '',
-      //   },
-      //   alcidesUser,
-      // );
-      // const appointment2 = await this.appointmentService.create(
-      //   {
-      //     startDateAndTime: 'Tue Dec 24 2024 09:00:00 GMT-0500',
-      //     endDateAndTime: 'Tue Dec 24 2024 09:30:00 GMT-0500',
-      //     state: 'pending',
-      //     service: oldAgeSecurityApplication.id,
-      //     staff: yulierStaff.id,
-      //     comments: '',
-      //   },
-      //   alcidesUser,
-      // );
-      // const appointment3 = await this.appointmentService.create(
-      //   {
-      //     startDateAndTime: 'Tue Dec 24 2024 09:30:00 GMT-0500',
-      //     endDateAndTime: 'Tue Dec 24 2024 11:00:00 GMT-0500',
-      //     state: 'pending',
-      //     service: oldAgeSecurityApplication.id,
-      //     staff: luciaStaff.id,
-      //     comments: '',
-      //   },
-      //   alcidesUser,
-      // );
-
       return {
         message: 'Seed Executed',
         status: 'ok',
       };
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return error;
     }
   }
