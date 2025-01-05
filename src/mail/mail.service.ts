@@ -10,7 +10,7 @@ export class MailService {
     // const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const msg = {
-      to: 'ayunierto@gmail.com', // Change to your recipient
+      to: sendMail.to, // Change to your recipient
       from: 'ascenciotaxinc@gmail.com', // Change to your verified sender
       subject: `Appointment: ${sendMail.serviceName}`,
       text: 'Ascecncio Tax Inc Team',
@@ -19,7 +19,7 @@ export class MailService {
     sgMail
       .send(msg)
       .then(() => {
-        console.log('Email sent');
+        console.log(`Email sent to: ${sendMail.to}`);
       })
       .catch((error) => {
         console.error(error);
@@ -34,6 +34,7 @@ export class MailService {
       appointmentTime,
       location,
       serviceName,
+      meetingLink,
     } = sendMail;
     return `
     <!DOCTYPE html>
@@ -54,6 +55,7 @@ export class MailService {
                     <li style="margin-bottom: 5px;"><strong style="font-weight: bold;">Date:</strong> ${appointmentDate}</li>
                     <li style="margin-bottom: 5px;"><strong style="font-weight: bold;">Time:</strong> ${appointmentTime}</li>
                     <li style="margin-bottom: 5px;"><strong style="font-weight: bold;">Service:</strong> ${serviceName}</li>
+                    <li style="margin-bottom: 5px;"><strong style="font-weight: bold;"> Meeting link:</strong> ${meetingLink}</li>
                     <li style="margin-bottom: 5px;"><strong style="font-weight: bold;">Location:</strong> ${location}</li>
                 </ul>
             </div>

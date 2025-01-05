@@ -2,6 +2,9 @@ import { IsString, Matches } from 'class-validator';
 
 export class SendMailDto {
   @IsString()
+  to: string;
+
+  @IsString()
   clientName: string;
 
   @IsString()
@@ -15,6 +18,9 @@ export class SendMailDto {
 
   @IsString()
   appointmentTime: string;
+
+  @IsString()
+  meetingLink: string;
 
   @IsString()
   location: string;
