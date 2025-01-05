@@ -34,7 +34,11 @@ export class AvailabilityService {
 
     // Buscar citas para el día seleccionado
     // Hora de inicio de la jornada
-    let currentStartDateTime = this.createDateTimeISO(date, schedule.startTime);
+    let currentStartDateTime = this.localDateTimeToUTCFormat(
+      date,
+      schedule.startTime,
+      'America/Toronto',
+    );
 
     // Si ya ha pasado la hora de inicio de la jornada, buscar citas a partir de la hora actual
     if (currentStartDateTime < new Date()) {
@@ -43,7 +47,11 @@ export class AvailabilityService {
     console.warn({ startTime: schedule.startTime });
     console.warn({ currentStartDateTime });
     // Hora de fin de la jornada
-    const scheduleEndDateTime = this.createDateTimeISO(date, schedule.endTime);
+    const scheduleEndDateTime = this.localDateTimeToUTCFormat(
+      date,
+      schedule.endTime,
+      'America/Toronto',
+    );
     console.warn({ endTime: schedule.endTime });
     console.warn({ scheduleEndDateTime });
 
@@ -86,16 +94,45 @@ export class AvailabilityService {
 
   /**
    *
-   * @param date "2025-01-20"
-   * @param time "09:30:00"
-   * @returns "2025-01-20T14:30:00.000Z"
+   * @param localDate yyyy-MM-dd
+   * @param localTime HH:mm:ss
+   * @param localTimeZone 'America/New_York'
+   * @returns
    */
-  private createDateTimeISO(date: string, time: string): Date {
-    const [year, month, day] = date.split('-').map(Number);
-    const [hours, minutes, seconds] = time.split(':').map(Number);
+  localDateTimeToUTCFormat(
+    localDate: string,
+    localTime: string,
+    localTimeZone: string,
+  ) {
+    try {
+      // 1. Crear un objeto DateTime a partir de la fecha, hora y zona horaria local.
+      const fechaHoraLocalStr = `${localDate} ${localTime}`;
+      const fechalocalTime = DateTime.fromFormat(
+        fechaHoraLocalStr,
+        'yyyy-MM-dd HH:mm:ss',
+        { zone: localTimeZone },
+      );
 
-    const dateTime = new Date(year, month - 1, day, hours, minutes, seconds);
+      // 2. Verificar si la fecha y hora local son válidas.
+      if (!fechalocalTime.isValid) {
+        throw new Error(
+          `CLOSE Y INVALID LOCAL TIME: ${fechalocalTime.invalidReason}`,
+        );
+      }
 
-    return dateTime;
+      // 3. Convertir a UTC.
+      const fechaHoraUtc = fechalocalTime.toUTC();
+
+      // 4. Formatear a ISO 8601 con milisegundos y la 'Z' final para indicar UTC.
+      const fechaHoraUtcFormateada = fechaHoraUtc.toISO({
+        // includeOffset: false,
+      });
+      console.warn({ fechaHoraUtcFormateada });
+
+      return new Date(fechaHoraUtcFormateada);
+    } catch (error) {
+      console.error('Conversion error:', error.message);
+      return null; // O lanzar el error si prefieres que se propague
+    }
   }
 }
