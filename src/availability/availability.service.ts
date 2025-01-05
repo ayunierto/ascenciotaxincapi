@@ -105,31 +105,46 @@ export class AvailabilityService {
     localTimeZone: string,
   ) {
     try {
-      // 1. Crear un objeto DateTime a partir de la fecha, hora y zona horaria local.
-      const fechaHoraLocalStr = `${localDate} ${localTime}`;
-      const fechalocalTime = DateTime.fromFormat(
-        fechaHoraLocalStr,
-        'yyyy-MM-dd HH:mm:ss',
-        { zone: localTimeZone },
-      );
-
-      // 2. Verificar si la fecha y hora local son válidas.
-      if (!fechalocalTime.isValid) {
-        throw new Error(
-          `CLOSE Y INVALID LOCAL TIME: ${fechalocalTime.invalidReason}`,
-        );
-      }
-
-      // 3. Convertir a UTC.
-      const fechaHoraUtc = fechalocalTime.toUTC();
-
-      // 4. Formatear a ISO 8601 con milisegundos y la 'Z' final para indicar UTC.
-      const fechaHoraUtcFormateada = fechaHoraUtc.toISO({
-        // includeOffset: false,
+      // 1. Combinar fecha y hora en un solo string en formato ISO 8601
+      const fechaHoraStr = `${localDate}T${localTime}`;
+      // 2. Crear un objeto DateTime con la zona horaria local
+      const fechaHoraLocal = DateTime.fromISO(fechaHoraStr, {
+        zone: localTimeZone,
       });
-      console.warn({ fechaHoraUtcFormateada });
+      // 3. Convertir a UTC
+      const fechaHoraUtc = fechaHoraLocal.toUTC();
+      // 4. Convertir a objeto Date de JavaScript
+      const fechaUtcJs = fechaHoraUtc.toJSDate();
 
-      return new Date(fechaHoraUtcFormateada);
+      return fechaUtcJs;
+
+      // 1. Crear un objeto DateTime a partir de la fecha, hora y zona horaria local.
+      // const fechaHoraLocalStr = `${localDate} ${localTime}`;
+      // const fechalocalTime = DateTime.fromFormat(
+      //   fechaHoraLocalStr,
+      //   'yyyy-MM-dd HH:mm:ss',
+      //   { zone: localTimeZone },
+      // );
+
+      // console.warn({ fechalocalTime });
+
+      // // 2. Verificar si la fecha y hora local son válidas.
+      // if (!fechalocalTime.isValid) {
+      //   throw new Error(
+      //     `CLOSE Y INVALID LOCAL TIME: ${fechalocalTime.invalidReason}`,
+      //   );
+      // }
+
+      // // 3. Convertir a UTC.
+      // const fechaHoraUtc = fechalocalTime.toUTC();
+
+      // // 4. Formatear a ISO 8601 con milisegundos y la 'Z' final para indicar UTC.
+      // const fechaHoraUtcFormateada = fechaHoraUtc.toISO({
+      //   includeOffset: false,
+      // });
+      // console.warn({ fechaHoraUtcFormateada });
+
+      // return new Date(fechaHoraUtcFormateada);
     } catch (error) {
       console.error('Conversion error:', error.message);
       return null; // O lanzar el error si prefieres que se propague
