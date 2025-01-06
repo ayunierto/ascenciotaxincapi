@@ -73,7 +73,7 @@ export class AppointmentService {
     const endTimeInMinutes = this.convertTimeToMinutesOfDay(endTime);
 
     if (startTimeInMinutes > endTimeInMinutes) {
-      // Rango cruza la medianoche
+      // Rank crosses midnight
       return (
         timeInMinutes >= startTimeInMinutes || timeInMinutes <= endTimeInMinutes
       );
@@ -91,8 +91,6 @@ export class AppointmentService {
     // Get the day of the selected date (1-7) 1: Monday, ..., 7: Sunday
     const startDateTime = startDateAndTime.toISOString();
     const weekday = DateTime.fromISO(startDateTime).weekday;
-    console.log({ startDateTime });
-    console.log({ weekday });
 
     // Check if the staff has a defined schedule for that day
     const staffSchedule = await this.scheduleRepository.findOne({
@@ -186,7 +184,7 @@ export class AppointmentService {
       if (!isAvailable)
         throw new ConflictException('The selected time slot is not available');
 
-      // Crear una reunión de Zoom
+      // Create zoom meeting
       const meeting = await this.zoomService.createZoomMeeting({
         agenda: 'Appointments',
         default_password: false,
@@ -202,18 +200,22 @@ export class AppointmentService {
         topic: service.name,
         type: 2,
       });
-      console.warn({ meeting });
 
       // Create event in calendar
       const event = await this.calendarService.createEvent({
         summary: `Appointment: ${service.name}`,
-        description: `Zoom Meeting: ${meeting.join_url}`,
+        description: `
+        Zoom Meeting: ${meeting.join_url} 
+        Staff: ${staff.name} ${staff.lastName}
+        Client: ${user.name} ${user.lastName}
+        Email: ${user.email}
+        Phone Number: ${user.phoneNumber}
+        `,
         startTime: startDateAndTime,
         endTime: endDateAndTime,
         timeZone: 'America/Toronto',
         location: `${service.address}`,
       });
-      console.warn({ event });
 
       // Save appointment
       const appointment = this.appointmentRepository.create({

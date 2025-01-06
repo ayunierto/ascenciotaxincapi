@@ -22,6 +22,7 @@ export class ZoomService {
         },
       );
 
+      console.log('Meeting created.');
       return request.data;
     } catch (error) {
       return error;

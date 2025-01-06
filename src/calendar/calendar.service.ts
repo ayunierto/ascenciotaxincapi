@@ -18,24 +18,24 @@ export class CalendarService {
       'utf-8',
     );
 
-    fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Guarda el archivo temporalmente
+    fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Save the file temporarily
 
     const auth = new google.auth.GoogleAuth({
-      keyFile: '/tmp/credentials.json', // Usa el archivo temporal
+      keyFile: '/tmp/credentials.json', // Use the temporal file
       scopes: ['https://www.googleapis.com/auth/calendar'],
     });
 
-    // ... después de usar la auth, puedes borrar el archivo:
+    // ... After using the AUH, you can delete the file:
     // fs.unlinkSync('/tmp/credentials.json');
 
     this.calendar = google.calendar({ version: 'v3', auth });
   }
 
-  // Método para crear un evento en Google Calendar
+  // Method to create an event on Google Calendar
   async createEvent(event: CreateCalendarEventDto) {
     try {
       const response = await this.calendar.events.insert({
-        calendarId: this.calendarId, // Cambia esto al ID del calendario compartido si no es el calendario principal
+        calendarId: this.calendarId,
         requestBody: {
           summary: event.summary,
           location: event.location,
@@ -51,8 +51,8 @@ export class CalendarService {
         },
       });
 
-      // Crear enevento en calendario alternativo
-      const alternativCalendarResponse = await this.calendar.events.insert({
+      // Create an alternative calendar event
+      const alternativeCalendarResponse = await this.calendar.events.insert({
         calendarId: this.alternativeCalendarId,
         requestBody: {
           summary: event.summary,
@@ -69,6 +69,7 @@ export class CalendarService {
         },
       });
 
+      console.log('Event created.');
       return response.data.id;
     } catch (error) {
       console.error(error);
@@ -94,7 +95,7 @@ export class CalendarService {
     }
   }
 
-  // Método para listar eventos (si también deseas implementarlo)
+  // Method for listing events
   async listEvents() {
     const response = await this.calendar.events.list({
       calendarId: process.env.GOOGLE_CALENDAR_ACCOUNT,

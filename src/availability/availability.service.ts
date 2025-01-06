@@ -15,7 +15,7 @@ export class AvailabilityService {
   ) {}
 
   async getAvailability(staffId: string, date: string) {
-    // Obtener el día de la semana (1-7) 1: Lunes
+    // Get the day of the week (1-7) 1: Monday
     const weekday = DateTime.fromISO(date).weekday;
     const schedule = await this.scheduleRepository.findOne({
       where: { staff: { id: staffId }, weekday },
@@ -23,21 +23,35 @@ export class AvailabilityService {
 
     if (!schedule) {
       // throw new BadRequestException('No schedule for this day');
-      return []; // No hay horario para este día
+      return []; // There is no schedule for this day
     }
 
-    // Buscar citas para el día seleccionado
-    // Hora de inicio de la jornada
+    // Search appointments for the selected day
+    // Day Start time
     let currentStartDateTime = this.localDateTimeToUTCFormat(
       date,
       schedule.startTime,
       'America/Toronto',
     );
 
-    // Si ya ha pasado la hora de inicio de la jornada, buscar citas a partir de la hora actual
+    // If the start time of the day has passed, look for appointments from the current time
     if (currentStartDateTime < new Date()) {
-      currentStartDateTime = new Date();
+      const now = DateTime.now();
+      // Add an hour
+      const anHourLater = now.plus({ hours: 1 });
+
+      // Reset minutes and seconds at 0
+      const resetTime = anHourLater.set({
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+      });
+      const ad30minLater = resetTime.plus({ minutes: 30 });
+
+      currentStartDateTime = ad30minLater.toJSDate();
     }
+
+    console.warn(currentStartDateTime);
     // Hora de fin de la jornada
     const scheduleEndDateTime = this.localDateTimeToUTCFormat(
       date,
@@ -45,32 +59,32 @@ export class AvailabilityService {
       'America/Toronto',
     );
 
-    // Buscar cita entre el horario de inicio y fin del dia seleccionado
+    // Find an appointment between the start and end of the selected day
     const appointments = await this.appointmentRepository.find({
       where: {
         staff: { id: staffId },
         startDateAndTime: Between(currentStartDateTime, scheduleEndDateTime),
-      }, // Filtrar por fecha
+      }, // Filter by date
       order: { startDateAndTime: 'ASC' },
     });
 
-    const availableSlots = []; // Espacios disponibles
+    const availableSlots = []; // Available slots
 
     for (const appointment of appointments) {
-      const appointmentStartTime = new Date(appointment.startDateAndTime); // Hora de inicio de la cita
-      // Si hay un espacio disponible antes de la cita
+      const appointmentStartTime = new Date(appointment.startDateAndTime); // Appointment Start Time
+      // If there is a space available before the appointment
       if (appointmentStartTime > currentStartDateTime) {
-        // Agregar el espacio disponible a la lista
+        // Add the available space to the list
         availableSlots.push({
           start: currentStartDateTime.toISOString(),
           end: appointmentStartTime.toISOString(),
         });
       }
-      // Actualizar la hora de inicio
+      // Update the start time
       currentStartDateTime = new Date(appointment.endDateAndTime);
     }
 
-    // Si hay un espacio disponible después de la última cita
+    // If there is a space available after the last appointment
     if (currentStartDateTime < scheduleEndDateTime) {
       availableSlots.push({
         start: currentStartDateTime.toISOString(),
@@ -94,21 +108,21 @@ export class AvailabilityService {
     localTimeZone: string,
   ) {
     try {
-      // 1. Combinar fecha y hora en un solo string en formato ISO 8601
-      const fechaHoraStr = `${localDate}T${localTime}`;
-      // 2. Crear un objeto DateTime con la zona horaria local
-      const fechaHoraLocal = DateTime.fromISO(fechaHoraStr, {
+      // 1. Combine date and time in a single String in ISO 8601 format
+      const dateTimeString = `${localDate}T${localTime}`;
+      // 2. Create a datetime object with the local time zone
+      const localDateTime = DateTime.fromISO(dateTimeString, {
         zone: localTimeZone,
       });
-      // 3. Convertir a UTC
-      const fechaHoraUtc = fechaHoraLocal.toUTC();
-      // 4. Convertir a objeto Date de JavaScript
-      const fechaUtcJs = fechaHoraUtc.toJSDate();
+      // 3. Turn UTC
+      const UTCDateTime = localDateTime.toUTC();
+      // 4. Convert to JavaScript Date
+      const UTCDate = UTCDateTime.toJSDate();
 
-      return fechaUtcJs;
+      return UTCDate;
     } catch (error) {
       console.error('Conversion error:', error.message);
-      return null; // O lanzar el error si prefieres que se propague
+      return null; // Or launch the error if you prefer to spread
     }
   }
 }
