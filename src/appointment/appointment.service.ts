@@ -91,6 +91,8 @@ export class AppointmentService {
     // Get the day of the selected date (1-7) 1: Monday, ..., 7: Sunday
     const startDateTime = startDateAndTime.toISOString();
     const weekday = DateTime.fromISO(startDateTime).weekday;
+    console.log({ startDateTime });
+    console.log({ weekday });
 
     // Check if the staff has a defined schedule for that day
     const staffSchedule = await this.scheduleRepository.findOne({

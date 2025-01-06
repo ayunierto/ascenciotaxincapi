@@ -1,9 +1,11 @@
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginUserDto, SignupUserDto } from './dto';
+import { LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
 import { GetUser, Auth } from './decorators';
 import { VerifyUserDto } from './dto/verify-user.dto';
+import { SendCodeDto } from './dto/send-code.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -31,5 +33,10 @@ export class AuthController {
   @Post('verify-code')
   verifyCode(@Body() verifyUserDto: VerifyUserDto) {
     return this.authService.verifyCode(verifyUserDto);
+  }
+
+  @Post('resend-code')
+  resendCode(@Body() sendCodeDto: SendCodeDto) {
+    return this.authService.sendVerificationCode(sendCodeDto);
   }
 }

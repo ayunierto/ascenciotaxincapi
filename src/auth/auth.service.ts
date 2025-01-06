@@ -1,8 +1,8 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,10 +11,11 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-import { LoginUserDto } from './dto';
+import { LoginUserDto, SignupUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { VerifyUserDto } from './dto/verify-user.dto';
-import { SignupUserDto } from './dto/signup-user.dto';
+import { MailService } from 'src/mail/mail.service';
+import { SendCodeDto } from './dto/send-code.dto';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async signup(signupUserDto: SignupUserDto) {
@@ -29,6 +31,7 @@ export class AuthService {
       password,
       countryCode,
       phoneNumber: number,
+      verificationPlatform,
       ...userData
     } = signupUserDto;
 
@@ -40,22 +43,21 @@ export class AuthService {
     try {
       const user = this.userRepository.create({
         phoneNumber: `${countryCode}${number}`,
-        ...userData,
         password: bcrypt.hashSync(password, 10),
         verificationCode,
+        ...userData,
       });
       const savedUser = await this.userRepository.save(user);
 
-      // if (savedUser) {
-      //   await this.sendWhatsAppVerificationCodeWithTwillio(
-      //     signupUserDto.phoneNumber,
-      //     verificationCode,
-      //   );
-      // }
+      if (savedUser) {
+        this.sendVerificationCode({
+          username: user.email,
+          verificationPlatform,
+        });
+      }
 
       return {
         ...savedUser,
-        token: this.getJwtToken({ id: savedUser.id }),
       };
     } catch (error) {
       console.error(error.detail);
@@ -64,90 +66,98 @@ export class AuthService {
         const regex: RegExp = /\(([^)]+)\)/;
         const match = err.match(regex);
         const word = match ? match[1] : null;
-
-        throw new HttpException(
-          {
-            code: HttpStatus.CONFLICT,
-            message: `${word} already exists`,
-            error: 'Conflict',
-            cause: word,
-          },
-          HttpStatus.CONFLICT,
-        );
+        throw new ConflictException(`${word} already exists`);
       }
       console.error(error);
-      throw new HttpException(
-        {
-          code: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Please check the server log for more information',
-          error: 'Internal server error',
-          cause: 'Unknown',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
+      throw new InternalServerErrorException(
+        'Please check the server log for more information',
       );
     }
   }
 
-  // TODO: Probar si quitando el select  evia todos los campos menos el password que esta quitado en la entidad
   async signin(loginUserDto: LoginUserDto) {
     const { password, username } = loginUserDto;
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
-      select: {
-        email: true,
-        password: true,
-        id: true,
-        roles: true,
-        isActive: true,
-        name: true,
-        appointments: true,
-        birthdate: true,
-        lastLogin: true,
-        lastName: true,
-        phoneNumber: true,
-        registrationDate: true,
-      },
     });
 
-    if (!user) {
-      throw new HttpException(
-        {
-          code: HttpStatus.UNAUTHORIZED,
-          message: 'User or password incorrect',
-          error: 'Unauthorized',
-          cause: 'email',
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
+    if (!user) throw new UnauthorizedException('User or password incorrect');
 
-    if (!user.isActive) {
-      throw new HttpException(
-        {
-          code: HttpStatus.UNAUTHORIZED,
-          message:
-            'The user is inactive, please check your account or contact the administration',
-          error: 'Inactive',
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
+    if (!bcrypt.compareSync(password, user.password))
+      throw new UnauthorizedException('User or password incorrect');
 
-    if (!bcrypt.compareSync(password, user.password)) {
-      throw new HttpException(
-        {
-          code: HttpStatus.UNAUTHORIZED,
-          message: 'User or password incorrect',
-          error: 'Unauthorized',
-          cause: 'password',
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
+    if (!user.isActive && user.verificationCode) {
+      throw new UnauthorizedException({
+        error: 'Unauthorized',
+        message: 'The user is inactive, please verify your account.',
+        statusCode: 401,
+        cause: 'verify',
+      });
     }
+    if (!user.isActive)
+      throw new UnauthorizedException({
+        error: 'Unauthorized',
+        message: 'The user is inactive, please contact support.',
+        statusCode: 401,
+        cause: 'inactive',
+      });
+
+    delete user.password;
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
+    };
+  }
+
+  async verifyCode(verifyUserDto: VerifyUserDto) {
+    const { username, verificationCode } = verifyUserDto;
+
+    const user = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+
+    if (user.verificationCode !== verificationCode)
+      throw new UnauthorizedException('Invalid verification code');
+
+    user.isActive = true;
+    user.verificationCode = null;
+    await this.userRepository.save(user);
 
     return {
       ...user,
       token: this.getJwtToken({ id: user.id }),
+    };
+  }
+
+  async sendVerificationCode(sendCodeDto: SendCodeDto) {
+    const { username, verificationPlatform } = sendCodeDto;
+    const user = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+
+    if (verificationPlatform === 'email') {
+      this.mailService.sendMailVerificationCode({
+        to: user.email,
+        clientName: user.name,
+        verificationCode: user.verificationCode,
+      });
+    } else if (verificationPlatform === 'whatsapp') {
+      this.sendWhatsAppVerificationCodeWithTwillio(
+        user.phoneNumber,
+        user.verificationCode,
+      );
+    } else {
+      this.sendSMSVerificationCodeWithTwillio(
+        user.phoneNumber,
+        user.verificationCode,
+      );
+    }
+    return {
+      message: 'Verification code sent',
     };
   }
 
@@ -198,29 +208,5 @@ export class AuthService {
       .then((message) => console.log(message.body));
 
     return verificationCode;
-  }
-
-  async verifyCode(verifyUserDto: VerifyUserDto) {
-    const { phoneNumber, verficationCode } = verifyUserDto;
-    const user = await this.userRepository.findOne({
-      where: { phoneNumber },
-    });
-
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
-    if (user.verificationCode !== verficationCode) {
-      throw new UnauthorizedException('Invalid verification code');
-    }
-
-    user.isActive = true;
-    user.verificationCode = null;
-    await this.userRepository.save(user);
-
-    return {
-      ...user,
-      token: this.getJwtToken({ id: user.id }),
-    };
   }
 }

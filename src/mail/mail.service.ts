@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import * as sgMail from '@sendgrid/mail';
 import { SendMailDto } from './dto/send-mail.dto';
+import { SendMailVerificationCodeDto } from './dto/send-mail-verification-code.dto';
 
 @Injectable()
 export class MailService {
   sendMail(sendMail: SendMailDto) {
-    // using Twilio SendGrid's v3 Node.js Library
-    // https://github.com/sendgrid/sendgrid-nodejs
-    // const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const msg = {
-      to: sendMail.to, // Change to your recipient
-      from: 'ascenciotaxinc@gmail.com', // Change to your verified sender
+      to: sendMail.to,
+      from: 'ascenciotaxinc@gmail.com',
       subject: `Appointment: ${sendMail.serviceName}`,
-      text: 'Ascecncio Tax Inc Team',
-      html: this.template(sendMail),
+      text: 'Ascencio Tax Inc Team',
+      html: this.templateAppointmentConfirmation(sendMail),
     };
     sgMail
       .send(msg)
@@ -26,7 +24,30 @@ export class MailService {
       });
   }
 
-  template(sendMail: SendMailDto) {
+  sendMailVerificationCode(
+    sendMailVerificationCodeDto: SendMailVerificationCodeDto,
+  ) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      to: sendMailVerificationCodeDto.to,
+      from: 'ascenciotaxinc@gmail.com',
+      subject: 'Verification code for Ascencio Tax Inc',
+      text: 'Ascencio Tax Inc Team',
+      html: this.templateVerificationCode(sendMailVerificationCodeDto),
+    };
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log(
+          `Verification code email sent to: ${sendMailVerificationCodeDto.to}`,
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  templateAppointmentConfirmation(sendMail: SendMailDto) {
     const {
       clientName,
       staffName,
@@ -59,6 +80,31 @@ export class MailService {
                     <li style="margin-bottom: 5px;"><strong style="font-weight: bold;">Location:</strong> ${location}</li>
                 </ul>
             </div>
+            <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
+            <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">Ascencio Tax Inc team.</strong></p>
+        </div>
+    </body>
+    </html>
+    `;
+  }
+
+  templateVerificationCode(
+    sendMailVerificationCodeDto: SendMailVerificationCodeDto,
+  ) {
+    const { clientName, verificationCode } = sendMailVerificationCodeDto;
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirmation code</title>
+    </head>
+    <body style="font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Verification code</h1>
+            <p style="margin-bottom: 10px;">Dear <strong style="font-weight: bold;">${clientName}</strong>,</p>
+            <p style="margin-bottom: 10px;">Your verification code for Ascencio Tax Inc is: <strong style="font-weight: bold;">${verificationCode}</strong>.</p>
             <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
             <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">Ascencio Tax Inc team.</strong></p>
         </div>

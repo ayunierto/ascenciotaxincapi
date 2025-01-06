@@ -1,8 +1,8 @@
 import {
-  IsBoolean,
   IsDate,
   IsDateString,
   IsEmail,
+  IsEnum,
   IsLowercase,
   IsMobilePhone,
   IsOptional,
@@ -11,6 +11,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+export type VerificationPlatform = 'email' | 'whatsapp' | 'sms';
 
 export class SignupUserDto {
   @IsString()
@@ -53,5 +55,8 @@ export class SignupUserDto {
 
   @IsString()
   @IsOptional()
-  verficationCode?: string;
+  verificationCode?: string;
+
+  @IsString()
+  verificationPlatform: VerificationPlatform;
 }

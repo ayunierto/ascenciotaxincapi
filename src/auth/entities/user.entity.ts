@@ -20,13 +20,13 @@ export class User {
   @Column('text', { unique: true })
   phoneNumber: string;
 
-  @Column('text', { select: false })
+  @Column('text')
   password: string;
 
   @Column('date', { nullable: true })
   birthdate: Date;
 
-  @Column('bool', { default: true })
+  @Column('bool', { default: false })
   isActive: boolean;
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
