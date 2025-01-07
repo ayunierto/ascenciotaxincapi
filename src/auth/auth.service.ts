@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -36,9 +37,7 @@ export class AuthService {
     } = signupUserDto;
 
     // Generate a random 6 digit number
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const verificationCode = this.generateVerificationCode();
 
     try {
       const user = this.userRepository.create({
@@ -125,6 +124,7 @@ export class AuthService {
     user.verificationCode = null;
     await this.userRepository.save(user);
 
+    delete user.password;
     return {
       ...user,
       token: this.getJwtToken({ id: user.id }),
@@ -208,5 +208,42 @@ export class AuthService {
       .then((message) => console.log(message.body));
 
     return verificationCode;
+  }
+
+  generateVerificationCode() {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    return code;
+  }
+
+  async resetPassword(username: string) {
+    const user = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+
+    const code = this.generateVerificationCode();
+    user.verificationCode = code;
+    const savedUser = await this.userRepository.save(user);
+
+    delete savedUser.password;
+    delete savedUser.verificationCode;
+
+    this.sendVerificationCode({
+      username: user.email,
+      verificationPlatform: 'email',
+    });
+
+    return { ...savedUser };
+  }
+
+  async changePassword(user: User, password: string) {
+    const tmpUser = await this.userRepository.findOneBy({ id: user.id });
+    if (!user) throw new NotFoundException('User not found');
+
+    tmpUser.password = bcrypt.hashSync(password, 10);
+    const savedUser = await this.userRepository.save(tmpUser);
+    delete savedUser.password;
+    return { ...savedUser, token: this.getJwtToken({ id: user.id }) };
   }
 }

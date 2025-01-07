@@ -39,4 +39,18 @@ export class AuthController {
   resendCode(@Body() sendCodeDto: SendCodeDto) {
     return this.authService.sendVerificationCode(sendCodeDto);
   }
+
+  @Post('reset-password')
+  resetPassword(@Body() { username }: { username: string }) {
+    return this.authService.resetPassword(username);
+  }
+
+  @Post('change-password')
+  @Auth()
+  changePassword(
+    @Body() { password }: { password: string },
+    @GetUser() user: User,
+  ) {
+    return this.authService.changePassword(user, password);
+  }
 }

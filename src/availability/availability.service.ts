@@ -51,8 +51,7 @@ export class AvailabilityService {
       currentStartDateTime = ad30minLater.toJSDate();
     }
 
-    console.warn(currentStartDateTime);
-    // Hora de fin de la jornada
+    // Schedules end time
     const scheduleEndDateTime = this.localDateTimeToUTCFormat(
       date,
       schedule.endTime,
