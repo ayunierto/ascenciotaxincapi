@@ -3,6 +3,7 @@ import { calendar_v3, google } from 'googleapis';
 import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
 
 import * as fs from 'fs';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class CalendarService {
@@ -77,9 +78,17 @@ export class CalendarService {
     }
   }
 
-  //
-  async checkEventsInRange(timeMin: string, timeMax: string) {
+  /**
+   *
+   * @param startDateTime 2025-01-06T00:00:00.000Z
+   * @param endDateTime 2025-01-06T14:00:00.000Z
+   * @returns
+   */
+  async checkEventsInRange(startDateTime: string, endDateTime: string) {
     try {
+      const timeMin = new Date(startDateTime).toISOString();
+      const timeMax = new Date(endDateTime).toISOString();
+
       const response = await this.calendar.events.list({
         calendarId: this.calendarId,
         timeMin,
@@ -88,7 +97,13 @@ export class CalendarService {
         orderBy: 'startTime',
       });
 
-      return response.data.items;
+      return response.data.items.map((item) => {
+        return {
+          summary: item.summary,
+          start: DateTime.fromISO(item.start.dateTime).toUTC(),
+          end: DateTime.fromISO(item.end.dateTime).toUTC(),
+        };
+      });
     } catch (error) {
       console.error(error);
       return [];
@@ -96,6 +111,7 @@ export class CalendarService {
   }
 
   // Method for listing events
+
   async listEvents() {
     const response = await this.calendar.events.list({
       calendarId: process.env.GOOGLE_CALENDAR_ACCOUNT,

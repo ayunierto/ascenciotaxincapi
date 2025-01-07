@@ -22,8 +22,8 @@ export class CalendarController {
 
   @Get('has-events/:timeMin/:timeMax')
   async hasEvents(
-    @Param('timeMin') timeMin: string,
-    @Param('timeMax') timeMax: string,
+    @Query('timeMin') timeMin: string,
+    @Query('timeMax') timeMax: string,
   ) {
     const events = await this.googleCalendarService.checkEventsInRange(
       timeMin,
