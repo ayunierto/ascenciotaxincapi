@@ -7,14 +7,14 @@ export class AvailabilityController {
 
   @Get()
   async getAvailability(
-    @Query('staffMemberId') staffMemberId: string,
-    @Query('date') date: string, // Recibir la fecha completa
+    @Query('staff') staff: string, // 84097f13-8d57-46a8-ac1d-1f713f3fd2ea
+    @Query('date') date: string, // 2025-01-023
   ) {
-    if (!staffMemberId || !date) {
-      return { message: 'staffMemberId y date son requeridos.' };
+    if (!staff || !date) {
+      return { message: 'The staff and date fields are required.' };
     }
     const availableSlots = await this.availabilityService.getAvailability(
-      staffMemberId,
+      staff,
       date,
     );
     return availableSlots;
