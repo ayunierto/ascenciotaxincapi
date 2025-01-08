@@ -20,7 +20,7 @@ export class SeedService {
     try {
       await this.deleteData();
 
-      // Ceate users
+      // Create users
       const alcidesUser = await this.usersService.create({
         name: 'Alcides Yunier',
         lastName: 'Turruellas Osorio',
@@ -35,7 +35,7 @@ export class SeedService {
       const yulierUser = await this.usersService.create({
         name: 'Yulier',
         lastName: 'Rondon',
-        email: 'yrondon@ascenciotaxinc.com',
+        email: 'rondonyulier@gmail.com',
         phoneNumber: '+16474669318',
         password: 'Abcd1234',
         birthdate: new Date('1993-01-18'),
