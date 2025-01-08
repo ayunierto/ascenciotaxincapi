@@ -250,6 +250,28 @@ export class AppointmentService {
         meetingLink: meeting.join_url,
       });
 
+      // Send email to ascenciotax
+      this.mailService.sendMailStaff({
+        to: 'ascenciotaxinc@gmail.com',
+        serviceName: service.name,
+        appointmentDate: DateTime.fromISO(startDateAndTime, {
+          zone: 'utc',
+        })
+          .setZone('America/Toronto')
+          .toFormat('yyyy-MM-dd'),
+        appointmentTime: DateTime.fromISO(startDateAndTime, {
+          zone: 'utc',
+        })
+          .setZone('America/Toronto')
+          .toFormat('HH:mm:ss'),
+        clientName: `${user.name} ${user.lastName}`,
+        location: service.address,
+        staffName: `${staff.name} ${staff.lastName}`,
+        meetingLink: meeting.join_url,
+        clientEmail: user.email,
+        clientPhoneNumber: user.phoneNumber,
+      });
+
       return appointment;
     } catch (error) {
       return error;

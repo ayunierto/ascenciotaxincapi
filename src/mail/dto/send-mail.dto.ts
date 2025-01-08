@@ -8,6 +8,12 @@ export class SendMailDto {
   clientName: string;
 
   @IsString()
+  clientEmail?: string;
+
+  @IsString()
+  clientPhoneNumber?: string;
+
+  @IsString()
   staffName: string;
 
   @IsString()
