@@ -22,89 +22,63 @@ export class AvailabilityService {
     date: string,
     userTimeZone: string = 'America/Toronto',
   ) {
-    // Get the day of the week (1-7) 1: Monday
     const weekday = DateTime.fromISO(date).weekday;
     const schedule = await this.scheduleRepository.findOne({
       where: { staff: { id: staffId }, weekday },
     });
-    console.warn({ weekday });
-    console.warn({ schedule });
 
     if (!schedule) return [];
 
-    // Day Start time (considering user's time zone)
-    // const userTimeZone = 'America/Toronto'; // Replace with user's preferred time zone
-    const currentStartDateTime = this.localDateTimeToUTCFormat(
-      date,
-      schedule.startTime,
-      userTimeZone,
+    // Define the start and end dates in the user's time zone
+    const startDateTimeUser = DateTime.fromISO(
+      `${date}T${schedule.startTime}`,
+      { zone: userTimeZone },
     );
+    const endDateTimeUser = DateTime.fromISO(`${date}T${schedule.endTime}`, {
+      zone: userTimeZone,
+    });
 
-    // Schedules end time (considering user's time zone)
-    const scheduleEndDateTime = this.localDateTimeToUTCFormat(
-      date,
-      schedule.endTime,
-      userTimeZone,
-    );
+    // Convert UTC for comparisons with appointments and events
+    const startDateTimeUTC = startDateTimeUser.toUTC();
+    const endDateTimeUTC = endDateTimeUser.toUTC();
 
     const availableSlots: { start: string; end: string }[] = [];
 
-    // Get the current time in the user's time zone
-    const now = DateTime.now().setZone(userTimeZone);
-    console.warn({ currentStartDateTime });
-    console.warn({ scheduleEndDateTime });
-    console.warn({ availableSlots });
-    console.warn({ now });
-    // Loop through each hour of the schedule
-    let firstHour = currentStartDateTime.getHours();
-    let lastHour = scheduleEndDateTime.getHours();
-    console.warn({ firstHour });
-    console.warn({ lastHour });
+    const nowUTC = DateTime.now().toUTC(); // Hora actual en UTC
 
-    console.warn('Start the loop');
-    for (
-      let currentHour = currentStartDateTime.getHours();
-      currentHour < scheduleEndDateTime.getHours();
-      currentHour++
-    ) {
-      console.warn({ currentHour });
-      const startTime = new Date(currentStartDateTime);
-      startTime.setHours(currentHour); // Set time to the beginning of the hour
-      const endTime = new Date(startTime);
-      endTime.setHours(startTime.getHours() + 1); // Set time to the end of the hour (next hour)
+    // Iterar por intervalos de una hora
+    let currentDateTimeUTC = startDateTimeUTC;
 
-      console.warn({ startTime });
-      console.warn({ endTime });
-      // Convert Starttime to the user's time zone
-      const startTimeUserTz =
-        DateTime.fromJSDate(startTime).setZone(userTimeZone);
+    while (currentDateTimeUTC < endDateTimeUTC) {
+      const nextDateTimeUTC = currentDateTimeUTC.plus({ hours: 1 });
 
-      // Jump the iteration if the start time has already passed
-      if (startTimeUserTz < now) {
-        console.warn('This time has passed');
-        continue; // Go to the next loop iteration
+      // Verify if the current time has already passed
+      if (currentDateTimeUTC < nowUTC) {
+        currentDateTimeUTC = nextDateTimeUTC;
+        continue;
       }
 
-      // Check for appointments and calendar events in this hour range
       const hasAppointment = await this.checkForAppointments(
         staffId,
-        startTime,
-        endTime,
+        currentDateTimeUTC.toJSDate(),
+        nextDateTimeUTC.toJSDate(),
       );
-      console.warn({ hasAppointment });
 
-      const hasCalendarEvent = await this.checkForEvents(startTime, endTime);
+      const hasCalendarEvent = await this.checkForEvents(
+        currentDateTimeUTC.toJSDate(),
+        nextDateTimeUTC.toJSDate(),
+      );
 
       if (!hasAppointment && !hasCalendarEvent) {
         availableSlots.push({
-          start: startTime.toISOString(),
-          end: endTime.toISOString(),
+          start: currentDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
+          end: nextDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
         });
       }
-      console.warn({ hasCalendarEvent });
+
+      currentDateTimeUTC = nextDateTimeUTC;
     }
 
-    console.warn({ availableSlots });
     return availableSlots;
   }
 
@@ -131,29 +105,5 @@ export class AvailabilityService {
     );
 
     return events.length > 0; // True if there's at least one event
-  }
-
-  localDateTimeToUTCFormat(
-    localDate: string,
-    localTime: string,
-    localTimeZone: string,
-  ) {
-    try {
-      // 1. Combine date and time in a single String in ISO 8601 format
-      const dateTimeString = `${localDate}T${localTime}`;
-      // 2. Create a datetime object with the local time zone
-      const localDateTime = DateTime.fromISO(dateTimeString, {
-        zone: localTimeZone,
-      });
-      // 3. Turn UTC
-      const UTCDateTime = localDateTime.toUTC();
-      // 4. Convert to JavaScript Date
-      const UTCDate = UTCDateTime.toJSDate();
-
-      return UTCDate;
-    } catch (error) {
-      console.error('Conversion error:', error.message);
-      return null; // Or launch the error if you prefer to spread
-    }
   }
 }
