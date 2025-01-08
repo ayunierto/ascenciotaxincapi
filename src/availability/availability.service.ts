@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
+import { start } from 'repl';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { CalendarService } from 'src/calendar/calendar.service';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
@@ -27,6 +28,8 @@ export class AvailabilityService {
     const schedule = await this.scheduleRepository.findOne({
       where: { staff: { id: staffId }, weekday },
     });
+    console.warn({ weekday });
+    console.warn({ schedule });
 
     if (!schedule) return [];
 
@@ -49,7 +52,10 @@ export class AvailabilityService {
 
     // Get the current time in the user's time zone
     const now = DateTime.now().setZone(userTimeZone);
-
+    console.warn({ currentStartDateTime });
+    console.warn({ currentStartDateTime });
+    console.warn({ availableSlots });
+    console.warn({ now });
     // Loop through each hour of the schedule
     for (
       let currentHour = currentStartDateTime.getHours();
@@ -61,6 +67,8 @@ export class AvailabilityService {
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 1); // Set time to the end of the hour (next hour)
 
+      console.warn(startTime);
+      console.warn(endTime);
       // Convert Starttime to the user's time zone
       const startTimeUserTz =
         DateTime.fromJSDate(startTime).setZone(userTimeZone);
@@ -76,6 +84,7 @@ export class AvailabilityService {
         startTime,
         endTime,
       );
+      console.warn({ hasAppointment });
 
       const hasCalendarEvent = await this.checkForEvents(startTime, endTime);
 
@@ -85,7 +94,10 @@ export class AvailabilityService {
           end: endTime.toISOString(),
         });
       }
+      console.warn({ hasCalendarEvent });
     }
+
+    console.warn({ availableSlots });
     return availableSlots;
   }
 
