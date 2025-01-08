@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
-import { start } from 'repl';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { CalendarService } from 'src/calendar/calendar.service';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
@@ -57,6 +56,11 @@ export class AvailabilityService {
     console.warn({ availableSlots });
     console.warn({ now });
     // Loop through each hour of the schedule
+    let firstHour = currentStartDateTime.getHours();
+    let lastHour = scheduleEndDateTime.getHours();
+    console.warn({ firstHour });
+    console.warn({ lastHour });
+
     console.warn('Start the loop');
     for (
       let currentHour = currentStartDateTime.getHours();
