@@ -53,28 +53,31 @@ export class AvailabilityService {
     // Get the current time in the user's time zone
     const now = DateTime.now().setZone(userTimeZone);
     console.warn({ currentStartDateTime });
-    console.warn({ currentStartDateTime });
+    console.warn({ scheduleEndDateTime });
     console.warn({ availableSlots });
     console.warn({ now });
     // Loop through each hour of the schedule
+    console.warn('Start the loop');
     for (
       let currentHour = currentStartDateTime.getHours();
       currentHour < scheduleEndDateTime.getHours();
       currentHour++
     ) {
+      console.warn({ currentHour });
       const startTime = new Date(currentStartDateTime);
       startTime.setHours(currentHour); // Set time to the beginning of the hour
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 1); // Set time to the end of the hour (next hour)
 
-      console.warn(startTime);
-      console.warn(endTime);
+      console.warn({ startTime });
+      console.warn({ endTime });
       // Convert Starttime to the user's time zone
       const startTimeUserTz =
         DateTime.fromJSDate(startTime).setZone(userTimeZone);
 
       // Jump the iteration if the start time has already passed
       if (startTimeUserTz < now) {
+        console.warn('This time has passed');
         continue; // Go to the next loop iteration
       }
 
