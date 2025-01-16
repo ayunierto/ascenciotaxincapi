@@ -32,6 +32,9 @@ export class Appointment {
   @Column('text')
   zoomMeetingId: string;
 
+  @Column('text', { nullable: true })
+  zoomMeetingLink: string;
+
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

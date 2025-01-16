@@ -52,7 +52,7 @@ export class DateUtils {
    *
    * @throws {Error} - If an error occurs during the date processing.
    */
-  converToIso8601ToToronto(fechaISO: string): string | null {
+  convertToIso8601ToToronto(fechaISO: string): string | null {
     try {
       // Establish the default time zone to UTC so that Datetime.Fromiso () Do not use the local time zone.
       Settings.defaultZone = 'utc';

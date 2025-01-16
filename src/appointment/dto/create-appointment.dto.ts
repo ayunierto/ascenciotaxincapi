@@ -28,4 +28,9 @@ export class CreateAppointmentDto {
 
   @IsString()
   staff: string;
+
+  // TODO: implementar zona horaria en los eventos y email del  susuario de acorde a su zona
+  @IsString()
+  @IsOptional()
+  timeZone: string;
 }

@@ -10,7 +10,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { User } from '../auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from 'src/services/entities';
-import { Between, In, Like, Repository } from 'typeorm';
+import { Between, In, LessThan, Like, MoreThan, Repository } from 'typeorm';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from './entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
@@ -103,10 +103,11 @@ export class AppointmentService {
         'The staff member has no work schedule for the selected day',
       );
 
-    const appointmentStartTimeToronto = this.dateUtils.converToIso8601ToToronto(
-      new Date(startDateAndTime).toISOString(),
-    );
-    const appointmentEndTimeToronto = this.dateUtils.converToIso8601ToToronto(
+    const appointmentStartTimeToronto =
+      this.dateUtils.convertToIso8601ToToronto(
+        new Date(startDateAndTime).toISOString(),
+      );
+    const appointmentEndTimeToronto = this.dateUtils.convertToIso8601ToToronto(
       new Date(endDateAndTime).toISOString(),
     );
     // Check if the start and end times are the same
@@ -226,6 +227,7 @@ export class AppointmentService {
         endDateAndTime: new Date(endDateAndTime),
         calendarEventId: typeof event === 'string' ? event : '',
         zoomMeetingId: meeting.id,
+        zoomMeetingLink: meeting.join_url,
         ...rest,
       });
       await this.appointmentRepository.save(appointment);
@@ -283,11 +285,33 @@ export class AppointmentService {
   }
 
   async findOne(id: string) {
-    return `This action returns a #${id} appointment`;
+    return this.appointmentRepository.findOneBy({ id });
   }
 
   async update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
     return `This action updates a #${id} appointment`;
+  }
+
+  async findCurrentUser(user: User, state: 'pending' | 'past') {
+    const now = new Date();
+
+    if (state === 'pending') {
+      const appts = await this.appointmentRepository.find({
+        where: { user: { id: user.id }, startDateAndTime: MoreThan(now) },
+        relations: ['staff', 'service'],
+      });
+      if (!appts) return [];
+      return appts;
+    }
+
+    if (state === 'past') {
+      const appts = await this.appointmentRepository.find({
+        where: { user: { id: user.id }, startDateAndTime: LessThan(now) },
+        relations: ['staff', 'service'],
+      });
+      if (!appts) return [];
+      return appts;
+    }
   }
 
   async remove(id: string) {

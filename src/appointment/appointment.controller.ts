@@ -32,6 +32,15 @@ export class AppointmentController {
     return this.appointmentService.findAll();
   }
 
+  @Get('current-user')
+  @Auth()
+  findCurrentUser(
+    @GetUser() user: User,
+    @Query('state') state: 'pending' | 'past' = 'pending',
+  ) {
+    return this.appointmentService.findCurrentUser(user, state);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.appointmentService.findOne(id);
