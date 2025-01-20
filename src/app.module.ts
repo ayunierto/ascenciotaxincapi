@@ -14,6 +14,7 @@ import { AvailabilityModule } from './availability/availability.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
+import { PostsModule } from './blog/posts/posts.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { MailModule } from './mail/mail.module';
     CalendarModule,
     ZoomModule,
     MailModule,
+    PostsModule,
   ],
   controllers: [],
   providers: [],

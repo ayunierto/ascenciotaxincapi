@@ -2,6 +2,7 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Service } from '../../services/entities/service.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { IsOptional } from 'class-validator';
+import { Post } from 'src/blog/posts/entities/post.entity';
 
 @Entity('users')
 export class User {
@@ -50,4 +51,7 @@ export class User {
 
   @OneToMany(() => Appointment, (appointment) => appointment.user)
   appointments: Appointment[];
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 }

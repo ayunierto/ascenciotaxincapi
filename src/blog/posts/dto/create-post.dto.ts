@@ -1,0 +1,14 @@
+import { IsOptional, IsString, IsUrl } from 'class-validator';
+
+export class CreatePostDto {
+  @IsString()
+  title: string;
+
+  @IsUrl()
+  @IsString()
+  url: string;
+
+  @IsString()
+  @IsOptional()
+  updatedAt?: Date;
+}

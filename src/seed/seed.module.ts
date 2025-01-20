@@ -6,6 +6,7 @@ import { UsersModule } from 'src/users/users.module';
 import { ScheduleModule } from 'src/schedule/schedule.module';
 import { StaffModule } from 'src/staff/staff.module';
 import { AppointmentModule } from 'src/appointment/appointment.module';
+import { PostsModule } from 'src/blog/posts/posts.module';
 
 @Module({
   controllers: [SeedController],
@@ -16,6 +17,7 @@ import { AppointmentModule } from 'src/appointment/appointment.module';
     ScheduleModule,
     StaffModule,
     AppointmentModule,
+    PostsModule,
   ],
 })
 export class SeedModule {}

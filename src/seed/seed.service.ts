@@ -5,6 +5,7 @@ import { ScheduleService } from 'src/schedule/schedule.service';
 import { StaffService } from 'src/staff/staff.service';
 import { ValidRoles } from 'src/auth/interfaces';
 import { AppointmentService } from '../appointment/appointment.service';
+import { PostsService } from '../blog/posts/posts.service';
 
 @Injectable()
 export class SeedService {
@@ -14,6 +15,7 @@ export class SeedService {
     private readonly scheduleService: ScheduleService,
     private readonly staffService: StaffService,
     private readonly appointmentService: AppointmentService,
+    private readonly postsService: PostsService,
   ) {}
 
   async runSeed() {
@@ -303,6 +305,16 @@ export class SeedService {
         },
         alcidesUser,
       );
+
+      const post = await this.postsService.create(
+        {
+          title:
+            'How Can You Take Advantage of Unclaimed Deductions for Remote Work Expenses?',
+          url: 'https://www.ascenciotax.com/post/how-can-you-take-advantage-of-unclaimed-deductions-for-remote-work-expenses',
+        },
+        yulierUser,
+      );
+
       return {
         message: 'Seed Executed',
         status: 'ok',
@@ -314,6 +326,7 @@ export class SeedService {
   }
 
   private async deleteData() {
+    await this.postsService.removeAll();
     await this.appointmentService.removeAll();
     await this.staffService.removeAll();
     await this.servicesService.removeAll();
