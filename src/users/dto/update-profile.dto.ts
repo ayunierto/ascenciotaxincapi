@@ -1,19 +1,13 @@
 import {
-  IsArray,
-  IsBoolean,
   IsDate,
-  IsEmail,
   IsOptional,
   IsPhoneNumber,
   IsString,
-  Matches,
   MaxLength,
-  Min,
   MinLength,
 } from 'class-validator';
-import { ValidRoles } from 'src/auth/interfaces';
 
-export class CreateUserDto {
+export class UpdateProfileDto {
   @IsString()
   @MinLength(3)
   name: string;
@@ -22,33 +16,21 @@ export class CreateUserDto {
   @MinLength(3)
   lastName: string;
 
-  @IsString()
-  @IsEmail()
-  email: string;
-
   @IsPhoneNumber()
   phoneNumber: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(50)
+  @IsOptional()
   // @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
   //   message:
   //     'The password must have a Uppercase, lowercase letter and a number',
   // })
-  password: string;
+  password?: string;
 
-  @IsBoolean()
-  isActive: boolean;
-
+  // TODO: Implement later
   @IsDate()
-  birthdate: Date;
-
-  @IsDate()
-  registrationDate: Date;
-
-  @IsString({ each: true })
-  @IsArray()
   @IsOptional()
-  roles: ValidRoles[];
+  birthdate?: Date;
 }

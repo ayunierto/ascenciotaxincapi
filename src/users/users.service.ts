@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import * as bcrypt from 'bcrypt';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -66,6 +67,39 @@ export class UsersService {
       return user;
     } catch (error) {
       this.handleDBExceptions(error);
+    }
+  }
+
+  async updateProfile(updateProfileDto: UpdateProfileDto, user: User) {
+    const { password, ...userData } = updateProfileDto;
+
+    if (password) {
+      const pass = bcrypt.hashSync(password, 10);
+
+      const userUpdate = await this.userRepository.preload({
+        id: user.id,
+        password: pass,
+        ...userData,
+      });
+
+      try {
+        await this.userRepository.save(userUpdate);
+        return userUpdate;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    } else {
+      const userUpdate = await this.userRepository.preload({
+        id: user.id,
+        ...userData,
+      });
+
+      try {
+        await this.userRepository.save(userUpdate);
+        return userUpdate;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
   }
 
