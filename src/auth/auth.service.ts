@@ -82,9 +82,6 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User or password incorrect');
 
-    if (!bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException('User or password incorrect');
-
     if (!user.isActive && user.verificationCode) {
       throw new UnauthorizedException({
         error: 'Unauthorized',
@@ -93,6 +90,7 @@ export class AuthService {
         cause: 'verify',
       });
     }
+
     if (!user.isActive)
       throw new UnauthorizedException({
         error: 'Unauthorized',
@@ -100,6 +98,9 @@ export class AuthService {
         statusCode: 401,
         cause: 'inactive',
       });
+
+    if (!bcrypt.compareSync(password, user.password))
+      throw new UnauthorizedException('User or password incorrect');
 
     delete user.password;
     return {
@@ -132,33 +133,38 @@ export class AuthService {
   }
 
   async sendVerificationCode(sendCodeDto: SendCodeDto) {
-    const { username, verificationPlatform } = sendCodeDto;
-    const user = await this.userRepository.findOne({
-      where: [{ email: username }, { phoneNumber: username }],
-    });
-
-    if (!user) throw new BadRequestException('User not found');
-
-    if (verificationPlatform === 'email') {
-      this.mailService.sendMailVerificationCode({
-        to: user.email,
-        clientName: user.name,
-        verificationCode: user.verificationCode,
+    try {
+      const { username, verificationPlatform } = sendCodeDto;
+      const user = await this.userRepository.findOne({
+        where: [{ email: username }, { phoneNumber: username }],
       });
-    } else if (verificationPlatform === 'whatsapp') {
-      this.sendWhatsAppVerificationCodeWithTwillio(
-        user.phoneNumber,
-        user.verificationCode,
-      );
-    } else {
-      this.sendSMSVerificationCodeWithTwillio(
-        user.phoneNumber,
-        user.verificationCode,
-      );
+
+      if (!user) throw new BadRequestException('User not found');
+
+      if (verificationPlatform === 'email') {
+        this.mailService.sendMailVerificationCode({
+          to: user.email,
+          clientName: user.name,
+          verificationCode: user.verificationCode,
+        });
+      } else if (verificationPlatform === 'whatsapp') {
+        this.sendWhatsAppVerificationCodeWithTwillio(
+          user.phoneNumber,
+          user.verificationCode,
+        );
+      } else {
+        this.sendSMSVerificationCodeWithTwillio(
+          user.phoneNumber,
+          user.verificationCode,
+        );
+      }
+      return {
+        message: 'Verification code sent',
+      };
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Error sending verification code');
     }
-    return {
-      message: 'Verification code sent',
-    };
   }
 
   checkStatus(user: User) {
