@@ -7,6 +7,7 @@ import { ValidRoles } from 'src/auth/interfaces';
 import { AppointmentService } from '../appointment/appointment.service';
 import { PostsService } from '../blog/posts/posts.service';
 import { CategoriesService } from 'src/accounting/categories/categories.service';
+import { SubcategoryService } from '../accounting/subcategories/subcategories.service';
 
 @Injectable()
 export class SeedService {
@@ -18,6 +19,7 @@ export class SeedService {
     private readonly appointmentService: AppointmentService,
     private readonly postsService: PostsService,
     private readonly categoriesService: CategoriesService,
+    private readonly subcategoryService: SubcategoryService,
   ) {}
 
   async runSeed() {
@@ -308,6 +310,7 @@ export class SeedService {
         alcidesUser,
       );
 
+      // Create posts
       const post = await this.postsService.create(
         {
           title:
@@ -317,7 +320,7 @@ export class SeedService {
         yulierUser,
       );
 
-      // Create default categories
+      // Create main default categories
       const expenses = await this.categoriesService.create(
         {
           name: 'Expenses',
@@ -355,6 +358,251 @@ export class SeedService {
           name: 'Rent',
           isSystem: true,
           description: 'Category for rent',
+        },
+        yulierUser,
+      );
+      // Create default subcategories
+      const AdvertisingPromotion = await this.subcategoryService.create(
+        {
+          name: 'Advertising/ Promotion',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const MealsEntertainment = await this.subcategoryService.create(
+        {
+          name: 'Meals/ Entertainment',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const SuppliesOfficeExpenseOfficeStationery =
+        await this.subcategoryService.create(
+          {
+            name: 'Supplies/ Office Expense/ Office Stationery',
+            isSystem: true,
+            categoryId: expenses.id,
+          },
+          yulierUser,
+        );
+      const OfficeRental = await this.subcategoryService.create(
+        {
+          name: 'Office Rental',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const OfficeUtilities = await this.subcategoryService.create(
+        {
+          name: 'Office Utilities',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const OfficePhone = await this.subcategoryService.create(
+        {
+          name: 'Office Phone',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const OfficeInternet = await this.subcategoryService.create(
+        {
+          name: 'Office Internet',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const OfficeMaintenanceRepairs = await this.subcategoryService.create(
+        {
+          name: 'Office maintenance/ Repairs ',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const StorageRent = await this.subcategoryService.create(
+        {
+          name: 'Storage Rent',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const Uniform = await this.subcategoryService.create(
+        {
+          name: 'Uniform',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const RentalEquipmentCarRental = await this.subcategoryService.create(
+        {
+          name: 'Rental Equipment/ Car Rental',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      const AccountingLegalOtherProfessionalFees =
+        await this.subcategoryService.create(
+          {
+            name: 'Accounting/ Legal/ Other professional Fees',
+            isSystem: true,
+            categoryId: expenses.id,
+          },
+          yulierUser,
+        );
+      const MembershipsSubscriptions = await this.subcategoryService.create(
+        {
+          name: 'Memberships/ Subscriptions',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      // Subcategories for motor vehicles expenses
+      await this.subcategoryService.create(
+        {
+          name: 'Gasoline',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: '407 Ert',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Parking',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Parking Fines',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Repair/ Maintenance Car',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Licence/ Registration',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Car Wash',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Lease Payments ',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Purchase/ Financing',
+          isSystem: true,
+          categoryId: motorVehicleExpensesBusiness.id,
+        },
+        yulierUser,
+      );
+      // Subcategories for Business-use-of- home (Utilities)
+      await this.subcategoryService.create(
+        {
+          name: 'Rental Water Heater',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Gas Natural',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Hydro/ Electricity',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Water',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Maintenance & Repairs',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Interest Mortgage',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Property Tax Bill',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
+        {
+          name: 'Home Insurance',
+          isSystem: true,
+          categoryId: businessUseOfHomeUtilities.id,
         },
         yulierUser,
       );
