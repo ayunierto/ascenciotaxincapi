@@ -21,7 +21,9 @@ export class Subcategory {
   @Column('boolean', { default: false })
   isSystem: boolean;
 
-  @ManyToOne(() => Category, (category) => category.subcategories)
+  @ManyToOne(() => Category, (category) => category.subcategories, {
+    onDelete: 'CASCADE',
+  })
   category: Category;
 
   @OneToMany(() => Expense, (expense) => expense.subcategory)
@@ -30,7 +32,9 @@ export class Subcategory {
   @OneToMany(() => Income, (income) => income.subcategory)
   incomes: Income[];
 
-  @ManyToOne(() => User, (user) => user.subcategories)
+  @ManyToOne(() => User, (user) => user.subcategories, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @Column('timestamp with time zone', {

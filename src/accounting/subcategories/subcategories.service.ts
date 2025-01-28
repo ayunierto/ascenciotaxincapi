@@ -42,6 +42,7 @@ export class SubcategoryService {
       const newSubcategory = this.subcategoryRepository.create({
         name: createSubcategoryDto.name,
         user: user,
+        isSystem: createSubcategoryDto.isSystem || true,
         category: category,
       });
       this.subcategoryRepository.save(newSubcategory);
