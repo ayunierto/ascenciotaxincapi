@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -76,9 +75,7 @@ export class CategoriesService {
       if (!category) {
         throw new NotFoundException('Category not found');
       }
-      if (category.isSystem) {
-        throw new BadRequestException('Cannot modify system categories');
-      }
+
       const updatedCategory = Object.assign(category, updateCategoryDto);
       updatedCategory.updateAt = new Date();
       await this.categoryRepository.save(updatedCategory);

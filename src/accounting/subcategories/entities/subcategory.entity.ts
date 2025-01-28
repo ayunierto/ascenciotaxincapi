@@ -18,6 +18,9 @@ export class Subcategory {
   @Column('text', { unique: true })
   name: string;
 
+  @Column('boolean', { default: false })
+  isSystem: boolean;
+
   @ManyToOne(() => Category, (category) => category.subcategories)
   category: Category;
 

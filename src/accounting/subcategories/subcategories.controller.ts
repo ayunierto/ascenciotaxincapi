@@ -43,13 +43,14 @@ export class SubcategoryController {
   update(
     @Param('id') id: string,
     @Body() updateSubcategoryDto: UpdateSubcategoryDto,
+    @GetUser() user: User,
   ) {
-    return this.subcategoryService.update(+id, updateSubcategoryDto);
+    return this.subcategoryService.update(+id, updateSubcategoryDto, user);
   }
 
   @Delete(':id')
   @Auth()
-  remove(@Param('id') id: string) {
-    return this.subcategoryService.remove(+id);
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.subcategoryService.remove(+id, user);
   }
 }
