@@ -24,7 +24,9 @@ export class Category {
   @Column('boolean', { default: false })
   isSystem: boolean;
 
-  @OneToMany(() => Subcategory, (subcategory) => subcategory.category)
+  @OneToMany(() => Subcategory, (subcategory) => subcategory.category, {
+    eager: true,
+  })
   subcategories: Subcategory[];
 
   @OneToMany(() => Expense, (expense) => expense.category)

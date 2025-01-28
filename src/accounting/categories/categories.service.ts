@@ -28,7 +28,7 @@ export class CategoriesService {
       }
       const newCategory = this.categoryRepository.create({
         name: createCategoryDto.name,
-        isSystem: createCategoryDto.isSystem,
+        isSystem: createCategoryDto.isSystem || false,
         user: user,
         description: createCategoryDto.description,
       });
