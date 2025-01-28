@@ -16,6 +16,15 @@ import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
 import { PostsModule } from './blog/posts/posts.module';
 
+import { CategoriesModule } from './accounting/categories/categories.module';
+import { IncomeModule } from './accounting/incomes/incomes.module';
+import { ExpenseModule } from './accounting/expenses/expenses.module';
+import { AccountModule } from './accounting/accounts/accounts.module';
+import { TagsModule } from './accounting/tags/tags.module';
+import { SubcategoryModule } from './accounting/subcategories/subcategories.module';
+import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.module';
+import { CurrencyModule } from './accounting/currencies/currencies.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -48,6 +57,14 @@ import { PostsModule } from './blog/posts/posts.module';
     ZoomModule,
     MailModule,
     PostsModule,
+    CategoriesModule,
+    IncomeModule,
+    ExpenseModule,
+    AccountModule,
+    TagsModule,
+    SubcategoryModule,
+    AccountsTypesModule,
+    CurrencyModule,
   ],
   controllers: [],
   providers: [],

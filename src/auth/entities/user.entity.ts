@@ -3,6 +3,12 @@ import { Service } from '../../services/entities/service.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { IsOptional } from 'class-validator';
 import { Post } from 'src/blog/posts/entities/post.entity';
+import { Expense } from 'src/accounting/expenses/entities/expense.entity';
+import { Income } from 'src/accounting/incomes/entities/income.entity';
+import { Category } from 'src/accounting/categories/entities/category.entity';
+import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
+import { Account } from 'src/accounting/accounts/entities/account.entity';
+import { Tag } from 'src/accounting/tags/entities/tag.entity';
 
 @Entity('users')
 export class User {
@@ -54,4 +60,22 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
+
+  @OneToMany(() => Account, (account) => account.user)
+  accounts: Account[];
+
+  @OneToMany(() => Category, (category) => category.user)
+  categories: Category[];
+
+  @OneToMany(() => Subcategory, (subcategory) => subcategory.user)
+  subcategories: Subcategory[];
+
+  @OneToMany(() => Expense, (expense) => expense.user)
+  expenses: Expense[];
+
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags: Tag[];
+
+  @OneToMany(() => Income, (income) => income.user)
+  incomes: Income[];
 }

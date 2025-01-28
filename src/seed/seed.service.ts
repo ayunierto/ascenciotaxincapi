@@ -6,6 +6,7 @@ import { StaffService } from 'src/staff/staff.service';
 import { ValidRoles } from 'src/auth/interfaces';
 import { AppointmentService } from '../appointment/appointment.service';
 import { PostsService } from '../blog/posts/posts.service';
+import { CategoriesService } from 'src/accounting/categories/categories.service';
 
 @Injectable()
 export class SeedService {
@@ -16,6 +17,7 @@ export class SeedService {
     private readonly staffService: StaffService,
     private readonly appointmentService: AppointmentService,
     private readonly postsService: PostsService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   async runSeed() {
@@ -43,7 +45,7 @@ export class SeedService {
         birthdate: new Date('1993-01-18'),
         registrationDate: new Date(),
         isActive: true,
-        roles: [ValidRoles.staff],
+        roles: [ValidRoles.staff, ValidRoles.admin],
       });
       const luciaUser = await this.usersService.create({
         name: 'Lucia',
@@ -311,6 +313,48 @@ export class SeedService {
           title:
             'How Can You Take Advantage of Unclaimed Deductions for Remote Work Expenses?',
           url: 'https://www.ascenciotax.com/post/how-can-you-take-advantage-of-unclaimed-deductions-for-remote-work-expenses',
+        },
+        yulierUser,
+      );
+
+      // Create default categories
+      const expenses = await this.categoriesService.create(
+        {
+          name: 'Expenses',
+          isSystem: true,
+          description: 'Category for expenses',
+        },
+        yulierUser,
+      );
+      const motorVehicleExpensesBusiness = await this.categoriesService.create(
+        {
+          name: 'Motor Vehicle Expenses (Business)',
+          isSystem: true,
+          description: 'Category for expenses related to motor vehicles',
+        },
+        yulierUser,
+      );
+      const businessUseOfHomeUtilities = await this.categoriesService.create(
+        {
+          name: 'Business-use-of- home (Utilities)',
+          isSystem: true,
+          description: 'Category for expenses related to business-use-of-home',
+        },
+        yulierUser,
+      );
+      const medicalExpenses = await this.categoriesService.create(
+        {
+          name: 'Medical Expenses',
+          isSystem: true,
+          description: 'Category for medical expenses',
+        },
+        yulierUser,
+      );
+      const rent = await this.categoriesService.create(
+        {
+          name: 'Rent',
+          isSystem: true,
+          description: 'Category for rent',
         },
         yulierUser,
       );

@@ -7,7 +7,6 @@ import {
   IsMobilePhone,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -58,5 +57,6 @@ export class SignupUserDto {
   verificationCode?: string;
 
   @IsString()
+  @IsEnum(['email', 'whatsapp', 'sms'])
   verificationPlatform: VerificationPlatform;
 }
