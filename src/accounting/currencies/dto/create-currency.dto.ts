@@ -8,4 +8,8 @@ export class CreateCurrencyDto {
   @IsString()
   @IsNotEmpty()
   coinSuffix: string;
+
+  @IsString()
+  @IsNotEmpty()
+  symbol: string;
 }

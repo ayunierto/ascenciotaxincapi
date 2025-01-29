@@ -8,6 +8,9 @@ import { AppointmentService } from '../appointment/appointment.service';
 import { PostsService } from '../blog/posts/posts.service';
 import { CategoriesService } from 'src/accounting/categories/categories.service';
 import { SubcategoryService } from '../accounting/subcategories/subcategories.service';
+import { CurrencyService } from 'src/accounting/currencies/currencies.service';
+import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
+import { AccountService } from 'src/accounting/accounts/accounts.service';
 
 @Injectable()
 export class SeedService {
@@ -20,6 +23,9 @@ export class SeedService {
     private readonly postsService: PostsService,
     private readonly categoriesService: CategoriesService,
     private readonly subcategoryService: SubcategoryService,
+    private readonly currencyService: CurrencyService,
+    private readonly accountTypeService: AccountsTypesService,
+    private readonly accountService: AccountService,
   ) {}
 
   async runSeed() {
@@ -511,7 +517,7 @@ export class SeedService {
       );
       await this.subcategoryService.create(
         {
-          name: 'Licence/ Registration',
+          name: 'License/ Registration',
           isSystem: true,
           categoryId: motorVehicleExpensesBusiness.id,
         },
@@ -605,6 +611,29 @@ export class SeedService {
           categoryId: businessUseOfHomeUtilities.id,
         },
         yulierUser,
+      );
+
+      // Create currencies
+      const currencyCanadianDollar = await this.currencyService.create({
+        name: 'Canadian dollar',
+        coinSuffix: 'CAD',
+        symbol: '$',
+      });
+
+      const accountTypeCash = await this.accountTypeService.create({
+        name: 'Cash',
+        description: 'Cash account',
+      });
+
+      const account = await this.accountService.create(
+        {
+          accountTypeId: accountTypeCash.id,
+          currencyId: currencyCanadianDollar.id,
+          name: 'Cash',
+          description: 'Cash account',
+          icon: 'cash',
+        },
+        alcidesUser,
       );
 
       return {

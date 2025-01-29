@@ -24,7 +24,7 @@ export class CurrencyService {
       return newCurrency;
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error to create currency');
+      return error;
     }
   }
 
@@ -34,7 +34,7 @@ export class CurrencyService {
       return currencies;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Error to get currencies');
+      return error;
     }
   }
 
@@ -63,7 +63,7 @@ export class CurrencyService {
       return updatedCurrency;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Error to update currency');
+      return error;
     }
   }
 

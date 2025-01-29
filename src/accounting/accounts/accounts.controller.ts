@@ -10,33 +10,44 @@ import {
 import { AccountService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
+import { User } from 'src/auth/entities/user.entity';
+import { Auth, GetUser } from 'src/auth/decorators';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  create(@Body() createAccountDto: CreateAccountDto) {
-    return this.accountService.create(createAccountDto);
+  @Auth()
+  create(@Body() createAccountDto: CreateAccountDto, @GetUser() user: User) {
+    return this.accountService.create(createAccountDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.accountService.findAll();
+  @Auth()
+  findAll(@GetUser() user: User) {
+    return this.accountService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.accountService.findOne(+id);
+  @Auth()
+  findOne(@Param('id') id: string, @GetUser() user: User) {
+    return this.accountService.findOne(+id, user);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
-    return this.accountService.update(+id, updateAccountDto);
+  @Auth()
+  update(
+    @Param('id') id: string,
+    @Body() updateAccountDto: UpdateAccountDto,
+    @GetUser() user: User,
+  ) {
+    return this.accountService.update(+id, updateAccountDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.accountService.remove(+id);
+  @Auth()
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.accountService.remove(+id, user);
   }
 }

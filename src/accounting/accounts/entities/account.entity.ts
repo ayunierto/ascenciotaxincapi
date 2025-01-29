@@ -1,3 +1,5 @@
+import { AccountType } from 'src/accounting/accounts-types/entities/account-type.entity';
+import { Currency } from 'src/accounting/currencies/entities/currency.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
 import { Income } from 'src/accounting/incomes/entities/income.entity';
 import { User } from 'src/auth/entities/user.entity';
@@ -18,16 +20,16 @@ export class Account {
   name: string;
 
   @Column('text')
-  type: string;
-
-  @Column('text')
   icon: string;
-
-  @Column('text')
-  currency: string;
 
   @Column('text', { nullable: true })
   description: string;
+
+  @ManyToOne(() => Currency, (currency) => currency.accounts)
+  currency: Currency;
+
+  @ManyToOne(() => AccountType, (accountType) => accountType.accounts)
+  accountType: AccountType;
 
   @OneToMany(() => Income, (income) => income.account)
   incomes: Income[];
@@ -35,11 +37,10 @@ export class Account {
   @OneToMany(() => Expense, (expense) => expense.account)
   expenses: Expense[];
 
-  @ManyToOne(() => User, (user) => user.accounts)
+  @ManyToOne(() => User, (user) => user.accounts, { onDelete: 'CASCADE' })
   user: User;
 
   @Column('timestamp with time zone', {
-    nullable: true,
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
