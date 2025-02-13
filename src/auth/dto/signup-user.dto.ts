@@ -56,6 +56,8 @@ export class SignupUserDto {
   @IsOptional()
   verificationCode?: string;
 
+  locale: string;
+
   @IsString()
   @IsEnum(['email', 'whatsapp', 'sms'])
   verificationPlatform: VerificationPlatform;

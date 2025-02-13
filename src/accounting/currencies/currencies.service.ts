@@ -9,6 +9,7 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { Repository } from 'typeorm';
 import { Currency } from './entities/currency.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class CurrencyService {
@@ -17,9 +18,12 @@ export class CurrencyService {
     private readonly currencyRepository: Repository<Currency>,
   ) {}
 
-  async create(createCurrencyDto: CreateCurrencyDto) {
+  async create(createCurrencyDto: CreateCurrencyDto, user: User) {
     try {
-      const newCurrency = this.currencyRepository.create(createCurrencyDto);
+      const newCurrency = this.currencyRepository.create({
+        ...createCurrencyDto,
+        user,
+      });
       await this.currencyRepository.save(newCurrency);
       return newCurrency;
     } catch (error) {
@@ -58,7 +62,7 @@ export class CurrencyService {
         throw new NotFoundException('Currency not found');
       }
       const updatedCurrency = Object.assign(currency, updateCurrencyDto);
-      updatedCurrency.updateAt = new Date();
+      updatedCurrency.updatedAt = new Date();
       await this.currencyRepository.save(updatedCurrency);
       return updatedCurrency;
     } catch (error) {

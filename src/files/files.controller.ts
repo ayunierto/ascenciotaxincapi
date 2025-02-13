@@ -9,12 +9,14 @@ import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileFilter } from './helpers/fileFilter.helper';
 import { v2 as cloudinary } from 'cloudinary';
+import { Auth } from 'src/auth/decorators';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('service')
+  @Post('upload')
+  @Auth()
   @UseInterceptors(
     FileInterceptor('file', {
       fileFilter: FileFilter,
@@ -34,15 +36,11 @@ export class FilesController {
       const base64Image = Buffer.from(file.buffer).toString('base64');
 
       return cloudinary.uploader
-        .upload(`data:image/png;base64,${base64Image}`)
-        .then((r) => r.secure_url);
+        .upload_large(`data:image/png;base64,${base64Image}`)
+        .then((r) => ({ image: r.secure_url }));
     } catch (error) {
       console.error(error);
       return new BadRequestException('Upload Failed');
     }
-
-    return {
-      fileName: file.originalname,
-    };
   }
 }

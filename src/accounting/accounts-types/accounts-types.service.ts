@@ -4,6 +4,7 @@ import { UpdateAccountTypeDto } from './dto/update-account-type.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AccountType } from './entities/account-type.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class AccountsTypesService {
@@ -12,10 +13,12 @@ export class AccountsTypesService {
     private readonly accountTypeRepository: Repository<AccountType>,
   ) {}
 
-  async create(createAccountTypeDto: CreateAccountTypeDto) {
+  async create(createAccountTypeDto: CreateAccountTypeDto, user: User) {
     try {
-      const newAccountType =
-        this.accountTypeRepository.create(createAccountTypeDto);
+      const newAccountType = this.accountTypeRepository.create({
+        ...createAccountTypeDto,
+        user: user,
+      });
       await this.accountTypeRepository.save(newAccountType);
       return newAccountType;
     } catch (error) {
@@ -24,9 +27,11 @@ export class AccountsTypesService {
     }
   }
 
-  async findAll() {
+  async findAll(user: User) {
     try {
-      const accounts = await this.accountTypeRepository.find();
+      const accounts = await this.accountTypeRepository.find({
+        where: { user: { id: user.id } },
+      });
       return accounts;
     } catch (error) {
       console.error(error);
@@ -53,7 +58,7 @@ export class AccountsTypesService {
         throw new NotFoundException('Account type not found');
       }
       const updatedAccountTypes = Object.assign(types, updateAccountTypeDto);
-      updatedAccountTypes.updateAt = new Date();
+      updatedAccountTypes.updatedAt = new Date();
       await this.accountTypeRepository.save(updatedAccountTypes);
       return updatedAccountTypes;
     } catch (error) {

@@ -4,7 +4,6 @@ import { UsersService } from '../users/users.service';
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { StaffService } from 'src/staff/staff.service';
 import { ValidRoles } from 'src/auth/interfaces';
-import { AppointmentService } from '../appointment/appointment.service';
 import { PostsService } from '../blog/posts/posts.service';
 import { CategoriesService } from 'src/accounting/categories/categories.service';
 import { SubcategoryService } from '../accounting/subcategories/subcategories.service';
@@ -19,7 +18,6 @@ export class SeedService {
     private readonly servicesService: ServicesService,
     private readonly scheduleService: ScheduleService,
     private readonly staffService: StaffService,
-    private readonly appointmentService: AppointmentService,
     private readonly postsService: PostsService,
     private readonly categoriesService: CategoriesService,
     private readonly subcategoryService: SubcategoryService,
@@ -31,6 +29,7 @@ export class SeedService {
   async runSeed() {
     try {
       await this.deleteData();
+      // return { msg: 'date eliminate' };
 
       // Create users
       const alcidesUser = await this.usersService.create({
@@ -70,84 +69,120 @@ export class SeedService {
       // Create Schedule
       // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
       // for luxon
-      const scheduleMondayYulier = await this.scheduleService.create({
-        weekday: 1,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleTuesdayYulier = await this.scheduleService.create({
-        weekday: 2,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleWednesdayYulier = await this.scheduleService.create({
-        weekday: 3,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleThursdayYulier = await this.scheduleService.create({
-        weekday: 4,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleFridayYulier = await this.scheduleService.create({
-        weekday: 5,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleMondayLucia = await this.scheduleService.create({
-        weekday: 1,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleTuesdayLucia = await this.scheduleService.create({
-        weekday: 2,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleWednesdayLucia = await this.scheduleService.create({
-        weekday: 3,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleThursdayLucia = await this.scheduleService.create({
-        weekday: 4,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
-      const scheduleFridayLucia = await this.scheduleService.create({
-        weekday: 5,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
-      });
+      const scheduleMondayYulier = await this.scheduleService.create(
+        {
+          weekday: 1,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleTuesdayYulier = await this.scheduleService.create(
+        {
+          weekday: 2,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleWednesdayYulier = await this.scheduleService.create(
+        {
+          weekday: 3,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleThursdayYulier = await this.scheduleService.create(
+        {
+          weekday: 4,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleFridayYulier = await this.scheduleService.create(
+        {
+          weekday: 5,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleMondayLucia = await this.scheduleService.create(
+        {
+          weekday: 1,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleTuesdayLucia = await this.scheduleService.create(
+        {
+          weekday: 2,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleWednesdayLucia = await this.scheduleService.create(
+        {
+          weekday: 3,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleThursdayLucia = await this.scheduleService.create(
+        {
+          weekday: 4,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
+      const scheduleFridayLucia = await this.scheduleService.create(
+        {
+          weekday: 5,
+          startTime: '09:30:00',
+          endTime: '19:30:00',
+        },
+        yulierUser,
+      );
 
       // Create staff
-      const yulierStaff = await this.staffService.create({
-        name: 'Yulier',
-        lastName: 'Rondon',
-        isActive: true,
-        services: [],
-        schedules: [
-          scheduleMondayYulier.id,
-          scheduleTuesdayYulier.id,
-          scheduleWednesdayYulier.id,
-          scheduleThursdayYulier.id,
-          scheduleFridayYulier.id,
-        ],
-      });
-      const luciaStaff = await this.staffService.create({
-        name: 'Lucia',
-        lastName: 'Ascencio',
-        isActive: true,
-        services: [],
-        schedules: [
-          scheduleMondayLucia.id,
-          scheduleTuesdayLucia.id,
-          scheduleWednesdayLucia.id,
-          scheduleThursdayLucia.id,
-          scheduleFridayLucia.id,
-        ],
-      });
+      const yulierStaff = await this.staffService.create(
+        {
+          name: 'Yulier',
+          lastName: 'Rondon',
+          isActive: true,
+          services: [],
+          schedules: [
+            scheduleMondayYulier.id,
+            scheduleTuesdayYulier.id,
+            scheduleWednesdayYulier.id,
+            scheduleThursdayYulier.id,
+            scheduleFridayYulier.id,
+          ],
+        },
+        yulierUser,
+      );
+      const luciaStaff = await this.staffService.create(
+        {
+          name: 'Lucia',
+          lastName: 'Ascencio',
+          isActive: true,
+          services: [],
+          schedules: [
+            scheduleMondayLucia.id,
+            scheduleTuesdayLucia.id,
+            scheduleWednesdayLucia.id,
+            scheduleThursdayLucia.id,
+            scheduleFridayLucia.id,
+          ],
+        },
+        yulierUser,
+      );
 
       // Create services
       const inPerson = await this.servicesService.create(
@@ -163,7 +198,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const personalIncome = await this.servicesService.create(
         {
@@ -178,7 +213,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const corporateTaxes = await this.servicesService.create(
         {
@@ -193,7 +228,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const selfEmployed = await this.servicesService.create(
         {
@@ -208,7 +243,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const gstHstORWSIBReport = await this.servicesService.create(
         {
@@ -223,7 +258,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const businessRegistration = await this.servicesService.create(
         {
@@ -238,7 +273,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const rentalIncome = await this.servicesService.create(
         {
@@ -253,7 +288,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const socialInsurance = await this.servicesService.create(
         {
@@ -268,7 +303,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const childBenefit = await this.servicesService.create(
         {
@@ -283,7 +318,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const canadaPension = await this.servicesService.create(
         {
@@ -298,7 +333,7 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
       const oldAgeSecurityApplication = await this.servicesService.create(
         {
@@ -313,15 +348,45 @@ export class SeedService {
           price: 0,
           address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
         },
-        alcidesUser,
+        yulierUser,
       );
 
       // Create posts
-      const post = await this.postsService.create(
+      await this.postsService.create(
         {
           title:
             'How Can You Take Advantage of Unclaimed Deductions for Remote Work Expenses?',
           url: 'https://www.ascenciotax.com/post/how-can-you-take-advantage-of-unclaimed-deductions-for-remote-work-expenses',
+        },
+        yulierUser,
+      );
+      await this.postsService.create(
+        {
+          title: 'What you need to know for the 2024 tax-filing season',
+          url: 'https://www.ascenciotax.com/post/what-you-need-to-know-for-the-2024-tax-filing-season',
+        },
+        yulierUser,
+      );
+      await this.postsService.create(
+        {
+          title: 'Top 10 tax-saving tips for small business owners',
+          url: 'https://www.ascenciotax.com/post/top-10-tax-saving-tips-for-small-business-owners',
+        },
+        yulierUser,
+      );
+      await this.postsService.create(
+        {
+          title:
+            'The impact of recent tax law changes on individuals and businesses',
+          url: 'https://www.ascenciotax.com/post/the-impact-of-recent-tax-law-changes-on-individuals-and-businesses',
+        },
+        yulierUser,
+      );
+      await this.postsService.create(
+        {
+          title:
+            'Five common tax filing mistakes and how to avoid them at tax time!',
+          url: 'https://www.ascenciotax.com/post/common-tax-filing-mistakes',
         },
         yulierUser,
       );
@@ -614,26 +679,70 @@ export class SeedService {
       );
 
       // Create currencies
-      const currencyCanadianDollar = await this.currencyService.create({
-        name: 'Canadian dollar',
-        coinSuffix: 'CAD',
-        symbol: '$',
-      });
-
-      const accountTypeCash = await this.accountTypeService.create({
-        name: 'Cash',
-        description: 'Cash account',
-      });
-
-      const account = await this.accountService.create(
+      const currencyCanadianDollar = await this.currencyService.create(
         {
-          accountTypeId: accountTypeCash.id,
+          name: 'Canadian dollar',
+          coinSuffix: 'CAD',
+          symbol: '$',
+        },
+        yulierUser,
+      );
+
+      // Create accountType and account for alcidesUser
+      const accountTypeCashAlcides = await this.accountTypeService.create(
+        {
+          name: 'Cash',
+          description: 'Cash account',
+        },
+        alcidesUser,
+      );
+      await this.accountService.create(
+        {
+          accountTypeId: accountTypeCashAlcides.id,
           currencyId: currencyCanadianDollar.id,
           name: 'Cash',
           description: 'Cash account',
           icon: 'cash',
         },
         alcidesUser,
+      );
+
+      // Create accountType and account for yulierUser
+      const accountTypeCashYulier = await this.accountTypeService.create(
+        {
+          name: 'Cash',
+          description: 'Cash account',
+        },
+        yulierUser,
+      );
+      await this.accountService.create(
+        {
+          accountTypeId: accountTypeCashYulier.id,
+          currencyId: currencyCanadianDollar.id,
+          name: 'Cash',
+          description: 'Cash account',
+          icon: 'cash',
+        },
+        yulierUser,
+      );
+
+      // Create accountType and account for luciaUser
+      const accountTypeCashLucia = await this.accountTypeService.create(
+        {
+          name: 'Cash',
+          description: 'Cash account',
+        },
+        luciaUser,
+      );
+      await this.accountService.create(
+        {
+          accountTypeId: accountTypeCashLucia.id,
+          currencyId: currencyCanadianDollar.id,
+          name: 'Cash',
+          description: 'Cash account',
+          icon: 'cash',
+        },
+        luciaUser,
       );
 
       return {
@@ -647,10 +756,6 @@ export class SeedService {
   }
 
   private async deleteData() {
-    await this.postsService.removeAll();
-    await this.appointmentService.removeAll();
-    await this.staffService.removeAll();
-    await this.servicesService.removeAll();
     await this.usersService.removeAll();
   }
 }

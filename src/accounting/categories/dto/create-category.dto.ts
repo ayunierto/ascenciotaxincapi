@@ -18,8 +18,4 @@ export class CreateCategoryDto {
   @IsBoolean()
   @IsOptional()
   isSystem?: boolean;
-
-  @IsDate()
-  @IsOptional()
-  updateAt?: Date;
 }

@@ -14,6 +14,7 @@ import { Staff } from './entities/staff.entity';
 import { In, Repository } from 'typeorm';
 import { Service } from 'src/services/entities';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class StaffService {
@@ -28,7 +29,7 @@ export class StaffService {
     private readonly scheduleRepository: Repository<Schedule>,
   ) {}
 
-  async create(createStaffDto: CreateStaffDto) {
+  async create(createStaffDto: CreateStaffDto, user: User) {
     const {
       services: servicesIds,
       schedules: schedulesIds,
@@ -48,6 +49,7 @@ export class StaffService {
       const staff = this.staffRepository.create({
         services,
         schedules,
+        user,
         ...rest,
       });
       await this.staffRepository.save(staff);
@@ -118,23 +120,5 @@ export class StaffService {
     throw new InternalServerErrorException(
       'Unexpected error, check server logs.',
     );
-  }
-
-  async removeAll() {
-    const query = this.staffRepository.createQueryBuilder('staff');
-
-    try {
-      return await query.delete().where({}).execute();
-    } catch (error) {
-      throw new HttpException(
-        {
-          code: HttpStatus.BAD_REQUEST,
-          message: 'Can not delete staff members',
-          error: 'Can not delete staff members',
-          cause: 'Unknown',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
   }
 }

@@ -7,8 +7,4 @@ export class CreatePostDto {
   @IsUrl()
   @IsString()
   url: string;
-
-  @IsString()
-  @IsOptional()
-  updatedAt?: Date;
 }

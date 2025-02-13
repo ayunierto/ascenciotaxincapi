@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ExpenseService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
-import { Auth } from 'src/auth/decorators';
+import { Auth, GetUser } from 'src/auth/decorators';
+import { User } from 'src/auth/entities/user.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('expense')
 export class ExpenseController {
@@ -18,31 +21,35 @@ export class ExpenseController {
 
   @Post()
   @Auth()
-  create(@Body() createExpenseDto: CreateExpenseDto) {
-    return this.expenseService.create(createExpenseDto);
+  create(@Body() createExpenseDto: CreateExpenseDto, @GetUser() user: User) {
+    return this.expenseService.create(createExpenseDto, user);
   }
 
   @Get()
   @Auth()
-  findAll() {
-    return this.expenseService.findAll();
+  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
+    return this.expenseService.findAll(paginationDto, user);
   }
 
   @Get(':id')
   @Auth()
-  findOne(@Param('id') id: string) {
-    return this.expenseService.findOne(+id);
+  findOne(@Param('id') id: string, @GetUser() user: User) {
+    return this.expenseService.findOne(+id, user);
   }
 
   @Patch(':id')
   @Auth()
-  update(@Param('id') id: string, @Body() updateExpenseDto: UpdateExpenseDto) {
-    return this.expenseService.update(+id, updateExpenseDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateExpenseDto: UpdateExpenseDto,
+    @GetUser() user: User,
+  ) {
+    return this.expenseService.update(+id, updateExpenseDto, user);
   }
 
   @Delete(':id')
   @Auth()
-  remove(@Param('id') id: string) {
-    return this.expenseService.remove(+id);
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.expenseService.remove(+id, user);
   }
 }

@@ -1,5 +1,12 @@
 import { Account } from 'src/accounting/accounts/entities/account.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('currencies')
 export class Currency {
@@ -22,13 +29,12 @@ export class Currency {
   @OneToMany(() => Account, (account) => account.currency)
   accounts: Account[];
 
-  @Column('timestamp with time zone', {
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @ManyToOne(() => User, (user) => user.currencies, { onDelete: 'CASCADE' })
+  user: User;
+
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', {
-    nullable: true,
-  })
-  updateAt: Date;
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

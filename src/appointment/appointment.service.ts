@@ -323,24 +323,6 @@ export class AppointmentService {
     return appointment;
   }
 
-  async removeAll() {
-    const query = this.appointmentRepository.createQueryBuilder('appointment');
-
-    try {
-      return await query.delete().where({}).execute();
-    } catch (error) {
-      throw new HttpException(
-        {
-          code: HttpStatus.BAD_REQUEST,
-          message: 'Can not delete appointment',
-          error: 'Can not delete appointment',
-          cause: 'Unknown',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
   async getAppointmentsByStaffMember(staffMemberId: string, date: string) {
     const appointments = await this.appointmentRepository.find({
       where: {

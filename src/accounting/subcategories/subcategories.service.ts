@@ -55,7 +55,11 @@ export class SubcategoryService {
 
   async findAll() {
     try {
-      const subcategories = await this.subcategoryRepository.find();
+      const subcategories = await this.subcategoryRepository.find({
+        relations: {
+          category: true,
+        },
+      });
       return subcategories;
     } catch (error) {
       console.error(error);
@@ -94,7 +98,7 @@ export class SubcategoryService {
       }
 
       const updatedCategory = Object.assign(category, updateSubcategoryDto);
-      updatedCategory.updateAt = new Date();
+      updatedCategory.updatedAt = new Date();
       await this.subcategoryRepository.save(updatedCategory);
       return updatedCategory;
     } catch (error) {

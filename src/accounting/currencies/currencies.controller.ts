@@ -10,8 +10,9 @@ import {
 import { CurrencyService } from './currencies.service';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
-import { Auth } from 'src/auth/decorators';
+import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('currency')
 export class CurrencyController {
@@ -19,8 +20,8 @@ export class CurrencyController {
 
   @Post()
   @Auth(ValidRoles.admin)
-  create(@Body() createCurrencyDto: CreateCurrencyDto) {
-    return this.currencyService.create(createCurrencyDto);
+  create(@Body() createCurrencyDto: CreateCurrencyDto, @GetUser() user: User) {
+    return this.currencyService.create(createCurrencyDto, user);
   }
 
   @Get()

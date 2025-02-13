@@ -23,6 +23,7 @@ export class Subcategory {
 
   @ManyToOne(() => Category, (category) => category.subcategories, {
     onDelete: 'CASCADE',
+    eager: true,
   })
   category: Category;
 
@@ -46,5 +47,5 @@ export class Subcategory {
   @Column('timestamp with time zone', {
     nullable: true,
   })
-  updateAt: Date;
+  updatedAt: Date;
 }

@@ -77,7 +77,7 @@ export class CategoriesService {
       }
 
       const updatedCategory = Object.assign(category, updateCategoryDto);
-      updatedCategory.updateAt = new Date();
+      updatedCategory.updatedAt = new Date();
       await this.categoryRepository.save(updatedCategory);
       return updatedCategory;
     } catch (error) {

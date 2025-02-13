@@ -50,7 +50,7 @@ export class Service {
   })
   images?: ServiceImage[];
 
-  @ManyToMany(() => Staff, (staff) => staff.services)
+  @ManyToMany(() => Staff, (staff) => staff.services, { onDelete: 'CASCADE' })
   staff: Staff[];
 
   @ManyToOne(() => User, (user) => user.services, {
@@ -61,4 +61,10 @@ export class Service {
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];
+
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

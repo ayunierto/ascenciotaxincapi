@@ -16,7 +16,7 @@ export class Account {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column('text', { unique: true })
+  @Column('text')
   name: string;
 
   @Column('text')
@@ -40,13 +40,9 @@ export class Account {
   @ManyToOne(() => User, (user) => user.accounts, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column('timestamp with time zone', {
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', {
-    nullable: true,
-  })
-  updateAt: Date;
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

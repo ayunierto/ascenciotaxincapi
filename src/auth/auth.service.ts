@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -17,6 +19,9 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { MailService } from 'src/mail/mail.service';
 import { SendCodeDto } from './dto/send-code.dto';
+import { AccountService } from 'src/accounting/accounts/accounts.service';
+import { CurrencyService } from 'src/accounting/currencies/currencies.service';
+import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +30,12 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    @Inject(forwardRef(() => AccountService))
+    private readonly accountService: AccountService,
+    @Inject(forwardRef(() => AccountsTypesService))
+    private readonly accountTypeService: AccountsTypesService,
+    @Inject(forwardRef(() => CurrencyService))
+    private readonly currencyService: CurrencyService,
   ) {}
 
   async signup(signupUserDto: SignupUserDto) {
@@ -54,6 +65,28 @@ export class AuthService {
           verificationPlatform,
         });
       }
+
+      // Create account for user
+      const currency = await this.currencyService.findAll();
+      const accountTypeCashDefault = await this.accountTypeService.create(
+        {
+          name: 'Cash',
+          description: 'Cash account',
+        },
+        user,
+      );
+      await this.accountService.create(
+        {
+          accountTypeId: accountTypeCashDefault.id,
+          currencyId: currency[0].id,
+          name: 'Cash',
+          description: 'Cash account',
+          icon: 'cash',
+        },
+        user,
+      );
+
+      delete savedUser.password;
 
       return {
         ...savedUser,

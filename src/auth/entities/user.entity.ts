@@ -9,6 +9,10 @@ import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
 import { Account } from 'src/accounting/accounts/entities/account.entity';
 import { Tag } from 'src/accounting/tags/entities/tag.entity';
+import { AccountType } from 'src/accounting/accounts-types/entities/account-type.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { Staff } from 'src/staff/entities/staff.entity';
+import { Currency } from 'src/accounting/currencies/entities/currency.entity';
 
 @Entity('users')
 export class User {
@@ -36,9 +40,6 @@ export class User {
   @Column('bool', { default: false })
   isActive: boolean;
 
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  registrationDate: Date;
-
   @Column('timestamp', { nullable: true })
   lastLogin: Date;
 
@@ -64,6 +65,9 @@ export class User {
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
 
+  @OneToMany(() => AccountType, (accountType) => accountType.user)
+  accountsTypes: Account[];
+
   @OneToMany(() => Category, (category) => category.user)
   categories: Category[];
 
@@ -76,6 +80,21 @@ export class User {
   @OneToMany(() => Tag, (tag) => tag.user)
   tags: Tag[];
 
+  @OneToMany(() => Schedule, (schedule) => schedule.user)
+  schedules: Schedule[];
+
+  @OneToMany(() => Staff, (staff) => staff.user)
+  staffs: Staff[];
+
   @OneToMany(() => Income, (income) => income.user)
   incomes: Income[];
+
+  @OneToMany(() => Currency, (currency) => currency.user)
+  currencies: Currency[];
+
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

@@ -24,27 +24,39 @@ export class Expense {
   date: Date;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  total: string;
+  total: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  tax: string;
+  tax: number;
 
-  @ManyToOne(() => Category, (category) => category.expenses, { eager: true })
+  @Column('text', {
+    nullable: true,
+  })
+  image: string;
+
+  @ManyToOne(() => Category, (category) => category.expenses, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   category: Category;
 
   @ManyToOne(() => Subcategory, (subcategory) => subcategory.expenses, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   subcategory: Subcategory;
 
-  @ManyToOne(() => Account, (account) => account.expenses, { eager: true })
+  @ManyToOne(() => Account, (account) => account.expenses, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   account: Account;
 
   @ManyToMany(() => Tag, (tag) => tag.expenses, { eager: true })
   @JoinTable({ name: 'expenses_tags' })
   tags: Tag[];
 
-  @ManyToOne(() => User, (user) => user.expenses)
+  @ManyToOne(() => User, (user) => user.expenses, { onDelete: 'CASCADE' })
   user: User;
 
   @Column('text', {

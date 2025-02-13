@@ -35,15 +35,18 @@ export class Appointment {
   @Column('text', { nullable: true })
   zoomMeetingLink: string;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
   @ManyToOne(() => Service, (service) => service.appointments)
   service: Service;
 
-  @ManyToOne(() => User, (user) => user.appointments)
+  @ManyToOne(() => User, (user) => user.appointments, { onDelete: 'CASCADE' })
   user: User;
 
   @ManyToOne(() => Staff, (staff) => staff.appointments)
   staff: Staff;
+
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

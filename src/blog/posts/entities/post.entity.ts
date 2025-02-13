@@ -12,12 +12,12 @@ export class Post {
   @Column('text')
   title: string;
 
+  @ManyToOne((type) => User, (user) => user.posts, { onDelete: 'CASCADE' })
+  user: User;
+
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @Column('timestamp with time zone', { nullable: true })
   updatedAt: Date;
-
-  @ManyToOne((type) => User, (user) => user.posts, { onDelete: 'CASCADE' })
-  user: User;
 }

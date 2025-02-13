@@ -24,9 +24,7 @@ export class Category {
   @Column('boolean', { default: false })
   isSystem: boolean;
 
-  @OneToMany(() => Subcategory, (subcategory) => subcategory.category, {
-    eager: true,
-  })
+  @OneToMany(() => Subcategory, (subcategory) => subcategory.category)
   subcategories: Subcategory[];
 
   @OneToMany(() => Expense, (expense) => expense.category)
@@ -39,15 +37,9 @@ export class Category {
     onDelete: 'CASCADE',
   })
   user: User;
-
-  @Column('timestamp with time zone', {
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', {
-    nullable: true,
-  })
-  updateAt: Date;
+  @Column('timestamp with time zone', { nullable: true })
+  updatedAt: Date;
 }

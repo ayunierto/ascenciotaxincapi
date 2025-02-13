@@ -54,15 +54,4 @@ export class PostsService {
   remove(id: string) {
     return `This action removes a #${id} post`;
   }
-
-  async removeAll() {
-    const query = this.postRepository.createQueryBuilder('post');
-
-    try {
-      return await query.delete().where({}).execute();
-    } catch (error) {
-      console.error(error);
-      new BadRequestException(error);
-    }
-  }
 }

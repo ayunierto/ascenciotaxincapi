@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Currency } from '../currencies/entities/currency.entity';
 import { AccountType } from '../accounts-types/entities/account-type.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AccountService {
@@ -46,11 +47,14 @@ export class AccountService {
     }
   }
 
-  async findAll(user: User) {
+  async findAll(paginationDto: PaginationDto, user: User) {
     try {
+      const { limit = 10, offset = 0 } = paginationDto;
       const accounts = await this.accountRepository.find({
-        where: { user: user },
+        where: { user: { id: user.id } },
         relations: ['currency', 'accountType'],
+        take: limit,
+        skip: offset,
       });
       return accounts;
     } catch (error) {
@@ -101,7 +105,7 @@ export class AccountService {
         currency: currency,
         ...rest,
       });
-      updatedAccount.updateAt = new Date();
+      updatedAccount.updatedAt = new Date();
       await this.accountRepository.save(updatedAccount);
       return updatedAccount;
     } catch (error) {

@@ -140,22 +140,4 @@ export class ServicesService {
       'Unexpected error, check server logs.',
     );
   }
-
-  async removeAll() {
-    const query = this.serviceRepository.createQueryBuilder('service');
-
-    try {
-      return await query.delete().where({}).execute();
-    } catch (error) {
-      throw new HttpException(
-        {
-          code: HttpStatus.BAD_REQUEST,
-          message: 'Can not delete services',
-          error: 'Can not delete services',
-          cause: 'Unknown',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
 }

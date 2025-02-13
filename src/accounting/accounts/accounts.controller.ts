@@ -6,12 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { AccountService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { User } from 'src/auth/entities/user.entity';
 import { Auth, GetUser } from 'src/auth/decorators';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('account')
 export class AccountController {
@@ -25,8 +27,8 @@ export class AccountController {
 
   @Get()
   @Auth()
-  findAll(@GetUser() user: User) {
-    return this.accountService.findAll(user);
+  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
+    return this.accountService.findAll(paginationDto, user);
   }
 
   @Get(':id')
