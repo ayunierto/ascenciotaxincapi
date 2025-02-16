@@ -13,6 +13,7 @@ import { Expense } from './entities/expense.entity';
 import { Category } from '../categories/entities/category.entity';
 import { Subcategory } from '../subcategories/entities/subcategory.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { LogsService } from 'src/logs/logs.service';
 
 @Injectable()
 export class ExpenseService {
@@ -25,6 +26,8 @@ export class ExpenseService {
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Subcategory)
     private readonly subcategoryRepository: Repository<Subcategory>,
+
+    private readonly logService: LogsService,
   ) {}
 
   async create(createExpenseDto: CreateExpenseDto, user: User) {
@@ -69,6 +72,12 @@ export class ExpenseService {
       });
 
       await this.expenseRepository.save(newExpense);
+
+      await this.logService.create(
+        { description: `Expense added: ${category.name}` },
+        user,
+      );
+
       return newExpense;
     } catch (error) {
       console.error(error);
@@ -177,6 +186,12 @@ export class ExpenseService {
       updatedExpense.updateAt = new Date();
 
       await this.expenseRepository.save(updatedExpense);
+
+      await this.logService.create(
+        { description: `Expense updated: ${category.name}` },
+        user,
+      );
+
       return updatedExpense;
     } catch (error) {
       console.error(error);
@@ -187,12 +202,18 @@ export class ExpenseService {
   async remove(id: number, user: User) {
     try {
       const expense = await this.expenseRepository.findOne({
-        where: { id: id, user: user },
+        where: { id: id, user: { id: user.id } },
       });
       if (!expense) {
         throw new BadRequestException('Expense not found');
       }
       await this.expenseRepository.remove(expense);
+
+      await this.logService.create(
+        { description: `Expense deleted: ${expense.category.name}` },
+        user,
+      );
+
       return expense;
     } catch (error) {
       console.error(error);

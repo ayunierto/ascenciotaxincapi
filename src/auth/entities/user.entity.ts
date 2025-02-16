@@ -13,6 +13,7 @@ import { AccountType } from 'src/accounting/accounts-types/entities/account-type
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Currency } from 'src/accounting/currencies/entities/currency.entity';
+import { Log } from 'src/logs/entities/log.entity';
 
 @Entity('users')
 export class User {
@@ -91,6 +92,9 @@ export class User {
 
   @OneToMany(() => Currency, (currency) => currency.user)
   currencies: Currency[];
+
+  @OneToMany(() => Log, (log) => log.user)
+  logs: Log[];
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

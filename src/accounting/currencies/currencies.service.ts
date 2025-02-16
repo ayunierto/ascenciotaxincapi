@@ -27,7 +27,7 @@ export class CurrencyService {
       await this.currencyRepository.save(newCurrency);
       return newCurrency;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return error;
     }
   }

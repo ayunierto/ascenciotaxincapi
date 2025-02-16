@@ -1,12 +1,9 @@
-import { IsUrl } from 'class-validator';
+import { IsISO8601, IsUrl } from 'class-validator';
 import {
   IsArray,
-  IsDate,
-  IsDecimal,
   IsNumber,
   IsOptional,
   IsString,
-  Min,
   MinLength,
 } from 'class-validator';
 
@@ -16,6 +13,7 @@ export class CreateExpenseDto {
   merchant: string;
 
   @IsString()
+  @IsISO8601()
   date: string;
 
   @IsNumber({ maxDecimalPlaces: 2 })

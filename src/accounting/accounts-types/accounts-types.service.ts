@@ -22,7 +22,7 @@ export class AccountsTypesService {
       await this.accountTypeRepository.save(newAccountType);
       return newAccountType;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return error;
     }
   }
