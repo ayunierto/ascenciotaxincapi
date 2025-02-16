@@ -25,6 +25,7 @@ import { SubcategoryModule } from './accounting/subcategories/subcategories.modu
 import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.module';
 import { CurrencyModule } from './accounting/currencies/currencies.module';
 import { LogsModule } from './logs/logs.module';
+import { SubscriptionsModule } from './accounting/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { LogsModule } from './logs/logs.module';
     AccountsTypesModule,
     CurrencyModule,
     LogsModule,
+    SubscriptionsModule,
   ],
   controllers: [],
   providers: [],
