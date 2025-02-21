@@ -793,7 +793,7 @@ export class SeedService {
         {
           months: 1,
           discount: 0,
-          planId: businessPlan.id,
+          planId: professionalPlan.id,
         },
         yulierUser,
       );
@@ -801,7 +801,7 @@ export class SeedService {
         {
           months: 12,
           discount: 75,
-          planId: businessPlan.id,
+          planId: professionalPlan.id,
         },
         yulierUser,
       );
@@ -810,7 +810,7 @@ export class SeedService {
         {
           months: 24,
           discount: 78,
-          planId: businessPlan.id,
+          planId: professionalPlan.id,
         },
         yulierUser,
       );
@@ -818,7 +818,7 @@ export class SeedService {
         {
           months: 48,
           discount: 80,
-          planId: businessPlan.id,
+          planId: professionalPlan.id,
         },
         yulierUser,
       );
@@ -827,7 +827,7 @@ export class SeedService {
         {
           months: 1,
           discount: 0,
-          planId: professionalPlan.id,
+          planId: businessPlan.id,
         },
         yulierUser,
       );
@@ -835,7 +835,7 @@ export class SeedService {
         {
           months: 12,
           discount: 75,
-          planId: professionalPlan.id,
+          planId: businessPlan.id,
         },
         yulierUser,
       );
@@ -844,7 +844,7 @@ export class SeedService {
         {
           months: 24,
           discount: 78,
-          planId: professionalPlan.id,
+          planId: businessPlan.id,
         },
         yulierUser,
       );
@@ -852,7 +852,7 @@ export class SeedService {
         {
           months: 48,
           discount: 80,
-          planId: professionalPlan.id,
+          planId: businessPlan.id,
         },
         yulierUser,
       );
