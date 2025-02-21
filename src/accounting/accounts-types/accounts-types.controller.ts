@@ -36,7 +36,7 @@ export class AccountsTypesController {
   @Get(':id')
   @Auth()
   findOne(@Param('id') id: string) {
-    return this.accountsTypesService.findOne(+id);
+    return this.accountsTypesService.findOne(id);
   }
 
   @Patch(':id')
@@ -45,12 +45,12 @@ export class AccountsTypesController {
     @Param('id') id: string,
     @Body() updateAccountTypeDto: UpdateAccountTypeDto,
   ) {
-    return this.accountsTypesService.update(+id, updateAccountTypeDto);
+    return this.accountsTypesService.update(id, updateAccountTypeDto);
   }
 
   @Delete(':id')
   @Auth()
   remove(@Param('id') id: string) {
-    return this.accountsTypesService.remove(+id);
+    return this.accountsTypesService.remove(id);
   }
 }

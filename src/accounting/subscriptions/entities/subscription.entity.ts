@@ -1,9 +1,23 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Plan } from 'src/accounting/plans/entities/plan.entity';
+import { User } from 'src/auth/entities/user.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('subscriptions')
 export class Subscription {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @OneToOne(() => User, (user) => user.subscription)
+  user: User;
+
+  @ManyToOne(() => Plan, (plan) => plan.subscriptions)
+  plan: Plan;
 
   @Column('text', { unique: true })
   name: string;

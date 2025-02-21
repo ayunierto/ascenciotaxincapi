@@ -26,6 +26,10 @@ import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.
 import { CurrencyModule } from './accounting/currencies/currencies.module';
 import { LogsModule } from './logs/logs.module';
 import { SubscriptionsModule } from './accounting/subscriptions/subscriptions.module';
+import { AwsModule } from './aws/aws.module';
+import { PlansModule } from './accounting/plans/plans.module';
+import { PaymentsModule } from './accounting/payments/payments.module';
+import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discounts-on-plans.module';
 
 @Module({
   imports: [
@@ -69,6 +73,10 @@ import { SubscriptionsModule } from './accounting/subscriptions/subscriptions.mo
     CurrencyModule,
     LogsModule,
     SubscriptionsModule,
+    AwsModule,
+    PlansModule,
+    PaymentsModule,
+    DiscountsOnPlansModule,
   ],
   controllers: [],
   providers: [],

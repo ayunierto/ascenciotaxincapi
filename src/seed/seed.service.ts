@@ -10,6 +10,8 @@ import { SubcategoryService } from '../accounting/subcategories/subcategories.se
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
 import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
+import { PlansService } from 'src/accounting/plans/plans.service';
+import { DiscountsOnPlansService } from 'src/accounting/discounts-on-plans/discounts-on-plans.service';
 
 @Injectable()
 export class SeedService {
@@ -24,6 +26,8 @@ export class SeedService {
     private readonly currencyService: CurrencyService,
     private readonly accountTypeService: AccountsTypesService,
     private readonly accountService: AccountService,
+    private readonly planService: PlansService,
+    private readonly discountsOnPlansService: DiscountsOnPlansService,
   ) {}
 
   async runSeed() {
@@ -185,7 +189,7 @@ export class SeedService {
       );
 
       // Create services
-      const inPerson = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'In-person Tax Filing (Walk-in)',
           isAvailableOnline: false,
@@ -200,7 +204,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const personalIncome = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Personal Income Tax',
           isAvailableOnline: true,
@@ -215,7 +219,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const corporateTaxes = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Corporate Taxes',
           isAvailableOnline: true,
@@ -230,7 +234,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const selfEmployed = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Self-Employed & Small Business Tax',
           isAvailableOnline: true,
@@ -245,7 +249,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const gstHstORWSIBReport = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'GST/HST or WSIB Report',
           isAvailableOnline: true,
@@ -260,7 +264,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const businessRegistration = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Business Registration',
           isAvailableOnline: true,
@@ -275,7 +279,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const rentalIncome = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Rental Income Taxes',
           isAvailableOnline: true,
@@ -290,7 +294,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const socialInsurance = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Social insurance number for non-resident',
           isAvailableOnline: true,
@@ -305,7 +309,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const childBenefit = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Canada Child Benefit Application',
           isAvailableOnline: true,
@@ -320,7 +324,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const canadaPension = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Canada Pension Plan(CPP) Application',
           isAvailableOnline: true,
@@ -335,7 +339,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const oldAgeSecurityApplication = await this.servicesService.create(
+      await this.servicesService.create(
         {
           name: 'Old Age Security Application',
           isAvailableOnline: true,
@@ -416,49 +420,8 @@ export class SeedService {
         },
         yulierUser,
       );
-      const medicalExpenses = await this.categoriesService.create(
-        {
-          name: 'Medical Expenses',
-          isSystem: true,
-          description: 'Category for medical expenses',
-        },
-        yulierUser,
-      );
-      const rent = await this.categoriesService.create(
-        {
-          name: 'Rent',
-          isSystem: true,
-          description: 'Category for rent',
-        },
-        yulierUser,
-      );
       // Create default subcategories
-      const AdvertisingPromotion = await this.subcategoryService.create(
-        {
-          name: 'Advertising/ Promotion',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      const MealsEntertainment = await this.subcategoryService.create(
-        {
-          name: 'Meals/ Entertainment',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      const SuppliesOfficeExpenseOfficeStationery =
-        await this.subcategoryService.create(
-          {
-            name: 'Supplies/ Office Expense/ Office Stationery',
-            isSystem: true,
-            categoryId: expenses.id,
-          },
-          yulierUser,
-        );
-      const OfficeRental = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Office Rental',
           isSystem: true,
@@ -466,7 +429,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const OfficeUtilities = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Office Utilities',
           isSystem: true,
@@ -474,7 +437,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const OfficePhone = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Office Phone',
           isSystem: true,
@@ -482,7 +445,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const OfficeInternet = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Office Internet',
           isSystem: true,
@@ -490,7 +453,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const OfficeMaintenanceRepairs = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Office maintenance/ Repairs ',
           isSystem: true,
@@ -498,7 +461,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const StorageRent = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Storage Rent',
           isSystem: true,
@@ -506,7 +469,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const Uniform = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Uniform',
           isSystem: true,
@@ -514,7 +477,7 @@ export class SeedService {
         },
         yulierUser,
       );
-      const RentalEquipmentCarRental = await this.subcategoryService.create(
+      await this.subcategoryService.create(
         {
           name: 'Rental Equipment/ Car Rental',
           isSystem: true,
@@ -522,16 +485,15 @@ export class SeedService {
         },
         yulierUser,
       );
-      const AccountingLegalOtherProfessionalFees =
-        await this.subcategoryService.create(
-          {
-            name: 'Accounting/ Legal/ Other professional Fees',
-            isSystem: true,
-            categoryId: expenses.id,
-          },
-          yulierUser,
-        );
-      const MembershipsSubscriptions = await this.subcategoryService.create(
+      await this.subcategoryService.create(
+        {
+          name: 'Accounting/ Legal/ Other professional Fees',
+          isSystem: true,
+          categoryId: expenses.id,
+        },
+        yulierUser,
+      );
+      await this.subcategoryService.create(
         {
           name: 'Memberships/ Subscriptions',
           isSystem: true,
@@ -743,6 +705,156 @@ export class SeedService {
           icon: 'cash',
         },
         luciaUser,
+      );
+
+      // Create plans
+      const personalPlan = await this.planService.create(
+        {
+          name: 'Personal',
+          description:
+            'Ideal for freelancers and small businesses starting out.',
+          price: 9.99,
+          features: [
+            'Up to 50 receipts per month',
+            'Basic reporting',
+            'Manual data entry',
+            'Email support',
+          ],
+        },
+        yulierUser,
+      );
+      const professionalPlan = await this.planService.create(
+        {
+          name: 'Professional',
+          description:
+            'Perfect for growing businesses with more complex needs.',
+          price: 14.99,
+          features: [
+            'Up to 200 receipts per month',
+            'Advanced reporting',
+            'Automatic data entry',
+            'Email support',
+          ],
+        },
+        yulierUser,
+      );
+      const businessPlan = await this.planService.create(
+        {
+          name: 'Business',
+          description:
+            'For large organizations requiring unlimited usage and support.',
+          price: 19.99,
+          features: [
+            'Unlimited receipts',
+            'Advanced reporting',
+            'Automatic data entry',
+            'Priority support',
+          ],
+        },
+        yulierUser,
+      );
+
+      // Create discounts on plans
+      await this.discountsOnPlansService.create(
+        {
+          months: 1,
+          discount: 0,
+          planId: personalPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 12,
+          discount: 75,
+          planId: personalPlan.id,
+        },
+        yulierUser,
+      );
+
+      await this.discountsOnPlansService.create(
+        {
+          months: 24,
+          discount: 78,
+          planId: personalPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 48,
+          discount: 80,
+          planId: personalPlan.id,
+        },
+        yulierUser,
+      );
+
+      await this.discountsOnPlansService.create(
+        {
+          months: 1,
+          discount: 0,
+          planId: businessPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 12,
+          discount: 75,
+          planId: businessPlan.id,
+        },
+        yulierUser,
+      );
+
+      await this.discountsOnPlansService.create(
+        {
+          months: 24,
+          discount: 78,
+          planId: businessPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 48,
+          discount: 80,
+          planId: businessPlan.id,
+        },
+        yulierUser,
+      );
+
+      await this.discountsOnPlansService.create(
+        {
+          months: 1,
+          discount: 0,
+          planId: professionalPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 12,
+          discount: 75,
+          planId: professionalPlan.id,
+        },
+        yulierUser,
+      );
+
+      await this.discountsOnPlansService.create(
+        {
+          months: 24,
+          discount: 78,
+          planId: professionalPlan.id,
+        },
+        yulierUser,
+      );
+      await this.discountsOnPlansService.create(
+        {
+          months: 48,
+          discount: 80,
+          planId: professionalPlan.id,
+        },
+        yulierUser,
       );
 
       return {

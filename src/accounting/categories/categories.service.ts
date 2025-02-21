@@ -50,7 +50,7 @@ export class CategoriesService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const category = await this.categoryRepository.findOneBy({ id });
       if (!category) {
@@ -63,7 +63,7 @@ export class CategoriesService {
     }
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto, user: User) {
+  async update(id: string, updateCategoryDto: UpdateCategoryDto, user: User) {
     try {
       const isAdmin = user.roles.includes(ValidRoles.admin);
       if (updateCategoryDto.isSystem && !isAdmin) {
@@ -86,7 +86,7 @@ export class CategoriesService {
     }
   }
 
-  async remove(id: number, user: User) {
+  async remove(id: string, user: User) {
     try {
       const category = await this.categoryRepository.findOneBy({ id });
       if (!category) {

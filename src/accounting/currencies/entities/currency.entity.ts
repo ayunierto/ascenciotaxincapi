@@ -10,8 +10,8 @@ import {
 
 @Entity('currencies')
 export class Currency {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text', {
     unique: true,

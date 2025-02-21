@@ -1,6 +1,12 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Service } from '../../services/entities/service.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { IsOptional } from 'class-validator';
 import { Post } from 'src/blog/posts/entities/post.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
@@ -8,12 +14,14 @@ import { Income } from 'src/accounting/incomes/entities/income.entity';
 import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
 import { Account } from 'src/accounting/accounts/entities/account.entity';
-import { Tag } from 'src/accounting/tags/entities/tag.entity';
 import { AccountType } from 'src/accounting/accounts-types/entities/account-type.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Currency } from 'src/accounting/currencies/entities/currency.entity';
 import { Log } from 'src/logs/entities/log.entity';
+import { Plan } from 'src/accounting/plans/entities/plan.entity';
+import { Subscription } from 'src/accounting/subscriptions/entities/subscription.entity';
+import { DiscountsOnPlan } from 'src/accounting/discounts-on-plans/entities/discounts-on-plan.entity';
 
 @Entity('users')
 export class User {
@@ -78,9 +86,6 @@ export class User {
   @OneToMany(() => Expense, (expense) => expense.user)
   expenses: Expense[];
 
-  @OneToMany(() => Tag, (tag) => tag.user)
-  tags: Tag[];
-
   @OneToMany(() => Schedule, (schedule) => schedule.user)
   schedules: Schedule[];
 
@@ -95,6 +100,15 @@ export class User {
 
   @OneToMany(() => Log, (log) => log.user)
   logs: Log[];
+
+  @OneToMany(() => Plan, (plan) => plan.user)
+  plans: Plan[];
+
+  @OneToMany(() => DiscountsOnPlan, (discount) => discount.user)
+  discounts: DiscountsOnPlan[];
+
+  @OneToOne(() => Subscription, (subscription) => subscription.user)
+  subscription: Subscription[];
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

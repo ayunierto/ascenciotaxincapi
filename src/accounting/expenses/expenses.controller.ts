@@ -34,7 +34,7 @@ export class ExpenseController {
   @Get(':id')
   @Auth()
   findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.findOne(+id, user);
+    return this.expenseService.findOne(id, user);
   }
 
   @Patch(':id')
@@ -44,12 +44,12 @@ export class ExpenseController {
     @Body() updateExpenseDto: UpdateExpenseDto,
     @GetUser() user: User,
   ) {
-    return this.expenseService.update(+id, updateExpenseDto, user);
+    return this.expenseService.update(id, updateExpenseDto, user);
   }
 
   @Delete(':id')
   @Auth()
   remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.remove(+id, user);
+    return this.expenseService.remove(id, user);
   }
 }

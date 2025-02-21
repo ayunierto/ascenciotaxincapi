@@ -10,8 +10,8 @@ import {
 
 @Entity('accounts_type')
 export class AccountType {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text')
   name: string;

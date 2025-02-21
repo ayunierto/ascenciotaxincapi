@@ -32,7 +32,7 @@ export class CategoriesController {
   @Auth()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(+id);
+    return this.categoriesService.findOne(id);
   }
 
   @Patch(':id')
@@ -42,12 +42,12 @@ export class CategoriesController {
     @Body() updateCategoryDto: UpdateCategoryDto,
     @GetUser() user: User,
   ) {
-    return this.categoriesService.update(+id, updateCategoryDto, user);
+    return this.categoriesService.update(id, updateCategoryDto, user);
   }
 
   @Delete(':id')
   @Auth()
   remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.categoriesService.remove(+id, user);
+    return this.categoriesService.remove(id, user);
   }
 }

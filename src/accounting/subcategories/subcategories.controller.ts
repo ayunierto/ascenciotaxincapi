@@ -35,7 +35,7 @@ export class SubcategoryController {
   @Get(':id')
   @Auth()
   findOne(@Param('id') id: string) {
-    return this.subcategoryService.findOne(+id);
+    return this.subcategoryService.findOne(id);
   }
 
   @Patch(':id')
@@ -45,12 +45,12 @@ export class SubcategoryController {
     @Body() updateSubcategoryDto: UpdateSubcategoryDto,
     @GetUser() user: User,
   ) {
-    return this.subcategoryService.update(+id, updateSubcategoryDto, user);
+    return this.subcategoryService.update(id, updateSubcategoryDto, user);
   }
 
   @Delete(':id')
   @Auth()
   remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.subcategoryService.remove(+id, user);
+    return this.subcategoryService.remove(id, user);
   }
 }

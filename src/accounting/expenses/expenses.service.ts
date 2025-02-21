@@ -32,7 +32,7 @@ export class ExpenseService {
 
   async create(createExpenseDto: CreateExpenseDto, user: User) {
     try {
-      const { accountId, categoryId, subcategoryId, tagsIds, date, ...rest } =
+      const { accountId, categoryId, subcategoryId, date, ...rest } =
         createExpenseDto;
 
       const account = await this.accountRepository.findOne({
@@ -66,7 +66,6 @@ export class ExpenseService {
         category: category,
         date: new Date(date),
         subcategory: subcategory,
-        tags: [],
         user: user,
         ...rest,
       });
@@ -92,7 +91,7 @@ export class ExpenseService {
         take: limit,
         skip: offset,
         where: { user: { id: user.id } },
-        relations: ['account', 'category', 'subcategory', 'tags'],
+        relations: ['account', 'category', 'subcategory'],
         order: {
           createdAt: 'ASC',
         },
@@ -104,7 +103,7 @@ export class ExpenseService {
     }
   }
 
-  async findOne(id: number, user: User) {
+  async findOne(id: string, user: User) {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -119,9 +118,9 @@ export class ExpenseService {
     }
   }
 
-  async update(id: number, updateExpenseDto: UpdateExpenseDto, user: User) {
+  async update(id: string, updateExpenseDto: UpdateExpenseDto, user: User) {
     try {
-      const { accountId, categoryId, subcategoryId, tagsIds, date, ...rest } =
+      const { accountId, categoryId, subcategoryId, date, ...rest } =
         updateExpenseDto;
 
       const currentExpense = await this.expenseRepository.findOne({
@@ -180,7 +179,6 @@ export class ExpenseService {
         category: category,
         subcategory: subcategory,
         user: user,
-        tags: [],
       });
 
       updatedExpense.updateAt = new Date();
@@ -199,7 +197,7 @@ export class ExpenseService {
     }
   }
 
-  async remove(id: number, user: User) {
+  async remove(id: string, user: User) {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },

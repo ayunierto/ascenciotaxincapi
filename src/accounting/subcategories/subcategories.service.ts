@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -67,7 +66,7 @@ export class SubcategoryService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const category = await this.subcategoryRepository.findOneBy({ id });
       if (!category) {
@@ -81,7 +80,7 @@ export class SubcategoryService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateSubcategoryDto: UpdateSubcategoryDto,
     user: User,
   ) {
@@ -107,7 +106,7 @@ export class SubcategoryService {
     }
   }
 
-  async remove(id: number, user: User) {
+  async remove(id: string, user: User) {
     try {
       const subcategory = await this.subcategoryRepository.findOneBy({ id });
       if (!subcategory) {

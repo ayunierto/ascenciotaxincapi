@@ -1,21 +1,13 @@
 import { Account } from 'src/accounting/accounts/entities/account.entity';
 import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
-import { Tag } from 'src/accounting/tags/entities/tag.entity';
 import { User } from 'src/auth/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'expenses' })
 export class Expense {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text')
   merchant: string;
@@ -51,10 +43,6 @@ export class Expense {
     onDelete: 'CASCADE',
   })
   account: Account;
-
-  @ManyToMany(() => Tag, (tag) => tag.expenses, { eager: true })
-  @JoinTable({ name: 'expenses_tags' })
-  tags: Tag[];
 
   @ManyToOne(() => User, (user) => user.expenses, { onDelete: 'CASCADE' })
   user: User;

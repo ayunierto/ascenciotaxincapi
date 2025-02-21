@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { Repository } from 'typeorm';
@@ -42,7 +37,7 @@ export class CurrencyService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
       if (!currency) {
@@ -55,12 +50,11 @@ export class CurrencyService {
     }
   }
 
-  async update(id: number, updateCurrencyDto: UpdateCurrencyDto) {
+  async update(id: string, updateCurrencyDto: UpdateCurrencyDto) {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
-      if (!currency) {
-        throw new NotFoundException('Currency not found');
-      }
+      if (!currency) throw new NotFoundException('Currency not found');
+
       const updatedCurrency = Object.assign(currency, updateCurrencyDto);
       updatedCurrency.updatedAt = new Date();
       await this.currencyRepository.save(updatedCurrency);
@@ -71,7 +65,7 @@ export class CurrencyService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
       if (!currency) {

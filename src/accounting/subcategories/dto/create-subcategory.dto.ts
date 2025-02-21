@@ -17,5 +17,5 @@ export class CreateSubcategoryDto {
 
   @IsNumber()
   @IsNotEmpty()
-  categoryId: number;
+  categoryId: string;
 }

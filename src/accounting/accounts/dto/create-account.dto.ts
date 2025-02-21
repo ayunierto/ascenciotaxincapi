@@ -16,9 +16,9 @@ export class CreateAccountDto {
   @IsOptional()
   description?: string;
 
-  @IsNumber()
-  currencyId: number;
+  @IsString()
+  currencyId: string;
 
-  @IsNumber()
-  accountTypeId: number;
+  @IsString()
+  accountTypeId: string;
 }

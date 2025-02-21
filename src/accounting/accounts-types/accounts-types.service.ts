@@ -38,7 +38,7 @@ export class AccountsTypesService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const account = await this.accountTypeRepository.findOneBy({ id });
       if (!account) {
@@ -51,7 +51,7 @@ export class AccountsTypesService {
     }
   }
 
-  async update(id: number, updateAccountTypeDto: UpdateAccountTypeDto) {
+  async update(id: string, updateAccountTypeDto: UpdateAccountTypeDto) {
     try {
       const types = await this.accountTypeRepository.findOneBy({ id });
       if (!types) {
@@ -67,7 +67,7 @@ export class AccountsTypesService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       const type = await this.accountTypeRepository.findOneBy({ id });
       if (!type) {

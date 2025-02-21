@@ -63,10 +63,10 @@ export class AccountService {
     }
   }
 
-  async findOne(id: number, user: User) {
+  async findOne(id: string, user: User) {
     try {
       const account = await this.accountRepository.findOne({
-        where: { id: id, user: user },
+        where: { id: id, user: { id: user.id } },
         relations: ['currency', 'accountType'],
       });
       if (!account) {
@@ -79,7 +79,7 @@ export class AccountService {
     }
   }
 
-  async update(id: number, updateAccountDto: UpdateAccountDto, user: User) {
+  async update(id: string, updateAccountDto: UpdateAccountDto, user: User) {
     try {
       const { currencyId, accountTypeId, ...rest } = updateAccountDto;
 
@@ -114,7 +114,7 @@ export class AccountService {
     }
   }
 
-  async remove(id: number, user: User) {
+  async remove(id: string, user: User) {
     try {
       const account = await this.accountRepository.findOne({
         where: { id: id, user: user },

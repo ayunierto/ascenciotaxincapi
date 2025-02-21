@@ -1,11 +1,5 @@
 import { IsISO8601, IsUrl } from 'class-validator';
-import {
-  IsArray,
-  IsNumber,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateExpenseDto {
   @IsString()
@@ -26,19 +20,15 @@ export class CreateExpenseDto {
   @IsOptional()
   image?: string;
 
-  @IsNumber()
-  categoryId: number;
+  @IsString()
+  categoryId: string;
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  subcategoryId?: number;
+  subcategoryId?: string;
 
-  @IsNumber()
-  accountId: number;
-
-  @IsArray()
-  @IsOptional()
-  tagsIds: number[];
+  @IsString()
+  accountId: string;
 
   @IsString()
   @IsOptional()

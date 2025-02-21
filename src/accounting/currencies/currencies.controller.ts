@@ -31,7 +31,7 @@ export class CurrencyController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.currencyService.findOne(+id);
+    return this.currencyService.findOne(id);
   }
 
   @Patch(':id')
@@ -40,12 +40,12 @@ export class CurrencyController {
     @Param('id') id: string,
     @Body() updateCurrencyDto: UpdateCurrencyDto,
   ) {
-    return this.currencyService.update(+id, updateCurrencyDto);
+    return this.currencyService.update(id, updateCurrencyDto);
   }
 
   @Auth(ValidRoles.admin)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.currencyService.remove(+id);
+    return this.currencyService.remove(id);
   }
 }

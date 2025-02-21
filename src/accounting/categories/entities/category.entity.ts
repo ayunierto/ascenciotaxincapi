@@ -12,8 +12,8 @@ import {
 
 @Entity({ name: 'categories' })
 export class Category {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text', { unique: true })
   name: string;
