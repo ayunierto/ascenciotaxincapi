@@ -775,7 +775,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 24,
-          discount: 78,
+          discount: 77,
           planId: personalPlan.id,
         },
         yulierUser,
@@ -800,7 +800,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 12,
-          discount: 75,
+          discount: 70,
           planId: professionalPlan.id,
         },
         yulierUser,
@@ -809,7 +809,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 24,
-          discount: 78,
+          discount: 72,
           planId: professionalPlan.id,
         },
         yulierUser,
@@ -817,7 +817,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 48,
-          discount: 80,
+          discount: 75,
           planId: professionalPlan.id,
         },
         yulierUser,
@@ -834,7 +834,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 12,
-          discount: 75,
+          discount: 55,
           planId: businessPlan.id,
         },
         yulierUser,
@@ -843,7 +843,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 24,
-          discount: 78,
+          discount: 57,
           planId: businessPlan.id,
         },
         yulierUser,
@@ -851,7 +851,7 @@ export class SeedService {
       await this.discountsOnPlansService.create(
         {
           months: 48,
-          discount: 80,
+          discount: 60,
           planId: businessPlan.id,
         },
         yulierUser,
