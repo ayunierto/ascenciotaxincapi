@@ -14,29 +14,34 @@ export class PaymentsService {
 
   async createPaymentSheet(createPaymentSheetDto: CreatePaymentSheetDto) {
     const { amount, currency } = createPaymentSheetDto;
-    const customer = await this.stripe.customers.create();
-    const ephemeralKey = await this.stripe.ephemeralKeys.create(
-      { customer: customer.id },
-      { apiVersion: '2025-01-27.acacia' },
-    );
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
-      currency,
-      // currency: 'cad',
-      customer: customer.id,
-      // In the latest version of the API, specifying the `automatic_payment_methods` parameter
-      // is optional because Stripe enables its functionality by default.
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
+    try {
+      const customer = await this.stripe.customers.create();
+      const ephemeralKey = await this.stripe.ephemeralKeys.create(
+        { customer: customer.id },
+        { apiVersion: '2025-01-27.acacia' },
+      );
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount,
+        currency,
+        // currency: 'cad',
+        customer: customer.id,
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter
+        // is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
 
-    return {
-      paymentIntent: paymentIntent.client_secret,
-      ephemeralKey: ephemeralKey.secret,
-      customer: customer.id,
-      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-    };
+      return {
+        paymentIntent: paymentIntent.client_secret,
+        ephemeralKey: ephemeralKey.secret,
+        customer: customer.id,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error creating payment intent');
+    }
   }
 
   // create(createPaymentDto: CreatePaymentDto) {
