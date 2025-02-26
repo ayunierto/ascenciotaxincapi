@@ -79,6 +79,9 @@ export class SubscriptionsService {
   async findAll(user: User) {
     return await this.subscriptionRepository.find({
       where: { user: { id: user.id } },
+      relations: {
+        plan: true,
+      },
     });
   }
 
