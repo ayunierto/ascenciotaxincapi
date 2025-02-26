@@ -5,12 +5,7 @@ import { CreatePaymentSheetDto } from './dto/create-payment-sheet.dto ';
 
 @Injectable()
 export class PaymentsService {
-  private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia',
-    appInfo: {
-      name: 'Accounting app for Ascencio Tax Inc.',
-    },
-  });
+  private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
   async createPaymentSheet(createPaymentSheetDto: CreatePaymentSheetDto) {
     const { amount, currency } = createPaymentSheetDto;
