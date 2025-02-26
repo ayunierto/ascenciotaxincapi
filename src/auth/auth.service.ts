@@ -186,6 +186,11 @@ export class AuthService {
       const { username, verificationPlatform } = sendCodeDto;
       const user = await this.userRepository.findOne({
         where: [{ email: username }, { phoneNumber: username }],
+        select: {
+          email: true,
+          name: true,
+          verificationCode: true,
+        },
       });
 
       if (!user) throw new BadRequestException('User not found');
