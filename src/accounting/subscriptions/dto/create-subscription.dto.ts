@@ -1,25 +1,21 @@
-import { IsArray, IsDateString, IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreateSubscriptionDto {
-  @IsString()
-  name: string;
+  // @IsString()
+  // userId: string;
 
   @IsString()
-  description: string;
+  planId: string;
 
   @IsNumber()
-  price: number;
+  durationInMonths: number;
 
-  @IsDateString()
-  startDate: string;
+  // @IsDateString()
+  // startDate: Date;
 
-  @IsDateString()
-  endDate: string;
+  // @IsDateString()
+  // endDate: Date;
 
-  @IsString({ each: true })
-  @IsArray()
-  features: string[];
-
-  @IsString()
-  status: string;
+  // @IsString()
+  // status: string;
 }

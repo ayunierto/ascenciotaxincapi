@@ -1,12 +1,6 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Service } from '../../services/entities/service.entity';
-import {
-  Column,
-  Entity,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { IsOptional } from 'class-validator';
 import { Post } from 'src/blog/posts/entities/post.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
@@ -107,8 +101,8 @@ export class User {
   @OneToMany(() => DiscountsOnPlan, (discount) => discount.user)
   discounts: DiscountsOnPlan[];
 
-  @OneToOne(() => Subscription, (subscription) => subscription.user)
-  subscription: Subscription[];
+  @OneToMany(() => Subscription, (subscription) => subscription.user)
+  subscriptions: Subscription[];
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

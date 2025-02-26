@@ -18,7 +18,7 @@ export class PaymentsService {
       const customer = await this.stripe.customers.create();
       const ephemeralKey = await this.stripe.ephemeralKeys.create(
         { customer: customer.id },
-        { apiVersion: '2025-01-27.acacia' },
+        // { apiVersion: '2025-01-27.acacia' },
       );
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount,
