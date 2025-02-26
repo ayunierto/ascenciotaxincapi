@@ -35,17 +35,15 @@ import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discount
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      ssl:
-        process.env.STAGE !== 'development'
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: process.env.STAGE !== 'dev' ? { rejectUnauthorized: false } : false,
 
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
+      url: process.env.DB_URL,
+      // host: process.env.DB_HOST,
+      // port: +process.env.DB_PORT,
+      // database: process.env.DB_NAME,
+      // username: process.env.DB_USERNAME,
+      // password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true,
     }),
