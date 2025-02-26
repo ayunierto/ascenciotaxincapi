@@ -76,8 +76,10 @@ export class SubscriptionsService {
     }
   }
 
-  findAll() {
-    return `This action returns all subscriptions`;
+  async findAll(user: User) {
+    return await this.subscriptionRepository.find({
+      where: { user: { id: user.id } },
+    });
   }
 
   findOne(id: number) {

@@ -35,8 +35,9 @@ export class SubscriptionsController {
   }
 
   @Get()
-  findAll() {
-    return this.subscriptionsService.findAll();
+  @Auth()
+  findAll(@GetUser() user: User) {
+    return this.subscriptionsService.findAll(user);
   }
 
   @Get(':id')
