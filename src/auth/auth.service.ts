@@ -22,6 +22,9 @@ import { SendCodeDto } from './dto/send-code.dto';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
 import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -87,6 +90,7 @@ export class AuthService {
       );
 
       delete savedUser.password;
+      delete savedUser.verificationCode;
 
       return {
         ...savedUser,
@@ -109,22 +113,27 @@ export class AuthService {
 
   async signin(loginUserDto: LoginUserDto) {
     const { password, username } = loginUserDto;
+    const userCredentials = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+      select: {
+        password: true,
+        isActive: true,
+        verificationCode: true,
+      },
+    });
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
     });
 
-    if (!user) throw new UnauthorizedException('User or password incorrect');
+    if (!userCredentials)
+      throw new UnauthorizedException('User or password incorrect');
 
-    if (!user.isActive && user.verificationCode) {
-      throw new UnauthorizedException({
-        error: 'Unauthorized',
-        message: 'The user is inactive, please verify your account.',
-        statusCode: 401,
-        cause: 'verify',
-      });
+    if (!userCredentials.isActive && userCredentials.verificationCode) {
+      throw new UnauthorizedException('User is not verified');
     }
 
-    if (!user.isActive)
+    // If the user is inactive for any cause that has not been to complete their registration
+    if (!userCredentials.isActive)
       throw new UnauthorizedException({
         error: 'Unauthorized',
         message: 'The user is inactive, please contact support.',
@@ -132,12 +141,11 @@ export class AuthService {
         cause: 'inactive',
       });
 
-    if (!bcrypt.compareSync(password, user.password))
+    if (!bcrypt.compareSync(password, userCredentials.password))
       throw new UnauthorizedException('User or password incorrect');
 
-    delete user.password;
     return {
-      ...user,
+      user,
       token: this.getJwtToken({ id: user.id }),
     };
   }
@@ -145,23 +153,31 @@ export class AuthService {
   async verifyCode(verifyUserDto: VerifyUserDto) {
     const { username, verificationCode } = verifyUserDto;
 
+    const userFound = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+      select: {
+        verificationCode: true,
+        isActive: true,
+      },
+    });
+
+    if (!userFound) throw new BadRequestException('User not found');
+
+    if (userFound.verificationCode !== verificationCode)
+      throw new UnauthorizedException('Invalid verification code');
+
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
     });
-
-    if (!user) throw new BadRequestException('User not found');
-
-    if (user.verificationCode !== verificationCode)
-      throw new UnauthorizedException('Invalid verification code');
-
-    user.isActive = true;
-    user.verificationCode = null;
-    await this.userRepository.save(user);
-
-    delete user.password;
-    return {
+    await this.userRepository.save({
       ...user,
-      token: this.getJwtToken({ id: user.id }),
+      isActive: true,
+      verificationCode: null,
+    });
+
+    return {
+      user,
+      token: this.getJwtToken({ id: userFound.id }),
     };
   }
 
@@ -180,19 +196,23 @@ export class AuthService {
           clientName: user.name,
           verificationCode: user.verificationCode,
         });
-      } else if (verificationPlatform === 'whatsapp') {
-        this.sendWhatsAppVerificationCodeWithTwillio(
-          user.phoneNumber,
-          user.verificationCode,
-        );
-      } else {
-        this.sendSMSVerificationCodeWithTwillio(
-          user.phoneNumber,
-          user.verificationCode,
-        );
       }
+      // else if (verificationPlatform === 'whatsapp') {
+      //   this.sendWhatsAppVerificationCodeWithTwillio(
+      //     user.phoneNumber,
+      //     user.verificationCode,
+      //   );
+      // } else {
+      //   this.sendSMSVerificationCodeWithTwillio(
+      //     user.phoneNumber,
+      //     user.verificationCode,
+      //   );
+      // }
+
       return {
-        message: 'Verification code sent',
+        message: 'Verification code sent successfully',
+        error: null,
+        statusCode: HttpStatus.OK,
       };
     } catch (error) {
       console.error(error);
@@ -202,7 +222,7 @@ export class AuthService {
 
   checkStatus(user: User) {
     return {
-      ...user,
+      user,
       token: this.getJwtToken({ id: user.id }),
     };
   }
@@ -211,78 +231,91 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async sendWhatsAppVerificationCodeWithTwillio(
-    phoneNumber: string,
-    verificationCode: string,
-  ) {
-    const accountSid = process.env.TWILLIO_ACCOUNTSID;
-    const authToken = process.env.TWILLIO_AUTHTOKEN;
-    const client = require('twilio')(accountSid, authToken);
+  // async sendWhatsAppVerificationCodeWithTwillio(
+  //   phoneNumber: string,
+  //   verificationCode: string,
+  // ) {
+  //   const accountSid = process.env.TWILLIO_ACCOUNTSID;
+  //   const authToken = process.env.TWILLIO_AUTHTOKEN;
+  //   const client = require('twilio')(accountSid, authToken);
 
-    client.messages
-      .create({
-        from: 'whatsapp:+14155238886',
-        contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
-        contentVariables: `{"1":"${verificationCode}"}`,
-        to: `whatsapp:${phoneNumber}`,
-      })
-      .then((message) => console.log(message));
+  //   client.messages
+  //     .create({
+  //       from: 'whatsapp:+14155238886',
+  //       contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
+  //       contentVariables: `{"1":"${verificationCode}"}`,
+  //       to: `whatsapp:${phoneNumber}`,
+  //     })
+  //     .then((message) => console.log(message));
 
-    return verificationCode;
-  }
+  //   return verificationCode;
+  // }
 
-  async sendSMSVerificationCodeWithTwillio(
-    phoneNumber: string,
-    verificationCode: string,
-  ) {
-    const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
-    const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
-    const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
-    client.messages
-      .create({
-        body: `Your Ascenciotax verification code is: ${verificationCode}`,
-        from: '+12542800440',
-        to: phoneNumber,
-      })
-      .then((message) => console.log(message.body));
+  // async sendSMSVerificationCodeWithTwillio(
+  //   phoneNumber: string,
+  //   verificationCode: string,
+  // ) {
+  //   const TWILLIO_ACCOUNTSID = process.env.TWILLIO_ACCOUNTSID;
+  //   const TWILLIO_AUTHTOKEN = process.env.TWILLIO_AUTHTOKEN;
+  //   const client = require('twilio')(TWILLIO_ACCOUNTSID, TWILLIO_AUTHTOKEN);
+  //   client.messages
+  //     .create({
+  //       body: `Your Ascenciotax verification code is: ${verificationCode}`,
+  //       from: '+12542800440',
+  //       to: phoneNumber,
+  //     })
+  //     .then((message) => console.log(message.body));
 
-    return verificationCode;
-  }
+  //   return verificationCode;
+  // }
 
   generateVerificationCode() {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     return code;
   }
 
-  async resetPassword(username: string) {
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { username, verificationPlatform } = resetPasswordDto;
+    const userFound = await this.userRepository.findOne({
+      where: [{ email: username }, { phoneNumber: username }],
+      select: {
+        password: true,
+        isActive: true,
+        verificationCode: true,
+      },
+    });
+
+    if (!userFound) throw new BadRequestException('User not found');
+
+    const code = this.generateVerificationCode();
+
     const user = await this.userRepository.findOne({
       where: [{ email: username }, { phoneNumber: username }],
     });
 
-    if (!user) throw new BadRequestException('User not found');
-
-    const code = this.generateVerificationCode();
-    user.verificationCode = code;
-    const savedUser = await this.userRepository.save(user);
-
-    delete savedUser.password;
-    delete savedUser.verificationCode;
+    await this.userRepository.save({
+      ...user,
+      verificationCode: code,
+    });
 
     this.sendVerificationCode({
       username: user.email,
-      verificationPlatform: 'email',
+      verificationPlatform: verificationPlatform,
     });
 
-    return { ...savedUser };
+    return { ...user };
   }
 
-  async changePassword(user: User, password: string) {
-    const tmpUser = await this.userRepository.findOneBy({ id: user.id });
-    if (!user) throw new NotFoundException('User not found');
+  async changePassword(user: User, changePasswordDto: ChangePasswordDto) {
+    const userDB = await this.userRepository.findOneBy({ id: user.id });
 
-    tmpUser.password = bcrypt.hashSync(password, 10);
-    const savedUser = await this.userRepository.save(tmpUser);
-    delete savedUser.password;
-    return { ...savedUser, token: this.getJwtToken({ id: user.id }) };
+    if (!userDB) throw new NotFoundException('User not found');
+
+    const newPassword = bcrypt.hashSync(changePasswordDto.password, 10);
+    await this.userRepository.save({
+      ...userDB,
+      password: newPassword,
+    });
+    return { user: userDB, token: this.getJwtToken({ id: user.id }) };
   }
 }

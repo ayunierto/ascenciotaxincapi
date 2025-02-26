@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
@@ -6,6 +6,8 @@ import { GetUser, Auth } from './decorators';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { SendCodeDto } from './dto/send-code.dto';
 import { SignupUserDto } from './dto/signup-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -41,16 +43,16 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  resetPassword(@Body() { username }: { username: string }) {
-    return this.authService.resetPassword(username);
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   @Post('change-password')
   @Auth()
   changePassword(
-    @Body() { password }: { password: string },
+    @Body() changePasswordDto: ChangePasswordDto,
     @GetUser() user: User,
   ) {
-    return this.authService.changePassword(user, password);
+    return this.authService.changePassword(user, changePasswordDto);
   }
 }

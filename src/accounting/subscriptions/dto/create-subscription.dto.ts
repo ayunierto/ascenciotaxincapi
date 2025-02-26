@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsNumber, IsString } from 'class-validator';
 
 export class CreateSubscriptionDto {
   @IsString()
@@ -10,10 +10,16 @@ export class CreateSubscriptionDto {
   @IsNumber()
   price: number;
 
+  @IsDateString()
+  startDate: string;
+
+  @IsDateString()
+  endDate: string;
+
   @IsString({ each: true })
   @IsArray()
   features: string[];
 
-  @IsBoolean()
-  status: boolean;
+  @IsString()
+  status: string;
 }

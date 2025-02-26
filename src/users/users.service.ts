@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -35,7 +34,8 @@ export class UsersService {
       await this.userRepository.save(user);
       return user;
     } catch (error) {
-      this.handleDBExceptions(error);
+      this.logger.error(error);
+      throw new BadRequestException('Error creating user');
     }
   }
 
@@ -66,7 +66,8 @@ export class UsersService {
       await this.userRepository.save(user);
       return user;
     } catch (error) {
-      this.handleDBExceptions(error);
+      console.error(error);
+      throw new BadRequestException('Error updating user');
     }
   }
 
@@ -86,7 +87,8 @@ export class UsersService {
         await this.userRepository.save(userUpdate);
         return userUpdate;
       } catch (error) {
-        this.handleDBExceptions(error);
+        console.error(error);
+        throw new BadRequestException('Error updating user');
       }
     } else {
       const userUpdate = await this.userRepository.preload({
@@ -98,7 +100,8 @@ export class UsersService {
         await this.userRepository.save(userUpdate);
         return userUpdate;
       } catch (error) {
-        this.handleDBExceptions(error);
+        console.error(error);
+        throw new BadRequestException('Error updating user');
       }
     }
   }
@@ -109,7 +112,8 @@ export class UsersService {
       await this.userRepository.remove(user);
       return user;
     } catch (error) {
-      this.handleDBExceptions(error);
+      console.error(error);
+      throw new BadRequestException('Error deleting user');
     }
   }
 
@@ -129,14 +133,5 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-  }
-
-  // Handle Errors
-  private handleDBExceptions(error: any) {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-    this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs.',
-    );
   }
 }

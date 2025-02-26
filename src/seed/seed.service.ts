@@ -420,6 +420,23 @@ export class SeedService {
         },
         yulierUser,
       );
+      await this.categoriesService.create(
+        {
+          name: 'Medical Expenses',
+          isSystem: true,
+          description: 'FOR PERSONAL TAXES',
+        },
+        yulierUser,
+      );
+      await this.categoriesService.create(
+        {
+          name: 'Rent',
+          isSystem: true,
+          description: 'FOR PERSONAL TAXES',
+        },
+        yulierUser,
+      );
+
       // Create default subcategories
       await this.subcategoryService.create(
         {

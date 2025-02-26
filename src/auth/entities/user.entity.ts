@@ -40,7 +40,7 @@ export class User {
   @Column('text', { unique: true })
   phoneNumber: string;
 
-  @Column('text')
+  @Column('text', { select: false })
   password: string;
 
   @Column('date', { nullable: true })
@@ -58,7 +58,7 @@ export class User {
   })
   roles: string[];
 
-  @Column('text', { nullable: true })
+  @Column('text', { nullable: true, select: false })
   @IsOptional()
   verificationCode: string;
 

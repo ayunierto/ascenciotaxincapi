@@ -43,7 +43,7 @@ export class PostsController {
     @Body() updatePostDto: UpdatePostDto,
     @GetUser() user: User,
   ) {
-    return this.postsService.update(id, updatePostDto);
+    return this.postsService.update(id, updatePostDto, user);
   }
 
   @Delete(':id')

@@ -28,13 +28,19 @@ export class Subscription {
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
+  @Column('timestamp with time zone')
+  startDate: Date;
+
+  @Column('timestamp with time zone')
+  endDate: Date;
+
   @Column('text', {
     array: true,
   })
   features: string[];
 
-  @Column('bool', { default: false })
-  status: boolean;
+  @Column('text')
+  status: string;
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

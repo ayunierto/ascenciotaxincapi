@@ -10,14 +10,28 @@ import {
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+import { Auth, GetUser } from 'src/auth/decorators';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   @Post()
-  create(@Body() createSubscriptionDto: CreateSubscriptionDto) {
-    return this.subscriptionsService.create(createSubscriptionDto);
+  @Auth()
+  create(
+    @Body() createSubscriptionDto: CreateSubscriptionDto,
+    @GetUser() user: User,
+  ) {
+    return this.subscriptionsService.create(createSubscriptionDto, user);
+  }
+
+  @Get('check')
+  @Auth()
+  async checkSubscription(@GetUser() user: User) {
+    const hasSubscription =
+      await this.subscriptionsService.checkUserSubscription(user);
+    return { hasSubscription };
   }
 
   @Get()

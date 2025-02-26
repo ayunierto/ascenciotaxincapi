@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +13,7 @@ export class PostsService {
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
   ) {}
+
   async create(createPostDto: CreatePostDto, user: User) {
     try {
       const post = this.postRepository.create({
@@ -47,8 +44,12 @@ export class PostsService {
     return `This action returns a #${id} post`;
   }
 
-  update(id: string, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  update(id: string, updatePostDto: UpdatePostDto, user: User) {
+    return {
+      id,
+      updatePostDto,
+      user,
+    };
   }
 
   remove(id: string) {
