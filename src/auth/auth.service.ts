@@ -150,6 +150,13 @@ export class AuthService {
     };
   }
 
+  async deleteAccount(id: string) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException();
+    await this.userRepository.remove(user);
+    return user;
+  }
+
   async verifyCode(verifyUserDto: VerifyUserDto) {
     const { username, verificationCode } = verifyUserDto;
 

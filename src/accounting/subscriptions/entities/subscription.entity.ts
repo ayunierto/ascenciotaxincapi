@@ -9,6 +9,7 @@ export class Subscription {
 
   @ManyToOne(() => User, (user) => user.subscriptions, {
     cascade: true,
+    onDelete: 'CASCADE',
   })
   user: User;
 

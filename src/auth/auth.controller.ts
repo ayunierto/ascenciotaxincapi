@@ -23,6 +23,12 @@ export class AuthController {
     return this.authService.signin(loginUserDto);
   }
 
+  @Post('delete-account')
+  @Auth()
+  deleteAccount(@GetUser() { id }: User) {
+    return this.authService.deleteAccount(id);
+  }
+
   @Get('check-status')
   @Auth()
   checkAuthStatus(
