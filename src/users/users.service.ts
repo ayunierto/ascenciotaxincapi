@@ -74,35 +74,32 @@ export class UsersService {
   async updateProfile(updateProfileDto: UpdateProfileDto, user: User) {
     const { password, ...userData } = updateProfileDto;
 
-    if (password) {
-      const pass = bcrypt.hashSync(password, 10);
+    let userUpdate: User;
 
-      const userUpdate = await this.userRepository.preload({
+    try {
+      if (password) {
+        const pass = bcrypt.hashSync(password, 10);
+
+        userUpdate = await this.userRepository.preload({
+          id: user.id,
+          password: pass,
+          ...userData,
+        });
+
+        await this.userRepository.save(userUpdate);
+        return userUpdate;
+      }
+
+      userUpdate = await this.userRepository.preload({
         id: user.id,
-        password: pass,
         ...userData,
       });
 
-      try {
-        await this.userRepository.save(userUpdate);
-        return userUpdate;
-      } catch (error) {
-        console.error(error);
-        throw new BadRequestException('Error updating user');
-      }
-    } else {
-      const userUpdate = await this.userRepository.preload({
-        id: user.id,
-        ...userData,
-      });
-
-      try {
-        await this.userRepository.save(userUpdate);
-        return userUpdate;
-      } catch (error) {
-        console.error(error);
-        throw new BadRequestException('Error updating user');
-      }
+      await this.userRepository.save(userUpdate);
+      return userUpdate;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Error updating user');
     }
   }
 
