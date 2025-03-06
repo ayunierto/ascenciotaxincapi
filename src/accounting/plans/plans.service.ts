@@ -24,7 +24,7 @@ export class PlansService {
       return plan;
     } catch (error) {
       console.error(error);
-      throw new BadRequestException('Unable to get plans');
+      throw new BadRequestException('Unable to create plans');
     }
   }
 

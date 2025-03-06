@@ -98,6 +98,9 @@ export class User {
   @OneToMany(() => Plan, (plan) => plan.user)
   plans: Plan[];
 
+  @OneToMany(() => Log, (log) => log.user)
+  reports: Log[];
+
   @OneToMany(() => DiscountsOnPlan, (discount) => discount.user)
   discounts: DiscountsOnPlan[];
 

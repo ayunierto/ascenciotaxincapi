@@ -30,6 +30,7 @@ import { AwsModule } from './aws/aws.module';
 import { PlansModule } from './accounting/plans/plans.module';
 import { PaymentsModule } from './accounting/payments/payments.module';
 import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discounts-on-plans.module';
+import { ReportsModule } from './accounting/reports/reports.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discount
     PlansModule,
     PaymentsModule,
     DiscountsOnPlansModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [],
