@@ -740,36 +740,36 @@ export class SeedService {
         },
         yulierUser,
       );
-      const professionalPlan = await this.planService.create(
-        {
-          name: 'Professional',
-          description:
-            'Perfect for growing businesses with more complex needs.',
-          price: 14.99,
-          features: [
-            'Up to 200 receipts per month',
-            'Advanced reporting',
-            'Automatic data entry',
-            'Email support',
-          ],
-        },
-        yulierUser,
-      );
-      const businessPlan = await this.planService.create(
-        {
-          name: 'Business',
-          description:
-            'For large organizations requiring unlimited usage and support.',
-          price: 19.99,
-          features: [
-            'Unlimited receipts',
-            'Advanced reporting',
-            'Automatic data entry',
-            'Priority support',
-          ],
-        },
-        yulierUser,
-      );
+      // const professionalPlan = await this.planService.create(
+      //   {
+      //     name: 'Professional',
+      //     description:
+      //       'Perfect for growing businesses with more complex needs.',
+      //     price: 14.99,
+      //     features: [
+      //       'Up to 200 receipts per month',
+      //       'Advanced reporting',
+      //       'Automatic data entry',
+      //       'Email support',
+      //     ],
+      //   },
+      //   yulierUser,
+      // );
+      // const businessPlan = await this.planService.create(
+      //   {
+      //     name: 'Business',
+      //     description:
+      //       'For large organizations requiring unlimited usage and support.',
+      //     price: 19.99,
+      //     features: [
+      //       'Unlimited receipts',
+      //       'Advanced reporting',
+      //       'Automatic data entry',
+      //       'Priority support',
+      //     ],
+      //   },
+      //   yulierUser,
+      // );
 
       // Create discounts on plans
       await this.discountsOnPlansService.create(
@@ -806,73 +806,73 @@ export class SeedService {
         yulierUser,
       );
 
-      await this.discountsOnPlansService.create(
-        {
-          months: 1,
-          discount: 0,
-          planId: professionalPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 12,
-          discount: 70,
-          planId: professionalPlan.id,
-        },
-        yulierUser,
-      );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 1,
+      //     discount: 0,
+      //     planId: professionalPlan.id,
+      //   },
+      //   yulierUser,
+      // );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 12,
+      //     discount: 70,
+      //     planId: professionalPlan.id,
+      //   },
+      //   yulierUser,
+      // );
 
-      await this.discountsOnPlansService.create(
-        {
-          months: 24,
-          discount: 72,
-          planId: professionalPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 48,
-          discount: 75,
-          planId: professionalPlan.id,
-        },
-        yulierUser,
-      );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 24,
+      //     discount: 72,
+      //     planId: professionalPlan.id,
+      //   },
+      //   yulierUser,
+      // );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 48,
+      //     discount: 75,
+      //     planId: professionalPlan.id,
+      //   },
+      //   yulierUser,
+      // );
 
-      await this.discountsOnPlansService.create(
-        {
-          months: 1,
-          discount: 0,
-          planId: businessPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 12,
-          discount: 55,
-          planId: businessPlan.id,
-        },
-        yulierUser,
-      );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 1,
+      //     discount: 0,
+      //     planId: businessPlan.id,
+      //   },
+      //   yulierUser,
+      // );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 12,
+      //     discount: 55,
+      //     planId: businessPlan.id,
+      //   },
+      //   yulierUser,
+      // );
 
-      await this.discountsOnPlansService.create(
-        {
-          months: 24,
-          discount: 57,
-          planId: businessPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 48,
-          discount: 60,
-          planId: businessPlan.id,
-        },
-        yulierUser,
-      );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 24,
+      //     discount: 57,
+      //     planId: businessPlan.id,
+      //   },
+      //   yulierUser,
+      // );
+      // await this.discountsOnPlansService.create(
+      //   {
+      //     months: 48,
+      //     discount: 60,
+      //     planId: businessPlan.id,
+      //   },
+      //   yulierUser,
+      // );
 
       return {
         message: 'Seed Executed',
