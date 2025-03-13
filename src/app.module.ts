@@ -31,6 +31,7 @@ import { PlansModule } from './accounting/plans/plans.module';
 import { PaymentsModule } from './accounting/payments/payments.module';
 import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discounts-on-plans.module';
 import { ReportsModule } from './accounting/reports/reports.module';
+import { PrinterModule } from './printer/printer.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { ReportsModule } from './accounting/reports/reports.module';
     PaymentsModule,
     DiscountsOnPlansModule,
     ReportsModule,
+    PrinterModule,
   ],
   controllers: [],
   providers: [],

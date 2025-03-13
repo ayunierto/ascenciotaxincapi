@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Controller, Get, Header, Query, Res } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Response } from 'express';
 import { Auth, GetUser } from 'src/auth/decorators';
@@ -12,24 +12,20 @@ export class ReportsController {
 
   @Get('generate')
   @Auth()
+  @Header('Content-Type', 'application/pdf')
   async generatePdf(
-    @Res() res: Response,
+    @Res() response: Response,
     @Query() createReportDto: CreateReportDto,
     @GetUser() user: User,
   ) {
-    try {
-      const pdfBuffer = await this.reportsService.generatePdfReport(
-        createReportDto,
-        user,
-      );
+    const pdfReport = await this.reportsService.generatePdfReport(
+      createReportDto,
+      user,
+    );
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=report.pdf');
-      res.send(pdfBuffer);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      res.status(500).send('Error generating PDF');
-    }
+    pdfReport.info.Title = 'Resport';
+    pdfReport.pipe(response);
+    pdfReport.end();
   }
 
   @Get()

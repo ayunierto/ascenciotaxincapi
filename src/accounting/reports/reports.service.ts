@@ -1,19 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BadRequestException, Injectable } from '@nestjs/common';
-import PDFDocument from 'pdfkit-table';
 import { Report } from './entities/report.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateReportDto } from './dto/create-report.dto';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { PrinterService } from 'src/printer/printer.service';
 
 @Injectable()
 export class ReportsService {
   constructor(
     @InjectRepository(Report)
     private readonly reportRepository: Repository<Report>,
+
+    private readonly printer: PrinterService,
   ) {}
+
+  async generatePdfReport(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    createReportDto: CreateReportDto,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    user: User,
+  ): Promise<PDFKit.PDFDocument> {
+    const documentDefinition: TDocumentDefinitions = {
+      content: ['hello world', 'Resport created'],
+    };
+
+    return this.printer.createPdf(documentDefinition);
+  }
 
   async create(createReportDto: CreateReportDto, user: User) {
     try {
@@ -42,52 +57,5 @@ export class ReportsService {
       console.error(error);
       return error;
     }
-  }
-
-  async generatePdfReport(
-    createReportDto: CreateReportDto,
-    user: User,
-  ): Promise<Buffer> {
-    console.log({ createReportDto });
-    return new Promise((resolve, reject) => {
-      const doc: any = new PDFDocument();
-      const table = {
-        headers: ['Country', 'Conversion rate', 'Trend'],
-        rows: [
-          ['Switzerland', '12%', '+1.12%'],
-          ['France', '67%', '-0.98%'],
-          ['England', '33%', '+4.44%'],
-        ],
-      };
-
-      this.create(
-        {
-          startDate: createReportDto.startDate,
-          endDate: createReportDto.endDate,
-        },
-        user,
-      );
-
-      doc.text(
-        `Report from ${createReportDto.startDate} to ${createReportDto.endDate}`,
-      );
-      doc.moveDown();
-
-      try {
-        (doc as any).table(table, {
-          prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
-          prepareRow: () => doc.font('Helvetica').fontSize(8),
-        });
-        const buffers = [];
-        doc.on('data', buffers.push.bind(buffers));
-        doc.on('end', () => {
-          const pdfData = Buffer.concat(buffers);
-          resolve(pdfData);
-        });
-        doc.end();
-      } catch (error) {
-        reject(error);
-      }
-    });
   }
 }
