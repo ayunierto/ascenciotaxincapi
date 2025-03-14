@@ -55,7 +55,7 @@ export class AuthService {
 
     try {
       const user = this.userRepository.create({
-        phoneNumber: `${countryCode}${number}`,
+        phoneNumber: number ? `${countryCode}${number}` : null,
         password: bcrypt.hashSync(password, 10),
         verificationCode,
         ...userData,

@@ -53,7 +53,7 @@ export class CalendarService {
       });
 
       // Create an alternative calendar event
-      const alternativeCalendarResponse = await this.calendar.events.insert({
+      await this.calendar.events.insert({
         calendarId: this.alternativeCalendarId,
         requestBody: {
           summary: event.summary,

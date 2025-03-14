@@ -1,8 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  HttpException,
-  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -10,7 +8,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { User } from '../auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from 'src/services/entities';
-import { Between, In, LessThan, Like, MoreThan, Repository } from 'typeorm';
+import { Between, In, LessThan, MoreThan, Repository } from 'typeorm';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from './entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
@@ -289,6 +287,7 @@ export class AppointmentService {
   }
 
   async update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
+    console.log({ updateAppointmentDto });
     return `This action updates a #${id} appointment`;
   }
 
@@ -324,7 +323,7 @@ export class AppointmentService {
   }
 
   async getAppointmentsByStaffMember(staffMemberId: string, date: string) {
-    const appointments = await this.appointmentRepository.find({
+    this.appointmentRepository.find({
       where: {
         staff: { id: staffMemberId }, // ID del miembro del staff
         startDateAndTime: Between(

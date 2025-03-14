@@ -70,6 +70,18 @@ export class SeedService {
         roles: [ValidRoles.superUser],
       });
 
+      // Test
+      await this.usersService.create({
+        name: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        password: 'abc123',
+        birthdate: new Date('2000-01-01'),
+        registrationDate: new Date(),
+        isActive: true,
+        roles: [ValidRoles.client],
+      });
+
       // Create Schedule
       // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
       // for luxon

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as sgMail from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 import { SendMailDto } from './dto/send-mail.dto';
 import { SendMailVerificationCodeDto } from './dto/send-mail-verification-code.dto';
 
@@ -58,7 +58,7 @@ export class MailService {
       .send(msg)
       .then(() => {
         console.log(
-          `Verification code email sent to: ${sendMailVerificationCodeDto.to}`,
+          `Verification code sent to: ${sendMailVerificationCodeDto.to}`,
         );
       })
       .catch((error) => {

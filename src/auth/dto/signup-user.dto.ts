@@ -30,10 +30,12 @@ export class SignupUserDto {
   email: string;
 
   @IsString()
-  countryCode: string;
+  @IsOptional()
+  countryCode?: string;
 
   @IsMobilePhone()
-  phoneNumber: string;
+  @IsOptional()
+  phoneNumber?: string;
 
   @IsString()
   @MinLength(6)

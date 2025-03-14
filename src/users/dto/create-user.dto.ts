@@ -6,9 +6,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
-  Matches,
   MaxLength,
-  Min,
   MinLength,
 } from 'class-validator';
 import { ValidRoles } from 'src/auth/interfaces';
@@ -27,7 +25,8 @@ export class CreateUserDto {
   email: string;
 
   @IsPhoneNumber()
-  phoneNumber: string;
+  @IsOptional()
+  phoneNumber?: string;
 
   @IsString()
   @MinLength(6)
@@ -42,7 +41,7 @@ export class CreateUserDto {
   isActive: boolean;
 
   @IsDate()
-  birthdate: Date;
+  birthdate?: Date;
 
   @IsDate()
   registrationDate: Date;

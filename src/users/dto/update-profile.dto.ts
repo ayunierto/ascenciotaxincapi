@@ -17,7 +17,8 @@ export class UpdateProfileDto {
   lastName: string;
 
   @IsPhoneNumber()
-  phoneNumber: string;
+  @IsOptional()
+  phoneNumber?: string;
 
   @IsString()
   @MinLength(6)

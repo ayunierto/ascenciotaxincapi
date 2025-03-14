@@ -31,7 +31,7 @@ export class User {
   @Column('text', { unique: true })
   email: string;
 
-  @Column('text', { unique: true })
+  @Column('text', { unique: true, nullable: true })
   phoneNumber: string;
 
   @Column('text', { select: false })

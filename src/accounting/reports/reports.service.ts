@@ -25,6 +25,7 @@ export class ReportsService {
   ): Promise<PDFKit.PDFDocument> {
     const documentDefinition: TDocumentDefinitions = {
       content: ['hello world', 'Resport created'],
+      pageOrientation: 'landscape',
     };
 
     return this.printer.createPdf(documentDefinition);
