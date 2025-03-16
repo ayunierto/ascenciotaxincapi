@@ -3,6 +3,7 @@
 /postgres
 yarn.lock
 credentials.json
+package-lock.json
 
 # compiled output
 /dist

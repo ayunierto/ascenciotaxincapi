@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import {
   AnalyzeExpenseCommand,
   TextractClient,
 } from '@aws-sdk/client-textract';
 import { AnalyzeExpenseDto } from './dto/analyze-expense.dto';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class AwsService {
@@ -27,19 +28,66 @@ export class AwsService {
   async analyzeExpense(analyzeExpenseDto: AnalyzeExpenseDto) {
     const { base64Image } = analyzeExpenseDto;
     try {
-      // AnalyzeExpenseRequest
       const input = {
         Document: {
-          Bytes: base64Image ? Buffer.from(base64Image, 'base64') : undefined, // convert image to byte
+          Bytes: Buffer.from(base64Image, 'base64'),
         },
       };
       const command = new AnalyzeExpenseCommand(input);
 
       const response = await this.textract.send(command);
 
-      return response;
+      const detectedValues = {
+        merchant: '',
+        date: DateTime.utc().toISO(),
+        total: '',
+        tax: '',
+      };
+
+      if (response.ExpenseDocuments)
+        response.ExpenseDocuments[0].SummaryFields?.map((field) => {
+          if (field.Type && field.Type.Text === 'VENDOR_NAME') {
+            detectedValues.merchant = (
+              field.ValueDetection?.Text as string
+            ).replace(/(\r\n|\r|\n)/g, ' ');
+          }
+          if (field.Type && field.Type.Text === 'TOTAL') {
+            detectedValues.total = this.cleanPrice(
+              field.ValueDetection?.Text as string,
+            );
+          }
+          if (field.Type && field.Type.Text === 'INVOICE_RECEIPT_DATE') {
+            if (field.ValueDetection && field.ValueDetection.Text) {
+              const recoveredDate = DateTime.fromISO(field.ValueDetection.Text);
+
+              if (recoveredDate.isValid) {
+                detectedValues.date = recoveredDate.toUTC().toISO();
+              }
+            }
+          }
+          if (field.Type && field.Type.Text === 'TAX') {
+            detectedValues.tax = this.cleanPrice(
+              field.ValueDetection?.Text as string,
+            );
+          }
+        });
+
+      return detectedValues;
     } catch (error) {
-      console.error('Error', error);
+      console.error(error);
+      throw new BadRequestException('Error analize expense');
+    }
+  }
+
+  cleanPrice(price: string) {
+    const pattern = /\b\d+(\.\d{2})\b/;
+    // Remove currency symbols (e.g., S/, $, €) and replace commas with periods
+    const cleanedString = price.replace(/[S/$€]/g, '').replace(',', '.');
+    const match = cleanedString.match(pattern);
+    if (match) {
+      return match[0];
+    } else {
+      return '00.00';
     }
   }
 }
