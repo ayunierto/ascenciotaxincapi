@@ -15,8 +15,8 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { DateUtils } from './utils/date.utils';
 import { CalendarService } from 'src/calendar/calendar.service';
 import { ZoomService } from 'src/zoom/zoom.service';
-import { MailService } from 'src/mail/mail.service';
 import { DateTime } from 'luxon';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class AppointmentService {
@@ -32,7 +32,7 @@ export class AppointmentService {
 
     private readonly zoomService: ZoomService,
     private readonly calendarService: CalendarService,
-    private readonly mailService: MailService,
+    private readonly notificationService: NotificationService,
 
     private readonly dateUtils: DateUtils,
   ) {}
@@ -230,47 +230,51 @@ export class AppointmentService {
       });
       await this.appointmentRepository.save(appointment);
 
-      // Send email
-      this.mailService.sendMail({
-        to: user.email,
-        serviceName: service.name,
-        appointmentDate: DateTime.fromISO(startDateAndTime, {
-          zone: 'utc',
-        })
-          .setZone('America/Toronto')
-          .toFormat('yyyy-MM-dd'),
-        appointmentTime: DateTime.fromISO(startDateAndTime, {
-          zone: 'utc',
-        })
-          .setZone('America/Toronto')
-          .toFormat('HH:mm:ss'),
-        clientName: `${user.name} ${user.lastName}`,
-        location: service.address,
-        staffName: `${staff.name} ${staff.lastName}`,
-        meetingLink: meeting.join_url,
-      });
+      await this.notificationService.sendAppointmentConfirmationEmailToClient(
+        user.email,
+        {
+          serviceName: service.name,
+          appointmentDate: DateTime.fromISO(startDateAndTime, {
+            zone: 'utc',
+          })
+            .setZone('America/Toronto')
+            .toFormat('yyyy-MM-dd'),
+          appointmentTime: DateTime.fromISO(startDateAndTime, {
+            zone: 'utc',
+          })
+            .setZone('America/Toronto')
+            .toFormat('HH:mm:ss'),
+          clientName: `${user.name} ${user.lastName}`,
+          location: service.address,
+          staffName: `${staff.name} ${staff.lastName}`,
+          meetingLink: meeting.join_url,
+          clientEmail: user.email,
+          clientPhoneNumber: user.phoneNumber || '',
+        },
+      );
 
-      // Send email to ascenciotax
-      this.mailService.sendMailStaff({
-        to: 'ascenciotaxinc@gmail.com',
-        serviceName: service.name,
-        appointmentDate: DateTime.fromISO(startDateAndTime, {
-          zone: 'utc',
-        })
-          .setZone('America/Toronto')
-          .toFormat('yyyy-MM-dd'),
-        appointmentTime: DateTime.fromISO(startDateAndTime, {
-          zone: 'utc',
-        })
-          .setZone('America/Toronto')
-          .toFormat('HH:mm:ss'),
-        clientName: `${user.name} ${user.lastName}`,
-        location: service.address,
-        staffName: `${staff.name} ${staff.lastName}`,
-        meetingLink: meeting.join_url,
-        clientEmail: user.email,
-        clientPhoneNumber: user.phoneNumber,
-      });
+      await this.notificationService.sendAppointmentConfirmationEmailToStaff(
+        'ascenciotaxinc@gmail.com',
+        {
+          serviceName: service.name,
+          appointmentDate: DateTime.fromISO(startDateAndTime, {
+            zone: 'utc',
+          })
+            .setZone('America/Toronto')
+            .toFormat('yyyy-MM-dd'),
+          appointmentTime: DateTime.fromISO(startDateAndTime, {
+            zone: 'utc',
+          })
+            .setZone('America/Toronto')
+            .toFormat('HH:mm:ss'),
+          clientName: `${user.name} ${user.lastName}`,
+          location: service.address,
+          staffName: `${staff.name} ${staff.lastName}`,
+          meetingLink: meeting.join_url,
+          clientEmail: user.email,
+          clientPhoneNumber: user.phoneNumber,
+        },
+      );
 
       return appointment;
     } catch (error) {

@@ -1,10 +1,14 @@
-import { IsString } from 'class-validator';
-import { VerificationPlatform } from './signup-user.dto';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class ResetPasswordDto {
+export class ResetPasswordWithCodeDto {
   @IsString()
-  username: string;
+  @IsEmail()
+  email: string;
 
   @IsString()
-  verificationPlatform: VerificationPlatform;
+  code: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
 }

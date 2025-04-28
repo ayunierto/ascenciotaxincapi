@@ -10,6 +10,9 @@ import { MailModule } from 'src/mail/mail.module';
 import { AccountModule } from 'src/accounting/accounts/accounts.module';
 import { AccountsTypesModule } from 'src/accounting/accounts-types/accounts-types.module';
 import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
+import { NotificationModule } from 'src/notification/notification.module';
+import { UtilityModule } from 'src/utility/utility.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   controllers: [AuthController],
@@ -42,6 +45,10 @@ import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
     // }),
 
     MailModule,
+    NotificationModule,
+    UtilityModule,
+
+    forwardRef(() => UsersModule),
     forwardRef(() => AccountModule),
     forwardRef(() => CurrencyModule),
     forwardRef(() => AccountsTypesModule),

@@ -1,26 +1,27 @@
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
 import { GetUser, Auth } from './decorators';
-import { VerifyUserDto } from './dto/verify-user.dto';
-import { SendCodeDto } from './dto/send-code.dto';
-import { SignupUserDto } from './dto/signup-user.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { NotificationService } from 'src/notification/notification.service';
+import { SignInDto, SignUpDto, VerifyCodeDto } from './dto';
+import { ResetPasswordWithCodeDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @Post('signup')
-  signup(@Body() signupUserDto: SignupUserDto) {
-    return this.authService.signup(signupUserDto);
+  signup(@Body() signUpDto: SignUpDto) {
+    return this.authService.signup(signUpDto);
   }
 
   @Post('signin')
-  signin(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.signin(loginUserDto);
+  signin(@Body() signInDto: SignInDto) {
+    return this.authService.signin(signInDto);
   }
 
   @Post('delete-account')
@@ -39,26 +40,55 @@ export class AuthController {
   }
 
   @Post('verify-code')
-  verifyCode(@Body() verifyUserDto: VerifyUserDto) {
-    return this.authService.verifyCode(verifyUserDto);
+  verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
+    return this.authService.verifyCode(verifyCodeDto);
   }
 
-  @Post('resend-code')
-  resendCode(@Body() sendCodeDto: SendCodeDto) {
-    return this.authService.sendVerificationCode(sendCodeDto);
+  // @Post('resend-code')
+  // resendCode(@Body() sendCodeDto: SendCodeDto) {
+  //   return this.notificationService.sendVerificationCode(sendCodeDto);
+  // }
+
+  // @Post('change-password')
+  // @Auth()
+  // changePassword(
+  //   @Body() changePasswordDto: ChangePasswordDto,
+  //   @GetUser() user: User,
+  // ) {
+  //   return this.authService.changePassword(user, changePasswordDto);
+  // }
+
+  // Forgot Password
+  @Post('forgot-password')
+  forfotPassword(@Body() forgotPassword: ForgotPasswordDto) {
+    return this.authService.processForgotPassword(forgotPassword.email);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    try {
+      // Delegate the entire process to the service
+      await this.authService.processForgotPassword(forgotPasswordDto.email);
+      // Always return the generic success message as required for security
+      return {
+        message:
+          'If an account with that email address exists, a password reset code has been sent.',
+      };
+    } catch (error) {
+      // As discussed, for forgotPassword, we usually want to return the generic success message
+      // even for unexpected errors, for security.
+      console.error('Unexpected error in forgot password flow:', error);
+      return {
+        message:
+          'If an account with that email address exists, a password reset code has been sent.',
+      };
+    }
   }
 
   @Post('reset-password')
-  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetPasswordDto);
-  }
-
-  @Post('change-password')
-  @Auth()
-  changePassword(
-    @Body() changePasswordDto: ChangePasswordDto,
-    @GetUser() user: User,
-  ) {
-    return this.authService.changePassword(user, changePasswordDto);
+  resetPassword(@Body() resetPasswordWithCodeDto: ResetPasswordWithCodeDto) {
+    return this.authService.processPasswordResetWithCode(
+      resetPasswordWithCodeDto,
+    );
   }
 }

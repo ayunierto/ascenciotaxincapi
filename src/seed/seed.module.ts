@@ -12,8 +12,6 @@ import { SubcategoryModule } from 'src/accounting/subcategories/subcategories.mo
 import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
 import { AccountsTypesModule } from 'src/accounting/accounts-types/accounts-types.module';
 import { AccountModule } from 'src/accounting/accounts/accounts.module';
-import { PlansModule } from 'src/accounting/plans/plans.module';
-import { DiscountsOnPlansModule } from 'src/accounting/discounts-on-plans/discounts-on-plans.module';
 
 @Module({
   controllers: [SeedController],
@@ -30,8 +28,6 @@ import { DiscountsOnPlansModule } from 'src/accounting/discounts-on-plans/discou
     CurrencyModule,
     AccountsTypesModule,
     AccountModule,
-    PlansModule,
-    DiscountsOnPlansModule,
   ],
 })
 export class SeedModule {}

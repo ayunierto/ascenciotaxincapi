@@ -1,4 +1,3 @@
 export * from './verify-user.dto';
-export * from './signin-user.dto';
-export * from './signup-user.dto';
-export * from './send-code.dto';
+export * from './sign-in.dto';
+export * from './sign-up.dto';

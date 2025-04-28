@@ -13,9 +13,7 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Currency } from 'src/accounting/currencies/entities/currency.entity';
 import { Log } from 'src/logs/entities/log.entity';
-import { Plan } from 'src/accounting/plans/entities/plan.entity';
-import { Subscription } from 'src/accounting/subscriptions/entities/subscription.entity';
-import { DiscountsOnPlan } from 'src/accounting/discounts-on-plans/entities/discounts-on-plan.entity';
+import { ValidRoles } from '../interfaces';
 
 @Entity('users')
 export class User {
@@ -31,10 +29,16 @@ export class User {
   @Column('text', { unique: true })
   email: string;
 
+  @Column('bool', { default: false })
+  isEmailVerified: boolean;
+
+  @Column('text', { nullable: true })
+  countryCode: string;
+
   @Column('text', { unique: true, nullable: true })
   phoneNumber: string;
 
-  @Column('text', { select: false })
+  @Column('text', {})
   password: string;
 
   @Column('date', { nullable: true })
@@ -43,18 +47,30 @@ export class User {
   @Column('bool', { default: false })
   isActive: boolean;
 
-  @Column('timestamp', { nullable: true })
+  @Column('timestamp with time zone', { nullable: true })
   lastLogin: Date;
 
   @Column('text', {
     array: true,
     default: ['client'],
   })
-  roles: string[];
+  roles: ValidRoles[];
 
-  @Column('text', { nullable: true, select: false })
+  @Column('text', { nullable: true })
   @IsOptional()
   verificationCode: string;
+
+  @Column('timestamp', { nullable: true })
+  @IsOptional()
+  verificationCodeExpiresAt: Date;
+
+  @Column('text', { nullable: true })
+  @IsOptional()
+  passwordResetCode: string;
+
+  @Column('timestamp', { nullable: true })
+  @IsOptional()
+  passwordResetExpiresAt: Date;
 
   @OneToMany(() => Service, (service) => service.user)
   services: Service[];
@@ -95,17 +111,8 @@ export class User {
   @OneToMany(() => Log, (log) => log.user)
   logs: Log[];
 
-  @OneToMany(() => Plan, (plan) => plan.user)
-  plans: Plan[];
-
   @OneToMany(() => Log, (log) => log.user)
   reports: Log[];
-
-  @OneToMany(() => DiscountsOnPlan, (discount) => discount.user)
-  discounts: DiscountsOnPlan[];
-
-  @OneToMany(() => Subscription, (subscription) => subscription.user)
-  subscriptions: Subscription[];
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

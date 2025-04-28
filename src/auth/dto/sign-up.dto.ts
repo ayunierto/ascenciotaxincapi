@@ -2,18 +2,15 @@ import {
   IsDate,
   IsDateString,
   IsEmail,
-  IsEnum,
   IsLowercase,
-  IsMobilePhone,
+  IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
-export type VerificationPlatform = 'email' | 'whatsapp' | 'sms';
-
-export class SignupUserDto {
+export class SignUpDto {
   @IsString()
   @MinLength(3, { message: 'The name must have a minimum of 3 characters' })
   name: string;
@@ -24,19 +21,12 @@ export class SignupUserDto {
   })
   lastName: string;
 
-  @IsString()
   @IsEmail()
+  @IsNotEmpty()
   @IsLowercase()
   email: string;
 
-  @IsString()
-  @IsOptional()
-  countryCode?: string;
-
-  @IsMobilePhone()
-  @IsOptional()
-  phoneNumber?: string;
-
+  @IsNotEmpty()
   @IsString()
   @MinLength(6)
   @MaxLength(50)
@@ -46,8 +36,16 @@ export class SignupUserDto {
   // })
   password: string;
 
-  @IsDateString()
   @IsOptional()
+  @IsString()
+  countryCode?: string;
+
+  @IsOptional()
+  // @IsPhoneNumber()
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsDateString()
   birthdate?: Date;
 
   @IsDate()
@@ -58,9 +56,7 @@ export class SignupUserDto {
   @IsOptional()
   verificationCode?: string;
 
-  locale: string;
-
   @IsString()
-  @IsEnum(['email', 'whatsapp', 'sms'])
-  verificationPlatform: VerificationPlatform;
+  @IsOptional()
+  locale?: string;
 }

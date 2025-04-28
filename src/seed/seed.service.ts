@@ -10,8 +10,6 @@ import { SubcategoryService } from '../accounting/subcategories/subcategories.se
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
 import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
-import { PlansService } from 'src/accounting/plans/plans.service';
-import { DiscountsOnPlansService } from 'src/accounting/discounts-on-plans/discounts-on-plans.service';
 
 @Injectable()
 export class SeedService {
@@ -26,8 +24,6 @@ export class SeedService {
     private readonly currencyService: CurrencyService,
     private readonly accountTypeService: AccountsTypesService,
     private readonly accountService: AccountService,
-    private readonly planService: PlansService,
-    private readonly discountsOnPlansService: DiscountsOnPlansService,
   ) {}
 
   async runSeed() {
@@ -43,7 +39,6 @@ export class SeedService {
         phoneNumber: '+51917732227',
         password: 'Alcides.92',
         birthdate: new Date('1992-10-28'),
-        registrationDate: new Date(),
         isActive: true,
         roles: [ValidRoles.superUser, ValidRoles.admin],
       });
@@ -54,7 +49,6 @@ export class SeedService {
         phoneNumber: '+16474669318',
         password: 'Abcd1234',
         birthdate: new Date('1993-01-18'),
-        registrationDate: new Date(),
         isActive: true,
         roles: [ValidRoles.staff, ValidRoles.admin],
       });
@@ -65,7 +59,6 @@ export class SeedService {
         phoneNumber: '+10000000002',
         password: 'Abcd1234',
         birthdate: new Date('2000-01-01'),
-        registrationDate: new Date(),
         isActive: true,
         roles: [ValidRoles.superUser],
       });
@@ -77,7 +70,6 @@ export class SeedService {
         email: 'john@example.com',
         password: 'abc123',
         birthdate: new Date('2000-01-01'),
-        registrationDate: new Date(),
         isActive: true,
         roles: [ValidRoles.client],
       });
@@ -735,156 +727,6 @@ export class SeedService {
         },
         luciaUser,
       );
-
-      // Create plans
-      const personalPlan = await this.planService.create(
-        {
-          name: 'Personal',
-          description:
-            'Ideal for freelancers and small businesses starting out.',
-          price: 9.99,
-          features: [
-            'Up to 50 receipts per month',
-            'Basic reporting',
-            'Manual data entry',
-            'Email support',
-          ],
-        },
-        yulierUser,
-      );
-      // const professionalPlan = await this.planService.create(
-      //   {
-      //     name: 'Professional',
-      //     description:
-      //       'Perfect for growing businesses with more complex needs.',
-      //     price: 14.99,
-      //     features: [
-      //       'Up to 200 receipts per month',
-      //       'Advanced reporting',
-      //       'Automatic data entry',
-      //       'Email support',
-      //     ],
-      //   },
-      //   yulierUser,
-      // );
-      // const businessPlan = await this.planService.create(
-      //   {
-      //     name: 'Business',
-      //     description:
-      //       'For large organizations requiring unlimited usage and support.',
-      //     price: 19.99,
-      //     features: [
-      //       'Unlimited receipts',
-      //       'Advanced reporting',
-      //       'Automatic data entry',
-      //       'Priority support',
-      //     ],
-      //   },
-      //   yulierUser,
-      // );
-
-      // Create discounts on plans
-      await this.discountsOnPlansService.create(
-        {
-          months: 1,
-          discount: 0,
-          planId: personalPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 12,
-          discount: 75,
-          planId: personalPlan.id,
-        },
-        yulierUser,
-      );
-
-      await this.discountsOnPlansService.create(
-        {
-          months: 24,
-          discount: 77,
-          planId: personalPlan.id,
-        },
-        yulierUser,
-      );
-      await this.discountsOnPlansService.create(
-        {
-          months: 48,
-          discount: 80,
-          planId: personalPlan.id,
-        },
-        yulierUser,
-      );
-
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 1,
-      //     discount: 0,
-      //     planId: professionalPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 12,
-      //     discount: 70,
-      //     planId: professionalPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 24,
-      //     discount: 72,
-      //     planId: professionalPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 48,
-      //     discount: 75,
-      //     planId: professionalPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 1,
-      //     discount: 0,
-      //     planId: businessPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 12,
-      //     discount: 55,
-      //     planId: businessPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 24,
-      //     discount: 57,
-      //     planId: businessPlan.id,
-      //   },
-      //   yulierUser,
-      // );
-      // await this.discountsOnPlansService.create(
-      //   {
-      //     months: 48,
-      //     discount: 60,
-      //     planId: businessPlan.id,
-      //   },
-      //   yulierUser,
-      // );
 
       return {
         message: 'Seed Executed',

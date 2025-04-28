@@ -25,13 +25,12 @@ import { SubcategoryModule } from './accounting/subcategories/subcategories.modu
 import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.module';
 import { CurrencyModule } from './accounting/currencies/currencies.module';
 import { LogsModule } from './logs/logs.module';
-import { SubscriptionsModule } from './accounting/subscriptions/subscriptions.module';
 import { AwsModule } from './aws/aws.module';
-import { PlansModule } from './accounting/plans/plans.module';
-import { PaymentsModule } from './accounting/payments/payments.module';
-import { DiscountsOnPlansModule } from './accounting/discounts-on-plans/discounts-on-plans.module';
 import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
+import { NotificationModule } from './notification/notification.module';
+import { TwilioModule } from './twilio/twilio.module';
+import { UtilityModule } from './utility/utility.module';
 
 @Module({
   imports: [
@@ -72,13 +71,12 @@ import { PrinterModule } from './printer/printer.module';
     AccountsTypesModule,
     CurrencyModule,
     LogsModule,
-    SubscriptionsModule,
     AwsModule,
-    PlansModule,
-    PaymentsModule,
-    DiscountsOnPlansModule,
     ReportsModule,
     PrinterModule,
+    NotificationModule,
+    TwilioModule,
+    UtilityModule,
   ],
   controllers: [],
   providers: [],
