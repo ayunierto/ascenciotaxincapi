@@ -1,8 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  forwardRef,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,12 +11,12 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
 import { User } from './entities/user.entity';
-import { SignInDto, SignUpDto } from './dto';
-import { VerifyCodeDto } from './dto/verify-user.dto';
-import { AccountService } from 'src/accounting/accounts/accounts.service';
-import { CurrencyService } from 'src/accounting/currencies/currencies.service';
-import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
-import { ResetPasswordWithCodeDto } from './dto/reset-password.dto';
+import {
+  SignInDto,
+  SignUpDto,
+  ResetPasswordWithCodeDto,
+  VerifyCodeDto,
+} from './dto';
 import { NotificationService } from '../notification/notification.service';
 import { UsersService } from 'src/users/users.service';
 import { UtilityService } from 'src/utility/utility.service';
@@ -29,12 +27,6 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @Inject(forwardRef(() => AccountService))
-    private readonly accountService: AccountService,
-    @Inject(forwardRef(() => AccountsTypesService))
-    private readonly accountTypeService: AccountsTypesService,
-    @Inject(forwardRef(() => CurrencyService))
-    private readonly currencyService: CurrencyService,
     private readonly usersService: UsersService,
     private readonly notificationService: NotificationService,
     private readonly utilityService: UtilityService,
@@ -71,7 +63,6 @@ export class AuthService {
       password: hashedPassword,
       countryCode: signUpDto.countryCode || null,
       phoneNumber: signUpDto.phoneNumber || null,
-      birthdate: signUpDto.birthdate ? new Date(signUpDto.birthdate) : null,
       isEmailVerified: false, // Initially not verified
       verificationCode: verificationCode,
       verificationCodeExpiresAt: verificationCodeExpiresAt,
@@ -89,25 +80,14 @@ export class AuthService {
         verificationCode,
       );
 
-      // 3. Create Default Account and Account Type
-      const currency = await this.currencyService.findAll();
-      const accountTypeCashDefault = await this.accountTypeService.create(
-        {
-          name: 'Cash',
-          description: 'Cash account',
-        },
-        user,
-      );
-      await this.accountService.create(
-        {
-          accountTypeId: accountTypeCashDefault.id,
-          currencyId: currency[0].id,
-          name: 'Cash',
-          description: 'Cash account',
-          icon: 'cash',
-        },
-        user,
-      );
+      // Create Default Account and Account Type
+      const accounts =
+        await this.utilityService.createDesfaultAccountAndType(user);
+      if (!accounts) {
+        throw new InternalServerErrorException(
+          'Failed to create default account and type',
+        );
+      }
 
       return {
         message: 'User registered successfully. Verification code sent.',
@@ -255,7 +235,6 @@ export class AuthService {
     // Generate and return a JWT access token
     const accessToken = this.generateToken({
       id: user.id,
-      email: user.email,
     }); // generateToken uses user object for payload
 
     return {
@@ -306,7 +285,6 @@ export class AuthService {
       user,
       token: this.generateToken({
         id: user.id,
-        email: user.email,
       }),
     };
   }
@@ -317,8 +295,7 @@ export class AuthService {
    * @returns The generated JWT access token.
    */
   private generateToken(payload: JwtPayload): string {
-    const tokenPayload = { sub: payload.id, username: payload.email }; // 'sub' is standard for subject (user id)
-    return this.jwtService.sign(tokenPayload); // Options like expiry are usually set in JwtModule config
+    return this.jwtService.sign(payload); // Options like expiry are usually set in JwtModule config
   }
 
   // private getJwtToken(payload: JwtPayload) {

@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,9 +7,6 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from 'src/mail/mail.module';
-import { AccountModule } from 'src/accounting/accounts/accounts.module';
-import { AccountsTypesModule } from 'src/accounting/accounts-types/accounts-types.module';
-import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { UtilityModule } from 'src/utility/utility.module';
 import { UsersModule } from 'src/users/users.module';
@@ -31,7 +28,7 @@ import { UsersModule } from 'src/users/users.module';
         return {
           secret: process.env.JWT_SECRET,
           signOptions: {
-            expiresIn: '360 days',
+            expiresIn: process.env.JWT_EXPIRY || '360 days',
           },
         };
       },
@@ -47,11 +44,7 @@ import { UsersModule } from 'src/users/users.module';
     MailModule,
     NotificationModule,
     UtilityModule,
-
-    forwardRef(() => UsersModule),
-    forwardRef(() => AccountModule),
-    forwardRef(() => CurrencyModule),
-    forwardRef(() => AccountsTypesModule),
+    UsersModule,
   ],
   exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule],
 })

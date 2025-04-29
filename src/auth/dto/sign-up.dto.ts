@@ -1,6 +1,4 @@
 import {
-  IsDate,
-  IsDateString,
   IsEmail,
   IsLowercase,
   IsNotEmpty,
@@ -43,18 +41,6 @@ export class SignUpDto {
   @IsOptional()
   // @IsPhoneNumber()
   phoneNumber?: string;
-
-  @IsOptional()
-  @IsDateString()
-  birthdate?: Date;
-
-  @IsDate()
-  @IsOptional()
-  lastLogin?: Date;
-
-  @IsString()
-  @IsOptional()
-  verificationCode?: string;
 
   @IsString()
   @IsOptional()
