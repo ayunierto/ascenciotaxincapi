@@ -3,18 +3,18 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
 import { User } from './entities/user.entity';
 import {
+  ChangePasswordDto,
+  ResetPasswordDto,
   SignInDto,
   SignUpDto,
-  ResetPasswordWithCodeDto,
   VerifyCodeDto,
 } from './dto';
 import { NotificationService } from '../notification/notification.service';
@@ -24,38 +24,33 @@ import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly usersService: UsersService,
     private readonly notificationService: NotificationService,
     private readonly utilityService: UtilityService,
     private readonly jwtService: JwtService,
   ) {}
 
-  /**
-   * Processes the user signup request (Email verification ONLY).
-   * @param signUpDto The signup data.
-   * @returns Basic user info on successful creation.
-   * @throws ConflictException if user already exists.
-   * @throws InternalServerErrorException on other errors.
-   */
   async signup(signUpDto: SignUpDto) {
     const existingUser = await this.usersService.findByEmail(signUpDto.email);
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException(
+        'User with this email already exists. Please login.',
+      );
     }
 
     const hashedPassword = await this.utilityService.hashPassword(
       signUpDto.password,
     );
-    const verificationCode = this.utilityService.generateNumericCode(6); // Code for email verification
+
+    const verificationCode = this.utilityService.generateNumericCode(6);
     const verificationCodeExpiresAt = new Date();
     verificationCodeExpiresAt.setHours(
       verificationCodeExpiresAt.getHours() + 1,
-    ); // Code valid for 1 hour
+    );
 
-    // Create User Entity/Object - Ensure your User entity has these fields
     const newUser: Partial<User> = {
       name: signUpDto.name,
       lastName: signUpDto.lastName,
@@ -63,7 +58,7 @@ export class AuthService {
       password: hashedPassword,
       countryCode: signUpDto.countryCode || null,
       phoneNumber: signUpDto.phoneNumber || null,
-      isEmailVerified: false, // Initially not verified
+      isEmailVerified: false,
       verificationCode: verificationCode,
       verificationCodeExpiresAt: verificationCodeExpiresAt,
       passwordResetCode: null,
@@ -71,29 +66,34 @@ export class AuthService {
     };
 
     try {
-      const user = await this.usersService.create(newUser); // Save user to DB
+      const user = await this.usersService.create(newUser);
 
-      // Send Verification Code via Email (ONLY)
       await this.notificationService.sendEmailVerificationCode(
         user.name,
         user.email,
         verificationCode,
       );
 
-      // Create Default Account and Account Type
       const accounts =
-        await this.utilityService.createDesfaultAccountAndType(user);
+        await this.utilityService.createDesfaultAccountAndAccountType(user);
       if (!accounts) {
         throw new InternalServerErrorException(
           'Failed to create default account and type',
         );
       }
 
+      this.logger.log('User registered successfully. Verification code sent.');
+
       return {
         message: 'User registered successfully. Verification code sent.',
-        userId: user.id, // Assuming user object returned by usersService.create has an id
-        email: user.email,
-        // Don't return sensitive data like password or verification codes
+        user: {
+          id: user.id,
+          name: user.name,
+          lastName: user.lastName,
+          email: user.email,
+          roles: user.roles,
+          createdAt: user.createdAt,
+        },
       };
     } catch (error) {
       console.error('Error during signup process:', error);
@@ -104,14 +104,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Processes the email code verification request (Email verification ONLY).
-   * @param verifyCodeDto The verification data (email, code).
-   * @returns Success message and updated verification status.
-   * @throws NotFoundException if user not found.
-   * @throws BadRequestException if already verified or invalid/expired code.
-   * @throws InternalServerErrorException on other errors.
-   */
   async verifyCode(verifyCodeDto: VerifyCodeDto) {
     const user = await this.usersService.findByEmail(verifyCodeDto.email);
     if (!user) {
@@ -125,36 +117,34 @@ export class AuthService {
     const now = new Date();
     if (
       user.verificationCode !== verifyCodeDto.code ||
-      !user.verificationCode || // Check if a code actually exists
-      !user.verificationCodeExpiresAt || // Check if expiry was set
+      !user.verificationCode ||
+      !user.verificationCodeExpiresAt ||
       user.verificationCodeExpiresAt < now
     ) {
-      // Clear the code immediately if it's wrong or expired
       if (user) {
         user.verificationCode = null;
         user.verificationCodeExpiresAt = null;
         this.usersService
           .update(user.id, user)
-          .catch((err) =>
+          .catch((error) =>
             console.error(
               'Failed to clear code on failed verification attempt:',
-              err,
+              error,
             ),
           );
       }
 
-      const newVerificationCode = this.utilityService.generateNumericCode(6); // New code for email verification
+      const newVerificationCode = this.utilityService.generateNumericCode(6);
       const newVerificationCodeExpiresAt = new Date();
       newVerificationCodeExpiresAt.setHours(
         newVerificationCodeExpiresAt.getHours() + 1,
-      ); // Code valid for 1 hour
+      );
 
       await this.notificationService.sendEmailVerificationCode(
         user.name,
         user.email,
         newVerificationCode,
       );
-      // Save the new code and expiry time to the user record
       user.verificationCode = newVerificationCode;
       user.verificationCodeExpiresAt = newVerificationCodeExpiresAt;
       try {
@@ -165,25 +155,31 @@ export class AuthService {
           'An error occurred during verification.',
         );
       }
-      // Use a generic message for security
       throw new BadRequestException(
         'Invalid or expired verification code. A new code has been sent to your email.',
       );
     }
 
-    // If code is valid and not expired: Mark Email as Verified and Clear Code/Expiry
     user.isEmailVerified = true;
-    user.verificationCode = null; // Clear the used code
-    user.verificationCodeExpiresAt = null; // Clear the expiry timestamp
+    user.verificationCode = null;
+    user.verificationCodeExpiresAt = null;
     user.isActive = true;
 
     try {
-      await this.usersService.update(user.id, user); // Save the updated user status
+      await this.usersService.update(user.id, user);
+
+      this.logger.log(`Email verified successfully (${user.email})`);
 
       return {
         message: `Email verified successfully.`,
-        isEmailVerified: user.isEmailVerified,
-        // Removed isPhoneVerified from return
+        user: {
+          id: user.id,
+          name: user.name,
+          lastName: user.lastName,
+          email: user.email,
+          roles: user.roles,
+          createdAt: user.createdAt,
+        },
       };
     } catch (error) {
       console.error('Error updating user verification status:', error);
@@ -193,13 +189,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Processes the user signin request.
-   * @param signInDto The signin credentials.
-   * @returns An object containing the access token.
-   * @throws UnauthorizedException if credentials are invalid or email not verified.
-   * @throws InternalServerErrorException on other errors.
-   */
   async signin(signInDto: SignInDto) {
     const user = await this.usersService.findByEmail(signInDto.email);
 
@@ -238,17 +227,23 @@ export class AuthService {
     }); // generateToken uses user object for payload
 
     return {
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        countryCode: user.countryCode,
+        phoneNumber: user.phoneNumber,
+        birthdate: user.birthdate,
+        lastLogin: user.lastLogin,
+        roles: user.roles,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
       token: accessToken,
     };
   }
 
-  /**
-   * Gets the profile information for the authenticated user.
-   * @param userId The ID of the authenticated user.
-   * @returns The user profile data (without sensitive info).
-   * @throws NotFoundException if user not found (e.g., deleted).
-   */
   async getAuthenticatedUserProfile(userId: string) {
     // Replace 'any' with User entity type excluding sensitive fields
     const user = await this.usersService.findOne(userId); // Assuming usersService.findById exists
@@ -273,11 +268,29 @@ export class AuthService {
     return profile;
   }
 
-  async deleteAccount(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException();
-    await this.userRepository.remove(user);
-    return user;
+  async deleteAccount(userId: string, passwordConfirmation: string) {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordCorrect = await this.utilityService.comparePasswords(
+      passwordConfirmation,
+      user.password,
+    );
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedException('Incorrect password confirmation'); // Use Unauthorized for wrong password
+    }
+
+    try {
+      await this.usersService.remove(userId);
+      return { message: 'Account deleted successfully' };
+    } catch (error) {
+      console.error('Error during account deletion:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while deleting account.',
+      );
+    }
   }
 
   checkStatus(user: User) {
@@ -289,40 +302,47 @@ export class AuthService {
     };
   }
 
-  /**
-   * Generates a JWT token for a user.
-   * @param user The user entity or object with payload data (e.g., id, email).
-   * @returns The generated JWT access token.
-   */
   private generateToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload); // Options like expiry are usually set in JwtModule config
   }
 
-  // private getJwtToken(payload: JwtPayload) {
-  //   return this.jwtService.sign(payload);
-  // }
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-  // async changePassword(user: User, changePasswordDto: ChangePasswordDto) {
-  //   const userDB = await this.userRepository.findOneBy({ id: user.id });
+    const isPasswordCorrect = await this.utilityService.comparePasswords(
+      changePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedException('Incorrect old password'); // Use Unauthorized for wrong password
+    }
 
-  //   if (!userDB) throw new NotFoundException('User not found');
+    const hashedNewPassword = await this.utilityService.hashPassword(
+      changePasswordDto.newPassword,
+    );
 
-  //   const newPassword = this.utilityService.hashPassword(changePasswordDto.password);
-  //   await this.userRepository.save({
-  //     ...userDB,
-  //     password: newPassword,
-  //   });
-  //   return { user: userDB, token: this.getJwtToken({ id: user.id }) };
-  // }
+    const updateData = { password: hashedNewPassword };
 
-  /**
-   * Processes the forgot password request (sends the reset code via email).
-   * This method handles finding the user, generating/saving the code, and sending the email.
-   * It is designed to return successfully even if the user is not found for security.
-   * @param email The email address to send the reset code to.
-   * @returns A Promise that resolves when the process is complete (successfully or not from a security standpoint).
-   */
-  async processForgotPassword(email: string): Promise<void> {
+    try {
+      await this.usersService.update(userId, updateData);
+
+      // TODO: Send confirmation email via NotificationService
+      // await this.notificationService.sendPasswordChangedConfirmation(user.email);
+    } catch (error) {
+      console.error('Error during password change:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while changing password.',
+      );
+    }
+  }
+
+  async forgotPassword(email: string): Promise<void> {
     // Find the User by Email - DO NOT throw error if not found
     const user = await this.usersService.findByEmail(email);
 
@@ -351,7 +371,7 @@ export class AuthService {
           passwordResetCode,
         );
 
-        console.log(
+        this.logger.log(
           `Password reset code process completed (email sent attempt) for user: ${user.email}`,
         );
       } catch (dbOrEmailError) {
@@ -367,28 +387,16 @@ export class AuthService {
     // No return value is needed as the controller returns a fixed message.
   }
 
-  /**
-   * Processes the password reset request using the code.
-   * @param resetPasswordWithCodeDto The data containing email, code, and new password.
-   * @returns A Promise indicating success.
-   * @throws BadRequestException if code is invalid/expired.
-   * @throws NotFoundException if user not found by email.
-   * @throws InternalServerErrorException on other errors.
-   */
-  async processPasswordResetWithCode(
-    resetPasswordWithCodeDto: ResetPasswordWithCodeDto,
-  ): Promise<void> {
+  async passwordReset(resetPasswordDto: ResetPasswordDto) {
     // Find the User by Email first
-    const user = await this.usersService.findByEmail(
-      resetPasswordWithCodeDto.email,
-    );
+    const user = await this.usersService.findByEmail(resetPasswordDto.email);
 
     // Validate the Code and Expiry
     const now = new Date();
     // Check if user found, if code exists, matches, and is not expired
     if (
       !user ||
-      user.passwordResetCode !== resetPasswordWithCodeDto.code ||
+      user.passwordResetCode !== resetPasswordDto.code ||
       !user.passwordResetCode || // Check if a code was actually stored
       !user.passwordResetExpiresAt || // Check if expiry was set
       user.passwordResetExpiresAt < now
@@ -406,7 +414,9 @@ export class AuthService {
         // Implement rate limiting here based on user email or IP!
       }
       // Use a generic message for security
-      throw new BadRequestException('Invalid or expired reset code.');
+      throw new BadRequestException(
+        'Invalid or expired reset code. Please try again.',
+      );
     }
 
     // ** Important Security Step: Clear the code immediately AFTER successful validation, before hashing/saving new password **
@@ -416,7 +426,7 @@ export class AuthService {
 
     // Hash the new password
     const hashedNewPassword = await this.utilityService.hashPassword(
-      resetPasswordWithCodeDto.newPassword,
+      resetPasswordDto.newPassword,
     );
     user.password = hashedNewPassword; // Update password
 
@@ -429,6 +439,19 @@ export class AuthService {
 
       // Optional: Send confirmation email
       // await this.notificationService.sendPasswordChangedConfirmation(user.email);
+
+      return {
+        message: 'Password reset successfully.',
+        user: {
+          id: user.id,
+          name: user.name,
+          lastName: user.lastName,
+          email: user.email,
+          roles: user.roles,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      };
     } catch (error) {
       // Catch errors during DB update or confirmation email send
       console.error('Error updating user password after reset:', error);

@@ -11,8 +11,8 @@ import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UtilityService } from 'src/utility/utility.service';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +21,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly utilityService: UtilityService,
   ) {}
 
   /**
@@ -65,25 +66,12 @@ export class UsersService {
     }
   }
 
-  /**
-   * Finds a user by their email address.
-   * @param email The email to search for.
-   * @returns The user entity or undefined if not found.
-   * @throws InternalServerErrorException on database errors.
-   */
   async findByEmail(email: string): Promise<User | undefined> {
     try {
-      // Use the repository's findOne method to find a single entity by criteria
-      // The criteria structure depends on your ORM
-      // Example for TypeORM: { where: { email: email } } or findOne({ where: { email } })
-      // Example for Mongoose: userModel.findOne({ email: email }).exec()
       const user = await this.usersRepository.findOne({
         where: { email: email },
-      }); // Example for TypeORM
-      // Or using findOneBy if your ORM supports it:
-      // const user = await this.usersRepository.findOneBy({ email: email }); // Example for TypeORM
-
-      return user; // Returns undefined if not found
+      });
+      return user;
     } catch (error) {
       console.error(`Database error finding user by email ${email}:`, error);
       throw new InternalServerErrorException(
@@ -101,8 +89,6 @@ export class UsersService {
    */
   async findByPasswordResetToken(code: string): Promise<User | undefined> {
     try {
-      // Find a user where the passwordResetToken field matches the token
-      // Example for TypeORM:
       const user = await this.usersRepository.findOne({
         where: { passwordResetCode: code },
       });
@@ -157,11 +143,11 @@ export class UsersService {
 
     try {
       if (password) {
-        const pass = bcrypt.hashSync(password, 10);
+        const newPassword = await this.utilityService.hashPassword(password);
 
         userUpdate = await this.usersRepository.preload({
           id: user.id,
-          password: pass,
+          password: newPassword,
           ...userData,
         });
 

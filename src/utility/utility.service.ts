@@ -63,7 +63,7 @@ export class UtilityService {
    * @param user The user object to initialize settings for.
    * @returns A promise that resolves to true if initialization is successful.
    */
-  async createDesfaultAccountAndType(user: User): Promise<boolean> {
+  async createDesfaultAccountAndAccountType(user: User): Promise<boolean> {
     try {
       // Initialize default currency
       const currency = await this.currencyService.findAll();

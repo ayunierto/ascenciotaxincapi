@@ -10,6 +10,7 @@ import { SubcategoryService } from '../accounting/subcategories/subcategories.se
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
 import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
+import { UtilityService } from '../utility/utility.service';
 
 @Injectable()
 export class SeedService {
@@ -24,6 +25,7 @@ export class SeedService {
     private readonly currencyService: CurrencyService,
     private readonly accountTypeService: AccountsTypesService,
     private readonly accountService: AccountService,
+    private readonly utilityService: UtilityService,
   ) {}
 
   async runSeed() {
@@ -32,22 +34,12 @@ export class SeedService {
       // return { msg: 'date eliminate' };
 
       // Create users
-      const alcidesUser = await this.usersService.create({
-        name: 'Alcides Yunier',
-        lastName: 'Turruellas Osorio',
-        email: 'ayunierto@gmail.com',
-        phoneNumber: '+51917732227',
-        password: 'Alcides.92',
-        birthdate: new Date('1992-10-28'),
-        isActive: true,
-        roles: [ValidRoles.superUser, ValidRoles.admin],
-      });
       const yulierUser = await this.usersService.create({
         name: 'Yulier',
         lastName: 'Rondon',
         email: 'rondonyulier@gmail.com',
         phoneNumber: '+16474669318',
-        password: 'Abcd1234',
+        password: await this.utilityService.hashPassword('Abcd1234'),
         birthdate: new Date('1993-01-18'),
         isActive: true,
         roles: [ValidRoles.staff, ValidRoles.admin],
@@ -57,21 +49,10 @@ export class SeedService {
         lastName: 'Ascencio',
         email: 'lucia@ascenciotaxinc.com',
         phoneNumber: '+10000000002',
-        password: 'Abcd1234',
+        password: await this.utilityService.hashPassword('Abcd1234'),
         birthdate: new Date('2000-01-01'),
         isActive: true,
         roles: [ValidRoles.superUser],
-      });
-
-      // Test
-      await this.usersService.create({
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        password: 'abc123',
-        birthdate: new Date('2000-01-01'),
-        isActive: true,
-        roles: [ValidRoles.client],
       });
 
       // Create Schedule
@@ -669,25 +650,6 @@ export class SeedService {
           symbol: '$',
         },
         yulierUser,
-      );
-
-      // Create accountType and account for alcidesUser
-      const accountTypeCashAlcides = await this.accountTypeService.create(
-        {
-          name: 'Cash',
-          description: 'Cash account',
-        },
-        alcidesUser,
-      );
-      await this.accountService.create(
-        {
-          accountTypeId: accountTypeCashAlcides.id,
-          currencyId: currencyCanadianDollar.id,
-          name: 'Cash',
-          description: 'Cash account',
-          icon: 'cash',
-        },
-        alcidesUser,
       );
 
       // Create accountType and account for yulierUser

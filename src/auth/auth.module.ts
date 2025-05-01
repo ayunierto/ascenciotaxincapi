@@ -34,13 +34,6 @@ import { UsersModule } from 'src/users/users.module';
       },
     }),
 
-    // JwtModule.register({
-    //   secret: process.env.JWT_SECRET,
-    //   signOptions: {
-    //     expiresIn: '360 days',
-    //   },
-    // }),
-
     MailModule,
     NotificationModule,
     UtilityModule,

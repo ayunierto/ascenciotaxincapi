@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class ResetPasswordWithCodeDto {
+export class ResetPasswordDto {
   @IsString()
   @IsEmail()
   email: string;

@@ -1,7 +1,6 @@
 import {
   IsDate,
   IsOptional,
-  IsPhoneNumber,
   IsString,
   MaxLength,
   MinLength,
@@ -16,7 +15,9 @@ export class UpdateProfileDto {
   @MinLength(3)
   lastName: string;
 
-  @IsPhoneNumber()
+  @IsOptional()
+  countryCode?: string;
+
   @IsOptional()
   phoneNumber?: string;
 

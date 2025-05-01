@@ -4,7 +4,6 @@ import {
   IsDate,
   IsEmail,
   IsOptional,
-  IsPhoneNumber,
   IsString,
   MaxLength,
   MinLength,
@@ -24,7 +23,9 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @IsPhoneNumber()
+  @IsOptional()
+  countryCode?: string;
+
   @IsOptional()
   phoneNumber?: string;
 
