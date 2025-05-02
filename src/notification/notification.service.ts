@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import sgMail from '@sendgrid/mail';
-
 import { MailService } from 'src/mail/mail.service';
 import { TwilioService } from '../twilio/twilio.service';
 import { AppointmentDetailsDto } from './dto/appointment-details.dto';
+import { SendMailOptions } from 'src/mail/interfaces';
 
 @Injectable()
 export class NotificationService {
@@ -14,8 +13,8 @@ export class NotificationService {
     private readonly mailService: MailService,
     private readonly twilioService: TwilioService,
   ) {
-    this.senderEmail = process.env.MAIL_FROM_ADDRESS;
-    this.senderName = process.env.MAIL_FROM_NAME || 'Your App Name'; // Default sender name if not configured
+    this.senderEmail = process.env.POSTMARK_SENDER_EMAIL;
+    this.senderName = process.env.POSTMARK_SENDER_NAME || 'Your App Name'; // Default sender name if not configured
 
     if (!this.senderEmail) {
       console.error('MAIL_FROM_ADDRESS is not configured.');
@@ -83,7 +82,7 @@ export class NotificationService {
       ${this.senderName}
     `;
 
-    const mailOptions: sgMail.MailDataRequired = {
+    const mailOptions: SendMailOptions = {
       to: recipientEmail,
       from: { email: this.senderEmail, name: this.senderName }, // Using object for sender name
       subject: subject,
@@ -170,7 +169,7 @@ export class NotificationService {
         ${this.senderName}
       `;
 
-    const mailOptions: sgMail.MailDataRequired = {
+    const mailOptions: SendMailOptions = {
       to: recipientEmail,
       from: { email: this.senderEmail, name: this.senderName },
       subject: subject,
@@ -249,7 +248,7 @@ export class NotificationService {
         ${this.senderName}
       `;
 
-    const mailOptions: sgMail.MailDataRequired = {
+    const mailOptions: SendMailOptions = {
       to: recipientEmail,
       from: { email: this.senderEmail, name: this.senderName },
       subject: subject,
@@ -331,7 +330,7 @@ export class NotificationService {
         ${this.senderName}
       `;
 
-    const mailOptions: sgMail.MailDataRequired = {
+    const mailOptions: SendMailOptions = {
       to: recipientEmail,
       from: { email: this.senderEmail, name: this.senderName },
       subject: 'Appointment Confirmation',
