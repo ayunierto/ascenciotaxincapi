@@ -1,63 +1,51 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 import { SendMailOptions } from './interfaces';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private mailerSend
+  private mailerSend: MailerSend;
+  private apiKey: string;
+  private senderEmail: string;
+  private senderName: string;
+  private sentFrom: Sender;
 
   constructor() {
-    const apiKey = process.env.POSTMARK_API_KEY;
-
-    if (!apiKey) {
-      this.logger.error('POSTMARK_API_KEY is not configured.');
-    } else {
-      this.mailerSend = new MailerSend({
-        apiKey,
-      });
-      this.logger.log('MailerSend initialized successfully.');
+    this.apiKey = process.env.POSTMARK_API_KEY;
+    if (!this.apiKey) {
+      this.logger.error('MAILERSEND_API_KEY is not configured.');
+      return;
     }
+    this.senderEmail = process.env.POSTMARK_SENDER_EMAIL;
+    if (!this.senderEmail) {
+      this.logger.error('POSTMARK_SENDER_EMAIL is not configured.');
+    }
+    this.senderName = process.env.POSTMARK_SENDER_NAME || 'Your App Name';
+
+    this.mailerSend = new MailerSend({ apiKey: this.apiKey });
+    this.sentFrom = new Sender(this.senderEmail, this.senderName);
   }
 
   async sendEmail(mailOptions: SendMailOptions): Promise<void> {
     try {
-      const sentFrom = new Sender(
-        mailOptions.from.email,
-        mailOptions.from.name,
-      );
-
-      this.logger.log(
-        `Attempting to send email to: ${mailOptions.to} with subject: ${mailOptions.subject}`,
-      );
-      
       const recipients = [
-        new Recipient(mailOptions.to, mailOptions.clientName ||  "Client"),
+        new Recipient(mailOptions.to, mailOptions.clientName),
       ];
 
       const emailParams = new EmailParams()
-        .setFrom(sentFrom)
+        .setFrom(this.sentFrom)
         .setTo(recipients)
-        .setReplyTo(sentFrom)
+        .setReplyTo(this.sentFrom)
         .setSubject(mailOptions.subject)
         .setHtml(mailOptions.html)
         .setText(mailOptions.text);
 
       await this.mailerSend.email.send(emailParams);
-
-      this.logger.log(`Email sent successfully to ${mailOptions.to}}`);
+      this.logger.log(`Email sent to: ${mailOptions.to}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${mailOptions.to}`);
-      console.error(`Failed to send email to ${mailOptions.to}:`, error);
-      if (error.response && error.response.body) {
-        console.error('MailService Error Body:', error.response.body);
-      }
-      throw new InternalServerErrorException(
-        `Failed to send email: ${error.message || 'Unknown MailService error'}`,
+      this.logger.error(
+        `Failed to send email to ${mailOptions.to}: ${error.message}`,
       );
     }
   }

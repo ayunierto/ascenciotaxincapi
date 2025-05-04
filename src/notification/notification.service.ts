@@ -1,52 +1,26 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
-import { TwilioService } from '../twilio/twilio.service';
 import { AppointmentDetailsDto } from './dto/appointment-details.dto';
 import { SendMailOptions } from 'src/mail/interfaces';
 
 @Injectable()
 export class NotificationService {
-  private senderEmail: string;
-  private senderName: string; // Optional: Sender name
+  private readonly logger = new Logger(NotificationService.name);
+  private senderName: string;
 
-  constructor(
-    private readonly mailService: MailService,
-    private readonly twilioService: TwilioService,
-  ) {
-    this.senderEmail = process.env.POSTMARK_SENDER_EMAIL;
-    this.senderName = process.env.POSTMARK_SENDER_NAME || 'Your App Name'; // Default sender name if not configured
-
-    if (!this.senderEmail) {
-      console.error('MAIL_FROM_ADDRESS is not configured.');
-      // Decide on error handling if sender email is missing
-      throw new InternalServerErrorException(
-        'Email service not configured. Please set MAIL_FROM_ADDRESS in environment variables.',
-      );
-    }
+  constructor(private readonly mailService: MailService) {
+    this.senderName = process.env.POSTMARK_SENDER_NAME;
+    if (!this.senderName)
+      this.logger.error('POSTMARK_SENDER_NAME is not configured.');
   }
 
-  /**
-   * Sends the email verification code notification.
-   * @param recipientEmail The email address to send to.
-   * @param code The verification code.
-   * @returns A Promise.
-   */
   async sendEmailVerificationCode(
     clientName: string,
     recipientEmail: string,
     code: string,
   ): Promise<void> {
-    if (!this.senderEmail) {
-      console.error(
-        'Cannot send verification email: Sender address not configured.',
-      );
-      throw new InternalServerErrorException('Email service not configured.');
-    }
+    const subject = 'Verify Your Email Address';
 
-    const subject = 'Verify Your Email Address'; // Subject
-
-    // --- Compose HTML Body for Email Verification ---
-    // You can load this from an HTML file template for better organization
     const htmlBody = `
       <!DOCTYPE html>
       <html lang="en">
@@ -55,7 +29,7 @@ export class NotificationService {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Confirmation code</title>
       </head>
-      <body style="font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333;">
+      <body style="font-family: sans-serif; margin: 20px; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
               <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Verification code</h1>
               <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
@@ -69,7 +43,6 @@ export class NotificationService {
       </body>
       </html>
     `;
-    // --- End of HTML Body ---
 
     const textBody = `
       Hello ${clientName},
@@ -83,49 +56,29 @@ export class NotificationService {
     `;
 
     const mailOptions: SendMailOptions = {
+      clientName: clientName,
       to: recipientEmail,
-      from: { email: this.senderEmail, name: this.senderName }, // Using object for sender name
       subject: subject,
       text: textBody,
       html: htmlBody,
     };
 
     try {
-      // Delegate the actual sending to the MailService
       await this.mailService.sendEmail(mailOptions);
     } catch (error) {
-      console.error(
-        `Failed to send email verification to ${recipientEmail}:`,
-        error,
+      this.logger.error(
+        `Failed to send email verification to ${recipientEmail}: ${error.message}`,
       );
-      // Decide if you want to re-throw or handle differently
-      // For signup, a failed email might mean the user can't verify, so re-throwing might be appropriate
-      throw error; // Re-throw the MailService error
     }
   }
 
-  /**
-   * Sends the password reset code notification.
-   * @param recipientEmail The email address to send to.
-   * @param code The password reset code.
-   * @returns A Promise.
-   */
   async sendPasswordResetCodeEmail(
     clientName: string,
     recipientEmail: string,
     code: string,
   ): Promise<void> {
-    if (!this.senderEmail) {
-      console.error(
-        'Cannot send password reset email: Sender address not configured.',
-      );
-      throw new InternalServerErrorException('Email service not configured.');
-    }
+    const subject = 'Your Password Reset Code';
 
-    const subject = 'Your Password Reset Code'; // Subject
-
-    // --- Compose HTML Body for Password Reset Code ---
-    // Load from template file
     const htmlBody = `
        <!DOCTYPE html>
         <html lang="en">
@@ -134,29 +87,19 @@ export class NotificationService {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Confirmation code</title>
         </head>
-        <body style="font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <body style="font-family: sans-serif; margin: 20px; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                 <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Password Reset</h1>
                 <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
                 <p style="margin-bottom: 10px;">We received a request to reset the password for your account.</p>
-                <p style="margin-bottom: 10px;">Your password reset code is: <strong>${code}</strong></strong>.</p>
+                <p style="margin-bottom: 10px;">Your password reset code is: <strong>${code}</strong>.</p>
                 <p style="margin-bottom: 10px;">Please enter this code in the app to set a new password. This code is valid for a limited time.</p>
                 <p style="margin-bottom: 10px;">If you did not request a password reset, please ignore this email.</p>
-                <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
+                <p style="margin-bottom: 10px;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
             </div>
         </body>
         </html>
-
-        <p>Hello,</p>
-        <p>We received a request to reset the password for your account.</p>
-        <p>Your password reset code is: <strong>${code}</strong></p>
-        <p>Please enter this code in the app to set a new password. This code is valid for a limited time.</p>
-        <br>
-        <p>If you did not request a password reset, please ignore this email.</p>
-        <p>Best regards,</p>
-        <p>${this.senderName}</p>
       `;
-    // --- End of HTML Body ---
 
     const textBody = `
         Hello ${clientName},
@@ -170,24 +113,19 @@ export class NotificationService {
       `;
 
     const mailOptions: SendMailOptions = {
+      clientName: clientName,
       to: recipientEmail,
-      from: { email: this.senderEmail, name: this.senderName },
       subject: subject,
       text: textBody,
       html: htmlBody,
     };
 
     try {
-      // Delegate the actual sending to the MailService
       await this.mailService.sendEmail(mailOptions);
     } catch (error) {
-      console.error(
-        `Failed to send password reset email to ${recipientEmail}:`,
-        error,
+      this.logger.error(
+        `Failed to send password reset email to ${recipientEmail}: ${error.message}`,
       );
-      // As discussed for the forgot-password flow, we log the error but *do not re-throw*
-      // to ensure the controller returns the generic success message for security.
-      // The MailService already threw, so we just catch and log here.
     }
   }
 
@@ -213,7 +151,7 @@ export class NotificationService {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Appointment Confirmation</title>
       </head>
-      <body style="font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333;">
+      <body style="font-family: sans-serif; margin: 20px; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
               <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Thanks for booking</h1>
               <p style="margin-bottom: 10px;">Dear <strong style="font-weight: bold;">${clientName}</strong>,</p>
@@ -249,8 +187,9 @@ export class NotificationService {
       `;
 
     const mailOptions: SendMailOptions = {
+      clientName: clientName,
+
       to: recipientEmail,
-      from: { email: this.senderEmail, name: this.senderName },
       subject: subject,
       text: textBody,
       html: htmlBody,
@@ -292,7 +231,7 @@ export class NotificationService {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Appointment Confirmation</title>
         </head>
-        <body style="font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333;">
+        <body style="font-family: sans-serif; margin: 20px; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                 <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Appointment</h1>
                 <p style="margin-bottom: 10px;">Dear <strong style="font-weight: bold;">${staffName}</strong>,</p>
@@ -331,8 +270,9 @@ export class NotificationService {
       `;
 
     const mailOptions: SendMailOptions = {
+      clientName: clientName,
+
       to: recipientEmail,
-      from: { email: this.senderEmail, name: this.senderName },
       subject: 'Appointment Confirmation',
       text: textBody,
       html: htmlBody,

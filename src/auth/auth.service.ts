@@ -343,13 +343,11 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<void> {
+    this.logger.log(`Forgot password process initiated for: ${email}`);
     // Find the User by Email - DO NOT throw error if not found
     const user = await this.usersService.findByEmail(email);
 
-    // If User Found, Generate Code, Set Expiry, Save, and Send Email
-    if (user /* && user.isEmailVerified */) {
-      // Optional: check if email is verified
-
+    if (user && user.isEmailVerified && user.isActive) {
       const passwordResetCode = this.utilityService.generateNumericCode(6); // Code for password reset
       const passwordResetExpiresAt = new Date();
       passwordResetExpiresAt.setMinutes(
@@ -382,9 +380,9 @@ export class AuthService {
         // IMPORTANT: Do NOT re-throw a public error here. Absorb the error for security.
       }
     }
-    // If user not found or email sending failed, the process still "completes" from the client's perspective,
-    // ensuring the controller returns the generic success message.
-    // No return value is needed as the controller returns a fixed message.
+    //! If user not found or email sending failed, the process still "completes" from the client's perspective,
+    //! ensuring the controller returns the generic success message.
+    //! No return value is needed as the controller returns a fixed message.
   }
 
   async passwordReset(resetPasswordDto: ResetPasswordDto) {
@@ -403,15 +401,26 @@ export class AuthService {
     ) {
       // Clear the code immediately if it's wrong or expired (if user found)
       if (user) {
-        user.passwordResetCode = null;
-        user.passwordResetExpiresAt = null;
-        // Use a non-awaited update here for speed on failed attempts
-        this.usersService
-          .update(user.id, user)
-          .catch((err) =>
-            console.error('Failed to clear code on failed reset attempt:', err),
+        // user.passwordResetCode = null;
+        // user.passwordResetExpiresAt = null;
+        // // Use a non-awaited update here for speed on failed attempts
+        // this.usersService
+        //   .update(user.id, user)
+        //   .catch((err) =>
+        //     console.error('Failed to clear code on failed reset attempt:', err),
+        //   );
+        // TODO: Implement rate limiting here based on user email or IP!
+        // Implement basic rate limiting
+        const attempts = this.utilityService.getRateLimitAttempts(
+          resetPasswordDto.email,
+        );
+        if (attempts > 5) {
+          // Allow 5 attempts per hour
+          throw new BadRequestException(
+            'Too many restart attempts. Please try again in an hour.',
           );
-        // Implement rate limiting here based on user email or IP!
+        }
+        this.utilityService.incrementRateLimitAttempts(resetPasswordDto.email);
       }
       // Use a generic message for security
       throw new BadRequestException(
@@ -454,7 +463,9 @@ export class AuthService {
       };
     } catch (error) {
       // Catch errors during DB update or confirmation email send
-      console.error('Error updating user password after reset:', error);
+      this.logger.error(
+        `Error updating user password after reset: ${error.message}`,
+      );
       throw new InternalServerErrorException(
         'An error occurred during password reset.',
       );
