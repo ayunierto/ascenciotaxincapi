@@ -23,7 +23,7 @@ export class ReportsController {
       user,
     );
 
-    pdfReport.info.Title = 'Resport';
+    pdfReport.info.Title = 'Report';
     pdfReport.pipe(response);
     pdfReport.end();
   }
