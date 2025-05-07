@@ -8,7 +8,7 @@ import {
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileFilter } from './helpers/fileFilter.helper';
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadStream } from 'cloudinary';
 import { Auth } from 'src/auth/decorators';
 
 @Controller('files')
@@ -35,9 +35,19 @@ export class FilesController {
     try {
       const base64Image = Buffer.from(file.buffer).toString('base64');
 
-      return cloudinary.uploader
-        .upload_large(`data:image/png;base64,${base64Image}`)
-        .then((r) => ({ image: r.secure_url }));
+      // Upload an image
+      const uploadResult = await cloudinary.uploader.upload_large(
+        `data:image/png;base64,${base64Image}`,
+      );
+
+      console.log(uploadResult);
+
+      if (uploadResult instanceof UploadStream) {
+        console.log('UploadStream:', uploadResult);
+      } else {
+        console.log('Upload Result:', uploadResult.secure_url);
+        return { image: uploadResult.secure_url };
+      }
     } catch (error) {
       console.error(error);
       return new BadRequestException('Upload Failed');
