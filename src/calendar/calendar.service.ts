@@ -15,33 +15,16 @@ export class CalendarService implements OnModuleInit {
   private readonly logger = new Logger(CalendarService.name);
   private calendar: calendar_v3.Calendar;
   private calendarId: string;
-  private alternativeCalendarId =
-    process.env.GOOGLE_CALENDAR_ACCOUNT_ALTERNATIVE;
   private auth: Auth.GoogleAuth | Auth.OAuth2Client; // Puede ser GoogleAuth para cuenta de servicio o OAuth2Client
 
   constructor() {
-    this.calendarId = process.env.GOOGLE_CALENDAR_ACCOUNT;
+    this.calendarId = process.env.GOOGLE_CALENDAR_ID;
     if (!this.calendarId) {
       this.logger.error(
         'GOOGLE_CALENDAR_ID no está configurado en las variables de entorno.',
       );
       throw new Error('GOOGLE_CALENDAR_ID must be configured.');
     }
-    // const credentialsBase64 = process.env.CREDENTIALS_BASE64;
-    // const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString(
-    //   'utf-8',
-    // );
-
-    // fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Save the file temporarily
-
-    // const auth = new google.auth.GoogleAuth({
-    //     keyFile: '/tmp/credentials.json', // Use the temporal file
-    //   scopes: ['https://www.googleapis.com/auth/calendar'],
-    // });
-
-    // ... After using the AUH, you can delete the file:
-    // fs.unlinkSync('/tmp/credentials.json');
-
     const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
@@ -59,10 +42,24 @@ export class CalendarService implements OnModuleInit {
       key: privateKey,
       scopes: [
         'https://www.googleapis.com/auth/calendar', // Acceso completo
-        'https://www.googleapis.com/auth/calendar.events', // Acceso a eventos
-        // Añade más scopes si los necesitas
+        // 'https://www.googleapis.com/auth/calendar.events', // Acceso a eventos
       ],
     });
+
+    // const credentialsBase64 = process.env.CREDENTIALS_BASE64;
+    // const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString(
+    //   'utf-8',
+    // );
+
+    // fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Save the file temporarily
+
+    // const auth = new google.auth.GoogleAuth({
+    //     keyFile: '/tmp/credentials.json', // Use the temporal file
+    //   scopes: ['https://www.googleapis.com/auth/calendar'],
+    // });
+
+    // ... After using the AUH, you can delete the file:
+    // fs.unlinkSync('/tmp/credentials.json');
 
     this.calendar = google.calendar({ version: 'v3', auth: this.auth });
   }
@@ -94,25 +91,7 @@ export class CalendarService implements OnModuleInit {
         },
       });
 
-      // Create an alternative calendar event
-      await this.calendar.events.insert({
-        calendarId: this.alternativeCalendarId,
-        requestBody: {
-          summary: event.summary,
-          location: event.location,
-          start: {
-            dateTime: event.startTime,
-            timeZone: event.timeZone,
-          },
-          end: {
-            dateTime: event.endTime,
-            timeZone: event.timeZone,
-          },
-          description: `${event.description}`,
-        },
-      });
-
-      console.log('Event created.');
+      this.logger.log(`Event created: ${response.data.htmlLink}`);
       return response.data.id;
     } catch (error) {
       console.error(error);
