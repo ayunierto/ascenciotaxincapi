@@ -29,32 +29,35 @@ export class ReportsService {
 
       content: [
         {
-          text: 'INTERNAL CONTROL WORK SHEET',
-          italics: true,
-          alignment: 'right',
-          fontSize: 10,
-          margin: [0, 0, 0, 20],
-        },
-        {
           table: {
             widths: [60, '*', '*'],
             body: [
               [
                 { rowSpan: 2, text: 'AT', fontSize: 42 },
-                { text: 'ASCENCIO TAX INC.', bold: true, fontSize: 20 },
                 {
-                  text: 'NOMBRE / TELEFONO',
-                  fontSize: 16,
+                  text: 'ASCENCIO TAX INC.',
+                  bold: true,
+                  fontSize: 20,
+                  alignment: 'center',
+                },
+                {
+                  text: 'NOMBRE / TELEFONO\n',
+                  fontSize: 12,
                   bold: true,
                   alignment: 'center',
                 },
               ],
               [
                 '',
-                'Personal and Business Income Tax Services',
                 {
-                  text: 'Alcides Turrruellas Osorio / +51917732227',
+                  text: 'Personal and Business Income Tax Services',
                   alignment: 'center',
+                },
+                {
+                  text: 'Income Tax 2025',
+                  alignment: 'center',
+                  bold: true,
+                  fontSize: 16,
                 },
               ],
             ],
@@ -62,35 +65,399 @@ export class ReportsService {
           layout: 'noBorders',
         },
         {
+          margin: [0, 0, 0, 10],
           table: {
-            widths: ['*', 65, 65, 65, 65, 65],
+            widths: ['*', 60, 60, 60],
             body: [
               [
-                { text: 'DESCRIPTION', style: 'tableHeader' },
-                { text: 'JAN-MAR', style: 'tableHeader' },
-                { text: 'APR-JUN', style: 'tableHeader' },
-                { text: 'JUL-SEP', style: 'tableHeader' },
-                { text: 'OCT-DEC', style: 'tableHeader' },
-                { text: 'TOTAL', style: 'tableHeader' },
+                { text: 'NOTES:', bold: true, colSpan: 4 },
+                { text: '' },
+                { text: '' },
+                { text: '' },
               ],
               [
-                { text: 'Revenues - Sales', bold: true, colSpan: 6 },
+                { text: 'DESCRIPTION', style: 'tableHeader' },
+                { text: 'GROSS', style: 'tableHeader' },
+                { text: 'HST (13%)', style: 'tableHeader' },
+                { text: 'NET', style: 'tableHeader' },
+              ],
+              [
+                { text: 'Revenues - Sales', bold: true, colSpan: 4 },
                 { text: '' },
                 { text: '' },
                 { text: '' },
-                { text: '' },
-                { text: '' },
+              ],
+              [
+                {
+                  text: 'From Business Account - Deposit',
+                  margin: [10, 0, 0, 0],
+                },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                {
+                  text: 'From Business Account - E-transfer',
+                  margin: [10, 0, 0, 0],
+                },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Total Revenue', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+              ],
+              [
+                {
+                  text: 'BALANCE ON 1/1/2025 - 31/12/2025',
+                  bold: true,
+                  fillColor: '#cccccc',
+                },
+                { text: '0.00', alignment: 'center', colSpan: 3, bold: true },
+                '',
+                '',
               ],
             ],
           },
         },
 
-        // Texto final opcional
         {
-          text: 'FOR PERSONAL TAXES',
-          alignment: 'right',
-          style: 'footerNote',
-          margin: [0, 10, 0, 0],
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
+                  text: 'Expenses with out HST',
+                  bold: true,
+                  colSpan: 4,
+                  fillColor: '#ccc',
+                },
+                { text: '' },
+                { text: '' },
+                { text: '' },
+              ],
+              [
+                { text: 'Bank Fees', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Bank Interes', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Business Lisences ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Business Insurance', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Vehicle Insurance ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'GST', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'WSIB', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Sub-Contracts', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Payroll', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Union Fee ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Total', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+              ],
+            ],
+          },
+        },
+        {
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
+                  text: 'Motor Vehicle Expenses (Business)',
+                  bold: true,
+                  colSpan: 4,
+                  fillColor: '#ccc',
+                },
+                { text: '' },
+                { text: '' },
+                { text: '' },
+              ],
+              [
+                { text: 'Gasoline', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: '407 Ert', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Parking', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Parking Fines', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Repair/ Maintenance Car', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Licence/ Registration ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Car Wash', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Lease Payments', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Purchase/ Financing', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+
+              [
+                { text: 'Total', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+              ],
+            ],
+          },
+        },
+
+        {
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
+                  text: 'Business-use-of- home (Utilities)',
+                  bold: true,
+                  colSpan: 4,
+                  fillColor: '#ccc',
+                },
+                { text: '' },
+                { text: '' },
+                { text: '' },
+              ],
+              [
+                { text: 'Rental Water Heater', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Gas Natural', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Hydro/ Electricity', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Water', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Maintenance & Repairs', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Interest Mortgage', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Property Tax Bill', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Home Insurance', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+
+              [
+                { text: 'Total', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+              ],
+            ],
+          },
+        },
+
+        {
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
+                  text: 'Expenses with out HST + Expenses + Motor Vehicle Expenses',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+              ],
+            ],
+          },
+        },
+
+        {
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
+                  text: 'Total Revenue NET - Total Expenses GROSS = PROFIT',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                { text: '', border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false] },
+              ],
+            ],
+          },
+        },
+
+        {
+          margin: [0, 0, 0, 20],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                { text: '*MEDICAL EXPENSES', bold: true, fillColor: '#ccc' },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                {
+                  text: 'FOR PERSONAL TAXES',
+                  colSpan: 2,
+                  rowSpan: 2,
+                  margin: [0, 10, 0, 0],
+                },
+                { text: '' },
+              ],
+              [
+                { text: '*RENTA', bold: true, fillColor: '#ccc' },
+                {
+                  text: '0.00',
+                  alignment: 'right',
+                  bold: true,
+                  fillColor: '#ccc',
+                },
+                { text: '' },
+                { text: '' },
+              ],
+            ],
+          },
         },
       ], // Fin de content
 
@@ -162,7 +529,6 @@ export class ReportsService {
       defaultStyle: {
         // font: 'Times', // Asegúrate que esta fuente esté configurada
         fontSize: 10,
-        columnGap: 10,
       },
     };
     // --- FIN: Definición del Documento PDFMake ---
