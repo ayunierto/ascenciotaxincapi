@@ -47,6 +47,7 @@ export class MailService {
       this.logger.error(
         `Failed to send email to ${mailOptions.to}: ${error.message}`,
       );
+      console.error(error);
     }
   }
 }

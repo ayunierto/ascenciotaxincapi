@@ -7,6 +7,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
+import { ExpenseService } from '../expenses/expenses.service';
 
 @Injectable()
 export class ReportsService {
@@ -15,33 +16,93 @@ export class ReportsService {
     private readonly reportRepository: Repository<Report>,
 
     private readonly printer: PrinterService,
+    private readonly expenseService: ExpenseService,
   ) {}
 
   async generatePdfReport(
     createReportDto: CreateReportDto,
     user: User,
   ): Promise<PDFKit.PDFDocument> {
-    // --- INICIO: Definición del Documento PDFMake ---
+    const { startDate, endDate } = createReportDto;
+    const expensesData = await this.expenseService.findAllByDateRange(
+      new Date(startDate),
+      new Date(endDate),
+      user,
+    );
+
+    console.log(expensesData);
+
+    // Función helper para formatear números
+    // const formatNumber = (num: number) => num.toFixed(2);
+
+    // Ejemplo de cómo rellenar una sección de la tabla
+    const getTableRows = (categoryName: string, subcategories: string[]) => {
+      const categoryData = expensesData.expensesByCategory[categoryName] || {
+        total: { gross: 0, hst: 0, net: 0 },
+      };
+
+      const rows = subcategories.map((subcat) => [
+        { text: subcat, margin: [10, 0, 0, 0] },
+        {
+          text: categoryData[subcat] ? categoryData[subcat].gross : '0.00',
+          alignment: 'right',
+        },
+        {
+          text: categoryData[subcat] ? categoryData[subcat].hst : '0.00',
+          alignment: 'right',
+        },
+        {
+          text: categoryData[subcat] ? categoryData[subcat].net : '0.00',
+          alignment: 'right',
+        },
+      ]);
+
+      rows.push([
+        { text: 'Total', margin: [10, 0, 0, 0] },
+        {
+          text: categoryData.total.gross || '0.00',
+          alignment: 'right',
+        },
+        {
+          text: categoryData.total.hst || '0.00',
+          alignment: 'right',
+        },
+        {
+          text: categoryData.total.net || '0.00',
+          alignment: 'right',
+        },
+      ]);
+
+      return rows;
+    };
+
     const documentDefinition: TDocumentDefinitions = {
-      pageOrientation: 'landscape',
       pageSize: 'A4',
       pageMargins: [20, 20, 20, 30], // Ajustado [L, T, R, B] para más espacio de cabecera
 
       content: [
         {
           table: {
-            widths: [60, '*', '*'],
+            widths: [90, '*', '*'],
             body: [
               [
-                { rowSpan: 2, text: 'AT', fontSize: 42 },
+                {
+                  rowSpan: 2,
+                  text: 'AT',
+                  fontSize: 42,
+                  font: 'Times',
+                  color: '#002e5d',
+                  bold: true,
+                },
                 {
                   text: 'ASCENCIO TAX INC.',
                   bold: true,
                   fontSize: 20,
                   alignment: 'center',
+                  font: 'Times',
                 },
                 {
-                  text: 'NOMBRE / TELEFONO\n',
+                  text: `${user.name} ${user.lastName}  / ${user.countryCode} ${user.phoneNumber}`,
                   fontSize: 12,
                   bold: true,
                   alignment: 'center',
@@ -52,6 +113,7 @@ export class ReportsService {
                 {
                   text: 'Personal and Business Income Tax Services',
                   alignment: 'center',
+                  font: 'Times',
                 },
                 {
                   text: 'Income Tax 2025',
@@ -124,7 +186,6 @@ export class ReportsService {
             ],
           },
         },
-
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -217,6 +278,124 @@ export class ReportsService {
             body: [
               [
                 {
+                  text: 'Expenses',
+                  bold: true,
+                  colSpan: 4,
+                  fillColor: '#ccc',
+                },
+                { text: '' },
+                { text: '' },
+                { text: '' },
+              ],
+              [
+                { text: 'Advertising/ Promotion', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Meals/ Entertainment ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Expenses office', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Expenses supplies', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office Stationery', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office Rental', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office Utilities ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office Phone ', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office Internet', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Office maintenance/ Repairs', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Storage Rent', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Uniform', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Rental Equipment/ Car Rental', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                {
+                  text: 'Accounting/ Legal/ Other professional Fees',
+                  margin: [10, 0, 0, 0],
+                },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Memberships/ Subscriptions', margin: [10, 0, 0, 0] },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+                { text: '0.00', alignment: 'right' },
+              ],
+              [
+                { text: 'Total', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+                { text: '0.00', alignment: 'right', bold: true },
+              ],
+            ],
+          },
+        },
+        {
+          margin: [0, 0, 0, 10],
+          table: {
+            widths: ['*', 60, 60, 60],
+            body: [
+              [
+                {
                   text: 'Motor Vehicle Expenses (Business)',
                   bold: true,
                   colSpan: 4,
@@ -226,6 +405,18 @@ export class ReportsService {
                 { text: '' },
                 { text: '' },
               ],
+              ...getTableRows('Motor Vehicle Expenses (Business)', [
+                'Gasoline',
+                '407 Ert',
+                'Parking',
+                'Parking Fines',
+                'Repair/ Maintenance Car',
+                'Licence/ Registration ',
+                'Car Wash',
+                'Lease Payments',
+                'Purchase/ Financing',
+              ]),
+
               [
                 { text: 'Gasoline', margin: [10, 0, 0, 0] },
                 { text: '0.00', alignment: 'right' },
@@ -290,7 +481,6 @@ export class ReportsService {
             ],
           },
         },
-
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -365,7 +555,6 @@ export class ReportsService {
             ],
           },
         },
-
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -399,7 +588,6 @@ export class ReportsService {
             ],
           },
         },
-
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -423,7 +611,6 @@ export class ReportsService {
             ],
           },
         },
-
         {
           margin: [0, 0, 0, 20],
           table: {
@@ -459,79 +646,21 @@ export class ReportsService {
             ],
           },
         },
-      ], // Fin de content
+      ],
 
-      // Estilos (mapear desde clases CSS observadas en sheet.css y HTML)
       styles: {
-        mainHeader: {
-          fontSize: 16,
-          bold: true,
-          margin: [0, 0, 0, 5],
-          color: '#434343',
-        }, // Gris oscuro
-        subHeader: {
-          fontSize: 12,
-          bold: true,
-          margin: [0, 0, 0, 10],
-          color: '#666666',
-        }, // Gris medio
-        info: { fontSize: 9, color: '#333333' },
         tableHeader: {
-          // Estilo para JAN-MAR, TOTAL, etc. (Basado en .s8, .s9, .s10...?)
           bold: true,
-          fontSize: 9,
-          color: '#000000', // Negro
-          fillColor: '#FCE5CD', // Naranja pálido (ajustar color según HTML)
+          fillColor: '#ccc',
           alignment: 'center',
-          margin: [0, 4, 0, 4], // Padding vertical
         },
-        sectionHeader: {
-          // Estilo para "Revenues - Sales", etc. (Basado en .s18?)
-          bold: true,
-          fontSize: 10,
-          fillColor: '#FFF2CC', // Amarillo pálido (ajustar color según HTML)
-          margin: [0, 5, 0, 2], // Espaciado vertical
-          // border: [false, false, false, true] // Solo borde inferior? Controlado por layout
-        },
-        label: {
-          // Estilo para celdas de descripción (Basado en .s21?)
-          fontSize: 9,
-          alignment: 'left',
-          margin: [2, 2, 2, 2], // Padding pequeño
-        },
-        labelBold: {
-          // Estilo para etiquetas de total
-          fontSize: 9,
-          bold: true,
-          alignment: 'left',
-          margin: [2, 2, 2, 2],
-        },
-        numeric: {
-          // Estilo para celdas numéricas (Basado en .s22?)
-          fontSize: 9,
-          alignment: 'right',
-          margin: [2, 2, 2, 2],
-        },
-        numericBold: {
-          // Estilo para celdas numéricas en negrita (totales)
-          fontSize: 9,
-          bold: true,
-          alignment: 'right',
-          margin: [2, 2, 2, 2],
-        },
-        footerNote: {
-          fontSize: 8,
-          italics: true,
-          color: '#666666',
-        },
-      }, // Fin de styles
+      },
 
       defaultStyle: {
-        // font: 'Times', // Asegúrate que esta fuente esté configurada
+        font: 'Roboto', // Asegúrate que esta fuente esté configurada
         fontSize: 10,
       },
     };
-    // --- FIN: Definición del Documento PDFMake ---
 
     return this.printer.createPdf(documentDefinition);
   }

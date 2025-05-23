@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Between } from 'typeorm';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { User } from 'src/auth/entities/user.entity';
@@ -14,6 +15,7 @@ import { Category } from '../categories/entities/category.entity';
 import { Subcategory } from '../subcategories/entities/subcategory.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { LogsService } from 'src/logs/logs.service';
+import { ExpensesByCategory } from './interfaces/expenses-by-category.interface';
 
 @Injectable()
 export class ExpenseService {
@@ -29,6 +31,71 @@ export class ExpenseService {
 
     private readonly logService: LogsService,
   ) {}
+
+  async findAllByDateRange(startDate: Date, endDate: Date, user: User) {
+    try {
+      // Obtener todos los gastos en el rango de fechas
+      const expenses = await this.expenseRepository.find({
+        where: {
+          user: { id: user.id },
+          date: Between(startDate, endDate),
+        },
+        relations: ['category', 'subcategory'],
+      });
+
+      // Crear objeto para almacenar gastos por categoría
+      const expensesByCategory: ExpensesByCategory = {};
+
+      // Procesar cada gasto
+      expenses.forEach((expense) => {
+        const categoryName = expense.category.name;
+        const subcategoryName =
+          expense.subcategory?.name || 'Without subcategory';
+
+        // Inicializar categoría si no existe
+        if (!expensesByCategory[categoryName]) {
+          expensesByCategory[categoryName] = {
+            total: { gross: 0, hst: 0, net: 0 },
+          };
+        }
+
+        // Inicializar subcategoría si no existe
+        if (!expensesByCategory[categoryName][subcategoryName]) {
+          expensesByCategory[categoryName][subcategoryName] = {
+            gross: 0,
+            hst: 0,
+            net: 0,
+          };
+        }
+
+        // Calcular montos
+        const hst = expense.total * 0.13;
+        const net = expense.total + hst;
+
+        // Acumular valores
+        expensesByCategory[categoryName][subcategoryName].gross +=
+          expense.total;
+        expensesByCategory[categoryName][subcategoryName].hst += hst;
+        expensesByCategory[categoryName][subcategoryName].net += net;
+
+        // Acumular totales por categoría
+        expensesByCategory[categoryName].total.gross += expense.total;
+        expensesByCategory[categoryName].total.hst += hst;
+        expensesByCategory[categoryName].total.net += net;
+      });
+
+      return {
+        expensesByCategory,
+      };
+    } catch (error) {
+      console.error('Error in findAllByDateRange:', error);
+      throw error;
+    }
+  }
+  catch(error) {
+    console.error(error);
+    return error;
+  }
 
   async create(createExpenseDto: CreateExpenseDto, user: User) {
     try {
