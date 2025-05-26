@@ -43,6 +43,8 @@ export class ExpenseService {
         relations: ['category', 'subcategory'],
       });
 
+      console.warn({ expenses });
+
       // Crear objeto para almacenar gastos por categoría
       const expensesByCategory: ExpensesByCategory = {};
 
@@ -69,19 +71,20 @@ export class ExpenseService {
         }
 
         // Calcular montos
-        const hst = expense.total * 0.13;
-        const net = expense.total + hst;
+        // const hst: number = Number(expense.tax);
+        // const net: number = Number(expense.total) + hst;
 
         // Acumular valores
-        expensesByCategory[categoryName][subcategoryName].gross +=
-          expense.total;
-        expensesByCategory[categoryName][subcategoryName].hst += hst;
-        expensesByCategory[categoryName][subcategoryName].net += net;
+        expensesByCategory[categoryName][subcategoryName].gross += Number(
+          expense.total,
+        );
+        // expensesByCategory[categoryName][subcategoryName].hst += Number(hst);
+        // expensesByCategory[categoryName][subcategoryName].net += Number(net);
 
         // Acumular totales por categoría
-        expensesByCategory[categoryName].total.gross += expense.total;
-        expensesByCategory[categoryName].total.hst += hst;
-        expensesByCategory[categoryName].total.net += net;
+        expensesByCategory[categoryName].total.gross += Number(expense.total);
+        // expensesByCategory[categoryName].total.hst += hst;
+        // expensesByCategory[categoryName].total.net += net;
       });
 
       return {

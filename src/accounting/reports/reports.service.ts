@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateReportDto } from './dto/create-report.dto';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
 import { ExpenseService } from '../expenses/expenses.service';
 
@@ -24,6 +24,7 @@ export class ReportsService {
     user: User,
   ): Promise<PDFKit.PDFDocument> {
     const { startDate, endDate } = createReportDto;
+
     const expensesData = await this.expenseService.findAllByDateRange(
       new Date(startDate),
       new Date(endDate),
@@ -31,45 +32,59 @@ export class ReportsService {
     );
 
     console.log(expensesData);
+    console.log(expensesData.expensesByCategory['Rent']);
+    console.log(
+      Number(expensesData.expensesByCategory['Rent'].total.gross).toFixed(2),
+    );
 
-    // Función helper para formatear números
-    // const formatNumber = (num: number) => num.toFixed(2);
-
-    // Ejemplo de cómo rellenar una sección de la tabla
+    // Rellenar una sección de la tabla
     const getTableRows = (categoryName: string, subcategories: string[]) => {
       const categoryData = expensesData.expensesByCategory[categoryName] || {
         total: { gross: 0, hst: 0, net: 0 },
       };
 
-      const rows = subcategories.map((subcat) => [
-        { text: subcat, margin: [10, 0, 0, 0] },
+      const rows: TableCell[][] = subcategories.map((subcat) => [
+        { text: subcat, margin: [10, 0, 0, 0], bold: false },
         {
-          text: categoryData[subcat] ? categoryData[subcat].gross : '0.00',
+          text: categoryData[subcat]
+            ? categoryData[subcat].gross.toFixed(2)
+            : '0.00',
           alignment: 'right',
         },
         {
-          text: categoryData[subcat] ? categoryData[subcat].hst : '0.00',
+          text: categoryData[subcat]
+            ? categoryData[subcat].hst.toFixed(2)
+            : '0.00',
           alignment: 'right',
         },
         {
-          text: categoryData[subcat] ? categoryData[subcat].net : '0.00',
+          text: categoryData[subcat]
+            ? categoryData[subcat].net.toFixed(2)
+            : '0.00',
           alignment: 'right',
         },
       ]);
 
       rows.push([
-        { text: 'Total', margin: [10, 0, 0, 0] },
         {
-          text: categoryData.total.gross || '0.00',
-          alignment: 'right',
+          text: 'Total',
+          alignment: 'left',
+          bold: true,
         },
         {
-          text: categoryData.total.hst || '0.00',
+          text: categoryData.total.gross.toFixed(2) || '0.00',
           alignment: 'right',
+          bold: true,
         },
         {
-          text: categoryData.total.net || '0.00',
+          text: categoryData.total.hst.toFixed(2) || '0.00',
           alignment: 'right',
+          bold: true,
+        },
+        {
+          text: categoryData.total.net.toFixed(2) || '0.00',
+          alignment: 'right',
+          bold: true,
         },
       ]);
 
@@ -81,6 +96,7 @@ export class ReportsService {
       pageMargins: [20, 20, 20, 30], // Ajustado [L, T, R, B] para más espacio de cabecera
 
       content: [
+        // Header
         {
           table: {
             widths: [90, '*', '*'],
@@ -102,7 +118,7 @@ export class ReportsService {
                   font: 'Times',
                 },
                 {
-                  text: `${user.name} ${user.lastName}  / ${user.countryCode} ${user.phoneNumber}`,
+                  text: `${user.name} ${user.lastName} / ${user.countryCode} ${user.phoneNumber}`,
                   fontSize: 12,
                   bold: true,
                   alignment: 'center',
@@ -126,6 +142,7 @@ export class ReportsService {
           },
           layout: 'noBorders',
         },
+        // First section with date range
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -138,10 +155,10 @@ export class ReportsService {
                 { text: '' },
               ],
               [
-                { text: 'DESCRIPTION', style: 'tableHeader' },
-                { text: 'GROSS', style: 'tableHeader' },
-                { text: 'HST (13%)', style: 'tableHeader' },
-                { text: 'NET', style: 'tableHeader' },
+                { text: 'DESCRIPTION', style: 'tableHeaderField' },
+                { text: 'GROSS', style: 'tableHeaderField' },
+                { text: 'HST (13%)', style: 'tableHeaderField' },
+                { text: 'NET', style: 'tableHeaderField' },
               ],
               [
                 { text: 'Revenues - Sales', bold: true, colSpan: 4 },
@@ -175,7 +192,9 @@ export class ReportsService {
               ],
               [
                 {
-                  text: 'BALANCE ON 1/1/2025 - 31/12/2025',
+                  text: `BALANCE ON ${new Date(startDate).toLocaleDateString()} - ${new Date(
+                    endDate,
+                  ).toLocaleDateString()}`,
                   bold: true,
                   fillColor: '#cccccc',
                 },
@@ -186,6 +205,7 @@ export class ReportsService {
             ],
           },
         },
+        // For Expenses with out HST table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -271,6 +291,7 @@ export class ReportsService {
             ],
           },
         },
+        // For the first Expenses table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -287,108 +308,27 @@ export class ReportsService {
                 { text: '' },
                 { text: '' },
               ],
-              [
-                { text: 'Advertising/ Promotion', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Meals/ Entertainment ', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Expenses office', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Expenses supplies', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office Stationery', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office Rental', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office Utilities ', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office Phone ', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office Internet', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Office maintenance/ Repairs', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Storage Rent', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Uniform', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Rental Equipment/ Car Rental', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                {
-                  text: 'Accounting/ Legal/ Other professional Fees',
-                  margin: [10, 0, 0, 0],
-                },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Memberships/ Subscriptions', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Total', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-              ],
+              ...getTableRows('Expenses', [
+                'Advertising/ Promotion',
+                'Meals/ Entertainment',
+                'Expenses office',
+                'Expenses supplies',
+                'Office Stationery',
+                'Office Rental',
+                'Office Utilities',
+                'Office Phone',
+                'Office Internet',
+                'Office maintenance/ Repairs',
+                'Storage Rent',
+                'Uniform',
+                'Rental Equipment/ Car Rental',
+                'Accounting/ Legal/ Other professional Fees',
+                'Memberships/ Subscriptions',
+              ]),
             ],
           },
         },
+        // For the second Motor Vehicle Expenses table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -416,71 +356,10 @@ export class ReportsService {
                 'Lease Payments',
                 'Purchase/ Financing',
               ]),
-
-              [
-                { text: 'Gasoline', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: '407 Ert', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Parking', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Parking Fines', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Repair/ Maintenance Car', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Licence/ Registration ', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Car Wash', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Lease Payments', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Purchase/ Financing', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-
-              [
-                { text: 'Total', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-              ],
             ],
           },
         },
+        // For the third Business-use-of-home (Utilities) table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -497,64 +376,20 @@ export class ReportsService {
                 { text: '' },
                 { text: '' },
               ],
-              [
-                { text: 'Rental Water Heater', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Gas Natural', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Hydro/ Electricity', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Water', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Maintenance & Repairs', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Interest Mortgage', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Property Tax Bill', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-              [
-                { text: 'Home Insurance', margin: [10, 0, 0, 0] },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-                { text: '0.00', alignment: 'right' },
-              ],
-
-              [
-                { text: 'Total', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-                { text: '0.00', alignment: 'right', bold: true },
-              ],
+              ...getTableRows('Business-use-of- home (Utilities)', [
+                'Rental Water Heater',
+                'Gas Natural',
+                'Hydro/ Electricity',
+                'Water',
+                'Maintenance & Repairs',
+                'Interest Mortgage',
+                'Property Tax Bill',
+                'Home Insurance',
+              ]),
             ],
           },
         },
+        // For the fourth Expenses with out HST + Expenses + Motor Vehicle Expenses table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -588,6 +423,7 @@ export class ReportsService {
             ],
           },
         },
+        // For the Total Revenue NET - Total Expenses GROSS = PROFIT table
         {
           margin: [0, 0, 0, 10],
           table: {
@@ -619,7 +455,12 @@ export class ReportsService {
               [
                 { text: '*MEDICAL EXPENSES', bold: true, fillColor: '#ccc' },
                 {
-                  text: '0.00',
+                  text: expensesData.expensesByCategory['Medical Expenses']
+                    ? Number(
+                        expensesData.expensesByCategory['Medical Expenses']
+                          .total.gross,
+                      ).toFixed(2)
+                    : '0.00',
                   alignment: 'right',
                   bold: true,
                   fillColor: '#ccc',
@@ -635,7 +476,11 @@ export class ReportsService {
               [
                 { text: '*RENTA', bold: true, fillColor: '#ccc' },
                 {
-                  text: '0.00',
+                  text: expensesData.expensesByCategory['Rent']
+                    ? Number(
+                        expensesData.expensesByCategory['Rent'].total.gross,
+                      ).toFixed(2)
+                    : '0.00',
                   alignment: 'right',
                   bold: true,
                   fillColor: '#ccc',
@@ -649,10 +494,15 @@ export class ReportsService {
       ],
 
       styles: {
-        tableHeader: {
+        tableHeaderField: {
           bold: true,
           fillColor: '#ccc',
           alignment: 'center',
+        },
+        tableHeader: {
+          bold: true,
+
+          fillColor: '#ccc',
         },
       },
 
