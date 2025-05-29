@@ -8,6 +8,7 @@ import { Category } from '../categories/entities/category.entity';
 import { Account } from '../accounts/entities/account.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { LogsModule } from 'src/logs/logs.module';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
   controllers: [ExpenseController],
@@ -16,6 +17,7 @@ import { LogsModule } from 'src/logs/logs.module';
     TypeOrmModule.forFeature([Expense, Subcategory, Category, Account]),
     AuthModule,
     LogsModule,
+    AwsModule,
   ],
   exports: [TypeOrmModule, ExpenseService],
 })

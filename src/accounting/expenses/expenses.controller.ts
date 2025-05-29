@@ -14,10 +14,15 @@ import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { AnalyzeExpenseDto } from './dto/analyze-expense.dto';
+import { AwsService } from 'src/aws/aws.service';
 
 @Controller('expense')
 export class ExpenseController {
-  constructor(private readonly expenseService: ExpenseService) {}
+  constructor(
+    private readonly expenseService: ExpenseService,
+    private readonly awsService: AwsService,
+  ) {}
 
   @Post()
   @Auth()
@@ -51,5 +56,11 @@ export class ExpenseController {
   @Auth()
   remove(@Param('id') id: string, @GetUser() user: User) {
     return this.expenseService.remove(id, user);
+  }
+
+  @Post('analyze-expense')
+  // @Auth()
+  analyzeExpense(@Body() analyzeExpenseDto: AnalyzeExpenseDto) {
+    return this.awsService.analyzeExpense(analyzeExpenseDto);
   }
 }

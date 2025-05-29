@@ -4,7 +4,7 @@ import {
   AnalyzeExpenseCommand,
   TextractClient,
 } from '@aws-sdk/client-textract';
-import { AnalyzeExpenseDto } from './dto/analyze-expense.dto';
+import { AnalyzeExpenseDto } from '../accounting/expenses/dto/analyze-expense.dto';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -75,7 +75,7 @@ export class AwsService {
       return detectedValues;
     } catch (error) {
       console.error(error);
-      throw new BadRequestException('Error analize expense');
+      throw new BadRequestException('Error analyzing expense');
     }
   }
 
