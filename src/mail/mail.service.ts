@@ -35,7 +35,6 @@ export class MailService {
       apiKey: apiKey,
     });
 
-    // this.sentFrom = new Sender(this.senderEmail, this.senderName);
     this.sentFrom = new Sender(this.senderEmail, this.senderName);
     this.sentReplyTo = new Sender(senderEmailReplyTo, this.senderName);
   }
@@ -60,16 +59,7 @@ export class MailService {
         .setHtml(mailOptions.html)
         .setText(mailOptions.text);
 
-      console.log({
-        senderEmail: this.senderEmail,
-        senderName: this.senderName,
-        apiKey: process.env.MAILERSEND_API_KEY,
-        setFrom: this.sentFrom,
-        setTo: recipients,
-      });
-
-      const response = await this.mailersend.email.send(emailParams);
-      console.log({ response });
+      await this.mailersend.email.send(emailParams);
       this.logger.log(`Email sent to: ${mailOptions.to}`);
     } catch (error) {
       this.logger.error(
