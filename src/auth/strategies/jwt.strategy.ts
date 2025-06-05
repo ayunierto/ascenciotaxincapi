@@ -10,16 +10,16 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectRepository(User)
-    private readonly userRespository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {
     super({
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: process.env.JWT_SECRET || 'default_secret_key',
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }
   async validate(payload: JwtPayload): Promise<User> {
     const { id } = payload;
-    const user = await this.userRespository.findOneBy({ id });
+    const user = await this.userRepository.findOneBy({ id });
     if (!user) throw new UnauthorizedException('Token not valid');
 
     if (!user.isActive)

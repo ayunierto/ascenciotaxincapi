@@ -5,43 +5,71 @@ import { SendMailOptions } from './interfaces';
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private mailerSend: MailerSend;
-  private apiKey: string;
+  private mailersend: MailerSend;
   private senderEmail: string;
   private senderName: string;
   private sentFrom: Sender;
+  private sentReplyTo: Sender;
 
   constructor() {
-    this.apiKey = process.env.POSTMARK_API_KEY;
-    if (!this.apiKey) {
-      this.logger.error('MAILERSEND_API_KEY is not configured.');
-      return;
+    const apiKey = process.env.MAILERSEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('MAILERSEND_API_KEY is not configured.');
     }
-    this.senderEmail = process.env.POSTMARK_SENDER_EMAIL;
-    if (!this.senderEmail) {
-      this.logger.error('POSTMARK_SENDER_EMAIL is not configured.');
-    }
-    this.senderName = process.env.POSTMARK_SENDER_NAME || 'Your App Name';
 
-    this.mailerSend = new MailerSend({ apiKey: this.apiKey });
+    this.senderEmail = process.env.MAILERSEND_SENDER_EMAIL;
+    if (!this.senderEmail) {
+      throw new Error('MAILERSEND_SENDER_EMAIL is not configured.');
+    }
+
+    const senderEmailReplyTo = process.env.MAILERSEND_SENDER_EMAIL_REPLY_TO;
+    if (!senderEmailReplyTo) {
+      throw new Error('MAILERSEND_SENDER_EMAIL_REPLY_TO is not configured.');
+    }
+
+    this.senderName =
+      process.env.MAILERSEND_SENDER_NAME ||
+      'Configure Your App Name in .env MAILERSEND_SENDER_NAME file';
+
+    this.mailersend = new MailerSend({
+      apiKey: apiKey,
+    });
+
+    // this.sentFrom = new Sender(this.senderEmail, this.senderName);
     this.sentFrom = new Sender(this.senderEmail, this.senderName);
+    this.sentReplyTo = new Sender(senderEmailReplyTo, this.senderName);
   }
 
   async sendEmail(mailOptions: SendMailOptions): Promise<void> {
+    if (!this.mailersend || !this.sentFrom) {
+      this.logger.error(
+        'MailerSend or Sender is not initialized. Check .env configuration.',
+      );
+      return;
+    }
     try {
       const recipients = [
-        new Recipient(mailOptions.to, mailOptions.clientName),
+        new Recipient(mailOptions.to, mailOptions.clientName || mailOptions.to),
       ];
 
       const emailParams = new EmailParams()
         .setFrom(this.sentFrom)
         .setTo(recipients)
-        .setReplyTo(this.sentFrom)
+        .setReplyTo(this.sentReplyTo)
         .setSubject(mailOptions.subject)
         .setHtml(mailOptions.html)
         .setText(mailOptions.text);
 
-      await this.mailerSend.email.send(emailParams);
+      console.log({
+        senderEmail: this.senderEmail,
+        senderName: this.senderName,
+        apiKey: process.env.MAILERSEND_API_KEY,
+        setFrom: this.sentFrom,
+        setTo: recipients,
+      });
+
+      const response = await this.mailersend.email.send(emailParams);
+      console.log({ response });
       this.logger.log(`Email sent to: ${mailOptions.to}`);
     } catch (error) {
       this.logger.error(

@@ -9,9 +9,9 @@ export class NotificationService {
   private senderName: string;
 
   constructor(private readonly mailService: MailService) {
-    this.senderName = process.env.POSTMARK_SENDER_NAME;
+    this.senderName = process.env.MAILERSEND_SENDER_NAME;
     if (!this.senderName)
-      this.logger.error('POSTMARK_SENDER_NAME is not configured.');
+      this.logger.error('MAILERSEND_SENDER_NAME is not configured.');
   }
 
   async sendEmailVerificationCode(
@@ -34,7 +34,7 @@ export class NotificationService {
               <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Verification code</h1>
               <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
               <p style="margin-bottom: 10px;">Thank you for signing up! Please verify your email address by using the code below:</p>
-              <p style="margin-bottom: 10px;">Your verification code for Ascencio Tax Inc is: <strong style="font-weight: bold;">${code}</strong>.</p>
+              <p style="margin-bottom: 10px;">Your verification code for ${this.senderName} is: <strong style="font-weight: bold;">${code}</strong>.</p>
               <p style="margin-bottom: 10px;">This code is valid for a limited time.</p>
               <p style="margin-bottom: 10px;">If you did not create an account, please ignore this email.</p>
               <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
@@ -126,6 +126,9 @@ export class NotificationService {
       this.logger.error(
         `Failed to send password reset email to ${recipientEmail}: ${error.message}`,
       );
+      throw new Error(
+        `Failed to send password reset email to ${recipientEmail}: ${error.message}`,
+      );
     }
   }
 
@@ -167,7 +170,7 @@ export class NotificationService {
                   </ul>
               </div>
               <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
-              <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">Ascencio Tax Inc team.</strong></p>
+              <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">${this.senderName} team.</strong></p>
           </div>
       </body>
       </html>
@@ -197,7 +200,6 @@ export class NotificationService {
 
     try {
       await this.mailService.sendEmail(mailOptions);
-      console.log(`Appointment confirmation email sent to ${recipientEmail}`);
     } catch (error) {
       console.error(
         `Failed to send appointment confirmation email to ${recipientEmail}:`,
@@ -249,7 +251,7 @@ export class NotificationService {
                     </ul>
                 </div>
                 <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
-                <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">Ascencio Tax Inc team.</strong></p>
+                <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">${this.senderName} team.</strong></p>
             </div>
         </body>
         </html>
