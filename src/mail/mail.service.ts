@@ -60,7 +60,8 @@ export class MailService {
         .setText(mailOptions.text);
 
       await this.mailersend.email.send(emailParams);
-      this.logger.log(`Email sent to: ${mailOptions.to}`);
+
+      this.logger.log(`Email sent successful to: ${mailOptions.to}`);
     } catch (error) {
       this.logger.error(
         `Failed to send email to ${mailOptions.to}: ${error.message}`,

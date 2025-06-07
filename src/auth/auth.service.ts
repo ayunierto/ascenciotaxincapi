@@ -75,7 +75,7 @@ export class AuthService {
       );
 
       const accounts =
-        await this.utilityService.createDesfaultAccountAndAccountType(user);
+        await this.utilityService.createDefaultAccountAndAccountType(user);
       if (!accounts) {
         throw new InternalServerErrorException(
           'Failed to create default account and type',
@@ -348,11 +348,13 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (user && user.isEmailVerified && user.isActive) {
+      const expirationTime: number =
+        Number(process.env.EMAIL_VERIFICATION_EXPIRY) || 15; // Default to 15 minutes if not set
       const passwordResetCode = this.utilityService.generateNumericCode(6); // Code for password reset
       const passwordResetExpiresAt = new Date();
       passwordResetExpiresAt.setMinutes(
-        passwordResetExpiresAt.getMinutes() + 15,
-      ); // Code valid for 15 min
+        passwordResetExpiresAt.getMinutes() + expirationTime,
+      );
 
       // Save the code and its expiry time to the user record
       user.passwordResetCode = passwordResetCode;
@@ -367,6 +369,7 @@ export class AuthService {
           user.name,
           user.email,
           passwordResetCode,
+          expirationTime,
         );
 
         this.logger.log(

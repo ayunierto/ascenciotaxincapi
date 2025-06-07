@@ -62,7 +62,7 @@ export class UtilityService {
     return code;
   }
 
-  async createDesfaultAccountAndAccountType(user: User): Promise<boolean> {
+  async createDefaultAccountAndAccountType(user: User): Promise<boolean> {
     try {
       const currency = await this.currencyService.findAll();
       if (currency.length === 0) {

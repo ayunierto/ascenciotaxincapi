@@ -76,9 +76,9 @@ export class NotificationService {
     clientName: string,
     recipientEmail: string,
     code: string,
+    expirationTime: number,
   ): Promise<void> {
-    const subject = 'Your Password Reset Code';
-
+    const subject = 'Password Reset Code';
     const htmlBody = `
        <!DOCTYPE html>
         <html lang="en">
@@ -93,6 +93,7 @@ export class NotificationService {
                 <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
                 <p style="margin-bottom: 10px;">We received a request to reset the password for your account.</p>
                 <p style="margin-bottom: 10px;">Your password reset code is: <strong>${code}</strong>.</p>
+                <p style="margin-bottom: 10px;">Your code is valid for ${expirationTime} minutes.</p>
                 <p style="margin-bottom: 10px;">Please enter this code in the app to set a new password. This code is valid for a limited time.</p>
                 <p style="margin-bottom: 10px;">If you did not request a password reset, please ignore this email.</p>
                 <p style="margin-bottom: 10px;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
@@ -100,11 +101,11 @@ export class NotificationService {
         </body>
         </html>
       `;
-
     const textBody = `
         Hello ${clientName},
         We received a request to reset the password for your account.
         Your password reset code is: ${code}
+        Your code is valid for ${expirationTime} minutes.
         Please enter this code in the app to set a new password. This code is valid for a limited time.
         If you did not request a password reset, please ignore this email.
 

@@ -42,6 +42,7 @@ export class SeedService {
         password: await this.utilityService.hashPassword('Abcd1234'),
         birthdate: new Date('1993-01-18'),
         isActive: true,
+        isEmailVerified: true,
         roles: [ValidRoles.staff, ValidRoles.admin],
       });
       const luciaUser = await this.usersService.create({
@@ -51,6 +52,7 @@ export class SeedService {
         phoneNumber: '+10000000002',
         password: await this.utilityService.hashPassword('Abcd1234'),
         birthdate: new Date('2000-01-01'),
+        isEmailVerified: true,
         isActive: true,
         roles: [ValidRoles.superUser],
       });
