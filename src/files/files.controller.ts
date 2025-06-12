@@ -42,11 +42,16 @@ export class FilesController {
 
       console.log(uploadResult);
 
-      if (uploadResult instanceof UploadStream) {
-        console.log('UploadStream:', uploadResult);
-      } else {
-        console.log('Upload Result:', uploadResult.secure_url);
-        return { image: uploadResult.secure_url };
+       if ('public_id' in uploadResult) {
+        const optimizeUrl = cloudinary.url(uploadResult.public_id, {
+            fetch_format: 'auto',
+            quality: 'auto'
+        });
+        return { image: optimizeUrl };
+      } 
+      console.log('UploadStream:', uploadResult);
+      return {
+        image: 'No image uploaded'
       }
     } catch (error) {
       console.error(error);
