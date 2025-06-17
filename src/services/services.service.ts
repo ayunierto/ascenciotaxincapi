@@ -1,54 +1,50 @@
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
 import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+
+import { CreateServiceDto } from './dto/create-service.dto';
+import { UpdateServiceDto } from './dto/update-service.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { User } from 'src/auth/entities/user.entity';
-import { ServiceImage, Service } from './entities';
 import { Staff } from 'src/staff/entities/staff.entity';
+import { Service } from './entities/service.entity';
 
 @Injectable()
 export class ServicesService {
-  private readonly logger = new Logger('ServicesService');
+  private readonly logger = new Logger(Service.name);
 
   constructor(
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
-    @InjectRepository(ServiceImage)
-    private readonly serviceImageRepository: Repository<ServiceImage>,
     @InjectRepository(Staff)
     private staffRepository: Repository<Staff>,
 
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createServiceDto: CreateServiceDto, user: User) {
+  async create(createServiceDto: CreateServiceDto) {
     try {
-      const { images = [], staff: staffIds, ...rest } = createServiceDto;
+      const { staff: staffIds, ...rest } = createServiceDto;
 
       const staff = await this.staffRepository.findBy({
         id: In(staffIds),
       });
 
       const service = this.serviceRepository.create({
-        user,
-        images: images.map((img) =>
-          this.serviceImageRepository.create({ url: img }),
-        ),
         staff,
         ...rest,
       });
       await this.serviceRepository.save(service);
       return service;
     } catch (error) {
-      this.handleDBExceptions(error);
+      console.error(error);
+      throw new InternalServerErrorException(
+        'The service could not be created. ',
+      );
     }
   }
 
@@ -58,7 +54,6 @@ export class ServicesService {
       take: limit,
       skip: offset,
       relations: {
-        images: true,
         staff: true,
       },
       order: {
@@ -75,7 +70,6 @@ export class ServicesService {
         id,
       },
       relations: {
-        images: true,
         staff: true,
       },
     });
@@ -84,42 +78,27 @@ export class ServicesService {
     return service;
   }
 
-  async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
-    const { images, staff, ...rest } = updateServiceDto;
-    const dbStaff = await this.staffRepository.findBy({
-      id: In(staff),
-    });
-    const service = await this.serviceRepository.preload({
-      id,
-      staff: dbStaff,
-      ...rest,
-    });
-    if (!service) throw new NotFoundException(`Image not found`);
-
-    // Create queryRunner
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async update(id: string, updateServiceDto: UpdateServiceDto) {
+    const { staff, ...rest } = updateServiceDto;
 
     try {
-      if (images) {
-        await queryRunner.manager.delete(ServiceImage, { service: { id: id } });
-        service.images = images.map((img) =>
-          this.serviceImageRepository.create({ url: img }),
-        );
-      }
+      const dbStaff = await this.staffRepository.findBy({
+        id: In(staff),
+      });
+      const service = await this.serviceRepository.preload({
+        id,
+        staff: dbStaff,
+        ...rest,
+      });
+      if (!service) throw new NotFoundException(`Service not found`);
 
-      service.user = user;
-      await queryRunner.manager.save(service);
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
-      // await this.serviceRepository.save(service);
+      await this.serviceRepository.save(service);
       return this.findOne(id);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      await queryRunner.release();
-
-      this.handleDBExceptions(error);
+      console.error(error);
+      throw new InternalServerErrorException(
+        'The service could not be updated.',
+      );
     }
   }
 
@@ -127,15 +106,5 @@ export class ServicesService {
     const service = await this.findOne(id);
     await this.serviceRepository.remove(service);
     return service;
-  }
-
-  // Handle Errors
-  private handleDBExceptions(error: any) {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-
-    this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs.',
-    );
   }
 }

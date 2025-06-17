@@ -28,6 +28,21 @@ export class SeedService {
     private readonly utilityService: UtilityService,
   ) {}
 
+  async execute() {
+    await this.deleteData();
+    await this.usersService.create({
+      firstName: 'Admin',
+      lastName: 'Admin',
+      email: 'admin@ascenciotaxinc.com',
+      phoneNumber: '+0123456789',
+      password: await this.utilityService.hashPassword('Abc123'),
+      birthdate: new Date('2025-01-01'),
+      isActive: true,
+      isEmailVerified: true,
+      roles: [ValidRoles.admin],
+    });
+  }
+
   async runSeed() {
     try {
       await this.deleteData();
@@ -35,7 +50,7 @@ export class SeedService {
 
       // Create users
       const yulierUser = await this.usersService.create({
-        name: 'Yulier',
+        firstName: 'Yulier',
         lastName: 'Rondon',
         email: 'rondonyulier@gmail.com',
         phoneNumber: '+16474669318',
@@ -46,7 +61,7 @@ export class SeedService {
         roles: [ValidRoles.staff, ValidRoles.admin],
       });
       const luciaUser = await this.usersService.create({
-        name: 'Lucia',
+        firstName: 'Lucia',
         lastName: 'Ascencio',
         email: 'lucia@ascenciotaxinc.com',
         phoneNumber: '+10000000002',
@@ -60,287 +75,218 @@ export class SeedService {
       // Create Schedule
       // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
       // for luxon
-      const scheduleMondayYulier = await this.scheduleService.create(
-        {
-          weekday: 1,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleTuesdayYulier = await this.scheduleService.create(
-        {
-          weekday: 2,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleWednesdayYulier = await this.scheduleService.create(
-        {
-          weekday: 3,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleThursdayYulier = await this.scheduleService.create(
-        {
-          weekday: 4,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleFridayYulier = await this.scheduleService.create(
-        {
-          weekday: 5,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleMondayLucia = await this.scheduleService.create(
-        {
-          weekday: 1,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleTuesdayLucia = await this.scheduleService.create(
-        {
-          weekday: 2,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleWednesdayLucia = await this.scheduleService.create(
-        {
-          weekday: 3,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleThursdayLucia = await this.scheduleService.create(
-        {
-          weekday: 4,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleFridayLucia = await this.scheduleService.create(
-        {
-          weekday: 5,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
+      const scheduleMondayYulier = await this.scheduleService.create({
+        weekday: 1,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleTuesdayYulier = await this.scheduleService.create({
+        weekday: 2,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleWednesdayYulier = await this.scheduleService.create({
+        weekday: 3,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleThursdayYulier = await this.scheduleService.create({
+        weekday: 4,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleFridayYulier = await this.scheduleService.create({
+        weekday: 5,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleMondayLucia = await this.scheduleService.create({
+        weekday: 1,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleTuesdayLucia = await this.scheduleService.create({
+        weekday: 2,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleWednesdayLucia = await this.scheduleService.create({
+        weekday: 3,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleThursdayLucia = await this.scheduleService.create({
+        weekday: 4,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleFridayLucia = await this.scheduleService.create({
+        weekday: 5,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
 
       // Create staff
-      const yulierStaff = await this.staffService.create(
-        {
-          name: 'Yulier',
-          lastName: 'Rondon',
-          isActive: true,
-          services: [],
-          schedules: [
-            scheduleMondayYulier.id,
-            scheduleTuesdayYulier.id,
-            scheduleWednesdayYulier.id,
-            scheduleThursdayYulier.id,
-            scheduleFridayYulier.id,
-          ],
-        },
-        yulierUser,
-      );
-      const luciaStaff = await this.staffService.create(
-        {
-          name: 'Lucia',
-          lastName: 'Ascencio',
-          isActive: true,
-          services: [],
-          schedules: [
-            scheduleMondayLucia.id,
-            scheduleTuesdayLucia.id,
-            scheduleWednesdayLucia.id,
-            scheduleThursdayLucia.id,
-            scheduleFridayLucia.id,
-          ],
-        },
-        yulierUser,
-      );
+      const yulierStaff = await this.staffService.create({
+        name: 'Yulier',
+        lastName: 'Rondon',
+        isActive: true,
+        services: [],
+        schedules: [
+          scheduleMondayYulier.id,
+          scheduleTuesdayYulier.id,
+          scheduleWednesdayYulier.id,
+          scheduleThursdayYulier.id,
+          scheduleFridayYulier.id,
+        ],
+      });
+      const luciaStaff = await this.staffService.create({
+        name: 'Lucia',
+        lastName: 'Ascencio',
+        isActive: true,
+        services: [],
+        schedules: [
+          scheduleMondayLucia.id,
+          scheduleTuesdayLucia.id,
+          scheduleWednesdayLucia.id,
+          scheduleThursdayLucia.id,
+          scheduleFridayLucia.id,
+        ],
+      });
 
       // Create services
-      await this.servicesService.create(
-        {
-          name: 'In-person Tax Filing (Walk-in)',
-          isAvailableOnline: false,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Personal Income Tax',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/21276e9bb2a04809a76f2a7bfe161219.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/21276e9bb2a04809a76f2a7bfe161219.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Corporate Taxes',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Self-Employed & Small Business Tax',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'GST/HST or WSIB Report',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg/v1/fill/w_239,h_154,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Business Registration',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Rental Income Taxes',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Social insurance number for non-resident',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,lg_1,q_80,enc_auto/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Canada Child Benefit Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Canada Pension Plan(CPP) Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Old Age Security Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
+      await this.servicesService.create({
+        name: 'In-person Tax Filing (Walk-in)',
+        isAvailableOnline: false,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Personal Income Tax',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/21276e9bb2a04809a76f2a7bfe161219.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/21276e9bb2a04809a76f2a7bfe161219.jpg',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Corporate Taxes',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Self-Employed & Small Business Tax',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'GST/HST or WSIB Report',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg/v1/fill/w_239,h_154,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg',
+
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Business Registration',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg',
+
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Rental Income Taxes',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Social insurance number for non-resident',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,lg_1,q_80,enc_auto/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg',
+
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Canada Child Benefit Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg',
+
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Canada Pension Plan(CPP) Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg',
+
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Old Age Security Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png',
+
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
 
       // Create posts
       await this.postsService.create(

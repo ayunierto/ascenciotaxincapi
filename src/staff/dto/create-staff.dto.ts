@@ -1,14 +1,4 @@
-import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEmail,
-  IsPhoneNumber,
-  IsString,
-  MinLength,
-} from 'class-validator';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { Service } from 'src/services/entities';
+import { IsArray, IsBoolean, IsString, MinLength } from 'class-validator';
 
 export class CreateStaffDto {
   @IsString()

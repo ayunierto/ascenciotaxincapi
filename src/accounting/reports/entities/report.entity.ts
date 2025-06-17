@@ -19,4 +19,7 @@ export class Report {
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
 }

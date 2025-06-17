@@ -1,13 +1,10 @@
-import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
   Entity,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
@@ -16,9 +13,7 @@ export class Service {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text', {
-    unique: true,
-  })
+  @Column('text')
   name: string;
 
   @Column('int')
@@ -27,13 +22,12 @@ export class Service {
   @Column('numeric')
   price: number;
 
-  @Column({
-    type: 'text',
+  @Column('text', {
     nullable: true,
   })
   description: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   address: string;
 
   @Column('bool')
@@ -44,20 +38,11 @@ export class Service {
   })
   isActive: boolean;
 
-  @OneToMany(() => ServiceImage, (image) => image.service, {
-    cascade: true,
-    eager: true,
-  })
-  images?: ServiceImage[];
+  @Column('text')
+  image: string;
 
   @ManyToMany(() => Staff, (staff) => staff.services, { onDelete: 'CASCADE' })
   staff: Staff[];
-
-  @ManyToOne(() => User, (user) => user.services, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  user: User;
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];

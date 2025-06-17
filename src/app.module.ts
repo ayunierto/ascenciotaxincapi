@@ -6,7 +6,6 @@ import { ServicesModule } from './services/services.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { SeedModule } from './seed/seed.module';
-import { FilesModule } from './files/files.module';
 import { StaffModule } from './staff/staff.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ScheduleModule } from './schedule/schedule.module';
@@ -31,6 +30,7 @@ import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 import { TwilioModule } from './twilio/twilio.module';
 import { UtilityModule } from './utility/utility.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -52,11 +52,10 @@ import { UtilityModule } from './utility/utility.module';
     ServicesModule,
     CommonModule,
     UsersModule,
-    SeedModule,
-    FilesModule,
-    StaffModule,
-    AppointmentModule,
     ScheduleModule,
+    StaffModule,
+    SeedModule,
+    AppointmentModule,
     AvailabilityModule,
     CalendarModule,
     ZoomModule,
@@ -77,6 +76,7 @@ import { UtilityModule } from './utility/utility.module';
     NotificationModule,
     TwilioModule,
     UtilityModule,
+    ImagesModule,
   ],
   controllers: [],
   providers: [],

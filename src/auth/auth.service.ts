@@ -25,15 +25,19 @@ import { JwtPayload } from './interfaces';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private verificationCodeExpirationTime: number;
 
   constructor(
     private readonly usersService: UsersService,
     private readonly notificationService: NotificationService,
     private readonly utilityService: UtilityService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) {
+    this.verificationCodeExpirationTime =
+      Number(process.env.EMAIL_VERIFICATION_EXPIRY) || 15;
+  }
 
-  async signup(signUpDto: SignUpDto) {
+  async signUp(signUpDto: SignUpDto) {
     const existingUser = await this.usersService.findByEmail(signUpDto.email);
     if (existingUser) {
       throw new ConflictException(
@@ -52,13 +56,12 @@ export class AuthService {
     );
 
     const newUser: Partial<User> = {
-      name: signUpDto.name,
+      firstName: signUpDto.firstName,
       lastName: signUpDto.lastName,
       email: signUpDto.email,
       password: hashedPassword,
       countryCode: signUpDto.countryCode || null,
       phoneNumber: signUpDto.phoneNumber || null,
-      isEmailVerified: false,
       verificationCode: verificationCode,
       verificationCodeExpiresAt: verificationCodeExpiresAt,
       passwordResetCode: null,
@@ -69,7 +72,7 @@ export class AuthService {
       const user = await this.usersService.create(newUser);
 
       await this.notificationService.sendEmailVerificationCode(
-        user.name,
+        user.firstName,
         user.email,
         verificationCode,
       );
@@ -88,7 +91,7 @@ export class AuthService {
         message: 'User registered successfully. Verification code sent.',
         user: {
           id: user.id,
-          name: user.name,
+          name: user.firstName,
           lastName: user.lastName,
           email: user.email,
           roles: user.roles,
@@ -141,7 +144,7 @@ export class AuthService {
       );
 
       await this.notificationService.sendEmailVerificationCode(
-        user.name,
+        user.firstName,
         user.email,
         newVerificationCode,
       );
@@ -174,7 +177,7 @@ export class AuthService {
         message: `Email verified successfully.`,
         user: {
           id: user.id,
-          name: user.name,
+          name: user.firstName,
           lastName: user.lastName,
           email: user.email,
           roles: user.roles,
@@ -189,16 +192,17 @@ export class AuthService {
     }
   }
 
-  async signin(signInDto: SignInDto) {
+  async signIn(signInDto: SignInDto) {
     const user = await this.usersService.findByEmail(signInDto.email);
+    console.log({ user });
 
-    // Check if user exists and password matches
-    // Use a generic message for security (don't say if email incorrect or password wrong)
+    // * Check if user exists and password matches
+    // * Use a generic message for security (don't say if email incorrect or password wrong)
     if (
       !user ||
       !(await this.utilityService.comparePasswords(
-        signInDto.password,
         user.password,
+        signInDto.password,
       ))
     ) {
       throw new UnauthorizedException('Invalid credentials');
@@ -223,19 +227,20 @@ export class AuthService {
 
     // Generate and return a JWT access token
     const accessToken = this.generateToken({
-      id: user.id,
+      sub: user.id,
+      email: user.email,
     }); // generateToken uses user object for payload
 
     return {
       user: {
         id: user.id,
-        name: user.name,
+        name: user.firstName,
         lastName: user.lastName,
         email: user.email,
         countryCode: user.countryCode,
         phoneNumber: user.phoneNumber,
         birthdate: user.birthdate,
-        lastLogin: user.lastLogin,
+        lastLogin: user.lastLoginAt,
         roles: user.roles,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -297,13 +302,14 @@ export class AuthService {
     return {
       user,
       token: this.generateToken({
-        id: user.id,
+        sub: user.id,
+        email: user.email,
       }),
     };
   }
 
-  private generateToken(payload: JwtPayload): string {
-    return this.jwtService.sign(payload); // Options like expiry are usually set in JwtModule config
+  private async generateToken(payload: JwtPayload) {
+    return await this.jwtService.signAsync(payload); // Options like expiry are usually set in JwtModule config
   }
 
   async changePassword(
@@ -366,7 +372,7 @@ export class AuthService {
 
         // Send the Email Containing the Reset CODE (NotificationService handles its own errors here)
         await this.notificationService.sendPasswordResetCodeEmail(
-          user.name,
+          user.firstName,
           user.email,
           passwordResetCode,
           expirationTime,
@@ -456,7 +462,7 @@ export class AuthService {
         message: 'Password reset successfully.',
         user: {
           id: user.id,
-          name: user.name,
+          name: user.firstName,
           lastName: user.lastName,
           email: user.email,
           roles: user.roles,
@@ -474,4 +480,6 @@ export class AuthService {
       );
     }
   }
+
+  // TODO: Implement function updateLastLogin
 }

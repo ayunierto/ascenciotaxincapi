@@ -2,7 +2,6 @@ import { User } from 'src/auth/entities/user.entity';
 import { Service } from 'src/services/entities';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AppointmentState } from '../interfaces/appointment-state.interface';
 
 @Entity()
 export class Appointment {
@@ -35,11 +34,11 @@ export class Appointment {
   @Column('text', { nullable: true })
   zoomMeetingLink: string;
 
-  @ManyToOne(() => Service, (service) => service.appointments)
-  service: Service;
-
   @ManyToOne(() => User, (user) => user.appointments, { onDelete: 'CASCADE' })
   user: User;
+
+  @ManyToOne(() => Service, (service) => service.appointments)
+  service: Service;
 
   @ManyToOne(() => Staff, (staff) => staff.appointments)
   staff: Staff;

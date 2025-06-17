@@ -10,10 +10,9 @@ import { MailModule } from 'src/mail/mail.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { UtilityModule } from 'src/utility/utility.module';
 import { UsersModule } from 'src/users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
   imports: [
     TypeOrmModule.forFeature([User]),
 
@@ -22,16 +21,17 @@ import { UsersModule } from 'src/users/users.module';
     }),
 
     JwtModule.registerAsync({
-      imports: [],
-      inject: [],
-      useFactory: () => {
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
         return {
-          secret: process.env.JWT_SECRET,
+          global: true,
+          secret: configService.get<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn: process.env.JWT_EXPIRY || '360 days',
+            expiresIn: configService.get<string>('JWT_EXPIRY'),
           },
         };
       },
+      inject: [ConfigService],
     }),
 
     MailModule,
@@ -39,6 +39,8 @@ import { UsersModule } from 'src/users/users.module';
     UtilityModule,
     UsersModule,
   ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
   exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}

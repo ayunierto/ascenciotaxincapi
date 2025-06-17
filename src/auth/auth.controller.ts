@@ -5,6 +5,8 @@ import {
   Get,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 
 import { NotificationService } from 'src/notification/notification.service';
@@ -20,6 +22,7 @@ import {
   SignUpDto,
   VerifyCodeDto,
 } from './dto';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +33,7 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() signUpDto: SignUpDto) {
-    return await this.authService.signup(signUpDto);
+    return await this.authService.signUp(signUpDto);
   }
 
   @Post('verify-code')
@@ -40,7 +43,7 @@ export class AuthController {
 
   @Post('signin')
   async signin(@Body() signInDto: SignInDto) {
-    return await this.authService.signin(signInDto);
+    return await this.authService.signIn(signInDto);
   }
 
   @Get('check-status')
@@ -111,5 +114,10 @@ export class AuthController {
       user.id,
       deleteAccountDto.password,
     );
+  }
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user;
   }
 }

@@ -118,7 +118,7 @@ export class ReportsService {
                   font: 'Times',
                 },
                 {
-                  text: `${user.name} ${user.lastName} / ${user.countryCode} ${user.phoneNumber}`,
+                  text: `${user.firstName} ${user.lastName} / ${user.countryCode} ${user.phoneNumber}`,
                   fontSize: 12,
                   bold: true,
                   alignment: 'center',

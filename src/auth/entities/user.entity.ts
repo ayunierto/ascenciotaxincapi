@@ -1,19 +1,17 @@
-import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { Service } from '../../services/entities/service.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { IsOptional } from 'class-validator';
-import { Post } from 'src/blog/posts/entities/post.entity';
-import { Expense } from 'src/accounting/expenses/entities/expense.entity';
-import { Income } from 'src/accounting/incomes/entities/income.entity';
-import { Category } from 'src/accounting/categories/entities/category.entity';
-import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
-import { Account } from 'src/accounting/accounts/entities/account.entity';
-import { AccountType } from 'src/accounting/accounts-types/entities/account-type.entity';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { Staff } from 'src/staff/entities/staff.entity';
-import { Currency } from 'src/accounting/currencies/entities/currency.entity';
-import { Log } from 'src/logs/entities/log.entity';
+
+import { Appointment } from '../../appointment/entities/appointment.entity';
+import { Post } from '../../blog/posts/entities/post.entity';
+import { Expense } from '../../accounting/expenses/entities/expense.entity';
+import { Income } from '../../accounting/incomes/entities/income.entity';
+import { Category } from '../../accounting/categories/entities/category.entity';
+import { Subcategory } from '../../accounting/subcategories/entities/subcategory.entity';
+import { Account } from '../../accounting/accounts/entities/account.entity';
+import { AccountType } from '../../accounting/accounts-types/entities/account-type.entity';
+import { Currency } from '../../accounting/currencies/entities/currency.entity';
+import { Log } from '../../logs/entities/log.entity';
 import { ValidRoles } from '../interfaces';
+import { Report } from '../../accounting/reports/entities/report.entity';
 
 @Entity('users')
 export class User {
@@ -21,7 +19,7 @@ export class User {
   id: string;
 
   @Column('text')
-  name: string;
+  firstName: string;
 
   @Column('text')
   lastName: string;
@@ -48,7 +46,7 @@ export class User {
   isActive: boolean;
 
   @Column('timestamp with time zone', { nullable: true })
-  lastLogin: Date;
+  lastLoginAt: Date;
 
   @Column('text', {
     array: true,
@@ -57,23 +55,16 @@ export class User {
   roles: ValidRoles[];
 
   @Column('text', { nullable: true })
-  @IsOptional()
   verificationCode: string;
 
   @Column('timestamp', { nullable: true })
-  @IsOptional()
   verificationCodeExpiresAt: Date;
 
   @Column('text', { nullable: true })
-  @IsOptional()
   passwordResetCode: string;
 
   @Column('timestamp', { nullable: true })
-  @IsOptional()
   passwordResetExpiresAt: Date;
-
-  @OneToMany(() => Service, (service) => service.user)
-  services: Service[];
 
   @OneToMany(() => Appointment, (appointment) => appointment.user)
   appointments: Appointment[];
@@ -96,12 +87,6 @@ export class User {
   @OneToMany(() => Expense, (expense) => expense.user)
   expenses: Expense[];
 
-  @OneToMany(() => Schedule, (schedule) => schedule.user)
-  schedules: Schedule[];
-
-  @OneToMany(() => Staff, (staff) => staff.user)
-  staffs: Staff[];
-
   @OneToMany(() => Income, (income) => income.user)
   incomes: Income[];
 
@@ -111,8 +96,8 @@ export class User {
   @OneToMany(() => Log, (log) => log.user)
   logs: Log[];
 
-  @OneToMany(() => Log, (log) => log.user)
-  reports: Log[];
+  @OneToMany(() => Report, (report) => report.user)
+  reports: Report[];
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

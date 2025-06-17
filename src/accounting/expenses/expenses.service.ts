@@ -111,7 +111,7 @@ export class ExpenseService {
       });
       if (!account)
         throw new NotFoundException(
-          `Account with id ${accountId} for ${user.name} user not found`,
+          `Account with id ${accountId} for ${user.firstName} user not found`,
         );
 
       const category = await this.categoryRepository.findOne({

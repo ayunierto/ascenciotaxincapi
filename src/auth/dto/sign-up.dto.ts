@@ -1,6 +1,5 @@
 import {
   IsEmail,
-  IsLowercase,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -10,28 +9,28 @@ import {
 
 export class SignUpDto {
   @IsString()
-  @MinLength(3, { message: 'The name must have a minimum of 3 characters' })
-  name: string;
+  @IsNotEmpty()
+  firstName: string;
 
   @IsString()
-  @MinLength(3, {
-    message: 'The last name must have a minimum of 3 characters',
-  })
+  @IsNotEmpty()
   lastName: string;
 
   @IsEmail()
   @IsNotEmpty()
-  @IsLowercase()
   email: string;
 
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
-  @MaxLength(50)
-  // @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-  //   message:
-  //     'The password must have a Uppercase, lowercase letter and a number',
-  // })
+  @MaxLength(30)
+  // @Matches(
+  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_])[A-Za-z\d!@#$%^&*(),.?":{}|<>_]{8,}$/,
+  //   {
+  //     message:
+  //       'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character',
+  //   },
+  // )
   password: string;
 
   @IsOptional()
@@ -39,7 +38,6 @@ export class SignUpDto {
   countryCode?: string;
 
   @IsOptional()
-  // @IsPhoneNumber()
   phoneNumber?: string;
 
   @IsString()
