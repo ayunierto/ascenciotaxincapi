@@ -31,13 +31,7 @@ export class ReportsService {
       user,
     );
 
-    console.log(expensesData);
-    console.log(expensesData.expensesByCategory['Rent']);
-    console.log(
-      Number(expensesData.expensesByCategory['Rent'].total.gross).toFixed(2),
-    );
-
-    // Rellenar una sección de la tabla
+    // Complete a section of the table
     const getTableRows = (categoryName: string, subcategories: string[]) => {
       const categoryData = expensesData.expensesByCategory[categoryName] || {
         total: { gross: 0, hst: 0, net: 0 },
