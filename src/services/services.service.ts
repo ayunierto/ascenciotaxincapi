@@ -1,16 +1,14 @@
 import {
-  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { User } from 'src/auth/entities/user.entity';
 import { ServiceImage, Service } from './entities';
 import { Staff } from 'src/staff/entities/staff.entity';
 
@@ -29,7 +27,7 @@ export class ServicesService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createServiceDto: CreateServiceDto, user: User) {
+  async create(createServiceDto: CreateServiceDto) {
     try {
       const { images = [], staff: staffIds, ...rest } = createServiceDto;
 
@@ -38,7 +36,6 @@ export class ServicesService {
       });
 
       const service = this.serviceRepository.create({
-        user,
         images: images.map((img) =>
           this.serviceImageRepository.create({ url: img }),
         ),
@@ -48,7 +45,7 @@ export class ServicesService {
       await this.serviceRepository.save(service);
       return service;
     } catch (error) {
-      this.handleDBExceptions(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -84,7 +81,7 @@ export class ServicesService {
     return service;
   }
 
-  async update(id: string, updateServiceDto: UpdateServiceDto, user: User) {
+  async update(id: string, updateServiceDto: UpdateServiceDto) {
     const { images, staff, ...rest } = updateServiceDto;
     const dbStaff = await this.staffRepository.findBy({
       id: In(staff),
@@ -109,7 +106,6 @@ export class ServicesService {
         );
       }
 
-      service.user = user;
       await queryRunner.manager.save(service);
       await queryRunner.commitTransaction();
       await queryRunner.release();
@@ -118,8 +114,7 @@ export class ServicesService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
-
-      this.handleDBExceptions(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -127,15 +122,5 @@ export class ServicesService {
     const service = await this.findOne(id);
     await this.serviceRepository.remove(service);
     return service;
-  }
-
-  // Handle Errors
-  private handleDBExceptions(error: any) {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-
-    this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs.',
-    );
   }
 }

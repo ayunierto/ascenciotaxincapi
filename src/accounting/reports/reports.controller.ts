@@ -1,26 +1,33 @@
-import { Controller, Get, Header, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  Query,
+  Request,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Response } from 'express';
-import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { User } from 'src/auth/entities/user.entity';
 import { CreateReportDto } from './dto/create-report.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('generate')
-  @Auth()
+  @UseGuards(AuthGuard)
   @Header('Content-Type', 'application/pdf')
   async generatePdf(
     @Res() response: Response,
     @Query() createReportDto: CreateReportDto,
-    @GetUser() user: User,
+    @Request() req,
   ) {
     const pdfReport = await this.reportsService.generatePdfReport(
       createReportDto,
-      user,
+      req.user,
     );
 
     pdfReport.info.Title = 'Report';
@@ -29,8 +36,8 @@ export class ReportsController {
   }
 
   @Get()
-  @Auth()
-  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.reportsService.findAll(paginationDto, user);
+  @UseGuards(AuthGuard)
+  findAll(@Query() paginationDto: PaginationDto, @Request() req) {
+    return this.reportsService.findAll(paginationDto, req.user);
   }
 }

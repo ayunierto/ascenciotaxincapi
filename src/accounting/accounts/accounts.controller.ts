@@ -7,49 +7,50 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AccountService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
-import { User } from 'src/auth/entities/user.entity';
-import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  @Auth()
-  create(@Body() createAccountDto: CreateAccountDto, @GetUser() user: User) {
-    return this.accountService.create(createAccountDto, user);
+  @UseGuards(AuthGuard)
+  create(@Body() createAccountDto: CreateAccountDto, @Request() req) {
+    return this.accountService.create(createAccountDto, req.user);
   }
 
   @Get()
-  @Auth()
-  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.accountService.findAll(paginationDto, user);
+  @UseGuards(AuthGuard)
+  findAll(@Query() paginationDto: PaginationDto, @Request() req) {
+    return this.accountService.findAll(paginationDto, req.user);
   }
 
   @Get(':id')
-  @Auth()
-  findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.accountService.findOne(id, user);
+  @UseGuards(AuthGuard)
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.accountService.findOne(id, req.user);
   }
 
   @Patch(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateAccountDto: UpdateAccountDto,
-    @GetUser() user: User,
+    @Request() req,
   ) {
-    return this.accountService.update(id, updateAccountDto, user);
+    return this.accountService.update(id, updateAccountDto, req.user);
   }
 
   @Delete(':id')
-  @Auth()
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.accountService.remove(id, user);
+  @UseGuards(AuthGuard)
+  remove(@Param('id') id: string, @Request() req) {
+    return this.accountService.remove(id, req.user);
   }
 }

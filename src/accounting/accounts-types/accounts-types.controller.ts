@@ -6,41 +6,38 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AccountsTypesService } from './accounts-types.service';
 import { CreateAccountTypeDto } from './dto/create-account-type.dto';
 import { UpdateAccountTypeDto } from './dto/update-account-type.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { ValidRoles } from 'src/auth/interfaces';
-import { User } from 'src/auth/entities/user.entity';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('accounts-types')
 export class AccountsTypesController {
   constructor(private readonly accountsTypesService: AccountsTypesService) {}
 
   @Post()
-  @Auth(ValidRoles.admin)
-  create(
-    @Body() createAccountTypeDto: CreateAccountTypeDto,
-    @GetUser() user: User,
-  ) {
-    return this.accountsTypesService.create(createAccountTypeDto, user);
+  @UseGuards(AuthGuard)
+  create(@Body() createAccountTypeDto: CreateAccountTypeDto, @Request() req) {
+    return this.accountsTypesService.create(createAccountTypeDto, req.user);
   }
 
   @Get()
-  @Auth()
-  findAll(@GetUser() user: User) {
-    return this.accountsTypesService.findAll(user);
+  @UseGuards(AuthGuard)
+  findAll(@Request() req) {
+    return this.accountsTypesService.findAll(req.user);
   }
 
   @Get(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
     return this.accountsTypesService.findOne(id);
   }
 
   @Patch(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateAccountTypeDto: UpdateAccountTypeDto,
@@ -49,7 +46,7 @@ export class AccountsTypesController {
   }
 
   @Delete(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.accountsTypesService.remove(id);
   }

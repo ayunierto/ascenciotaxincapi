@@ -9,8 +9,8 @@ import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subcategory } from './entities/subcategory.entity';
 import { Repository } from 'typeorm';
-import { ValidRoles } from 'src/auth/interfaces';
 import { Category } from '../categories/entities/category.entity';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Injectable()
 export class SubcategoryService {
@@ -24,7 +24,7 @@ export class SubcategoryService {
 
   async create(createSubcategoryDto: CreateSubcategoryDto, user: User) {
     try {
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (createSubcategoryDto.isSystem && !isAdmin) {
         throw new UnauthorizedException(
           'Only admins can create system categories',
@@ -85,7 +85,7 @@ export class SubcategoryService {
     user: User,
   ) {
     try {
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (updateSubcategoryDto.isSystem && !isAdmin) {
         throw new UnauthorizedException(
           'Only admins can update system subcategories',
@@ -112,7 +112,7 @@ export class SubcategoryService {
       if (!subcategory) {
         throw new NotFoundException('Subcategory not found');
       }
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (!isAdmin) {
         throw new UnauthorizedException(
           'Only admins can delete system subcategories',

@@ -206,7 +206,7 @@ export class AppointmentService {
         description: `
         Zoom Meeting: ${meeting.join_url} 
         Staff: ${staff.name} ${staff.lastName}
-        Client: ${user.name} ${user.lastName}
+        Client: ${user.firstName} ${user.lastName}
         Email: ${user.email}
         Phone Number: ${user.phoneNumber}
         `,
@@ -244,7 +244,7 @@ export class AppointmentService {
           })
             .setZone('America/Toronto')
             .toFormat('HH:mm:ss'),
-          clientName: `${user.name} ${user.lastName}`,
+          clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
           staffName: `${staff.name} ${staff.lastName}`,
           meetingLink: meeting.join_url,
@@ -267,7 +267,7 @@ export class AppointmentService {
           })
             .setZone('America/Toronto')
             .toFormat('HH:mm:ss'),
-          clientName: `${user.name} ${user.lastName}`,
+          clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
           staffName: `${staff.name} ${staff.lastName}`,
           meetingLink: meeting.join_url,

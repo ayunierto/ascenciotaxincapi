@@ -37,6 +37,7 @@ export class Category {
     onDelete: 'CASCADE',
   })
   user: User;
+
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

@@ -9,7 +9,7 @@ import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
-import { ValidRoles } from 'src/auth/interfaces';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Injectable()
 export class CategoriesService {
@@ -20,7 +20,7 @@ export class CategoriesService {
 
   async create(createCategoryDto: CreateCategoryDto, user: User) {
     try {
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (createCategoryDto.isSystem && !isAdmin) {
         throw new UnauthorizedException(
           'Only admins can create system categories',
@@ -65,7 +65,7 @@ export class CategoriesService {
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto, user: User) {
     try {
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (updateCategoryDto.isSystem && !isAdmin) {
         throw new UnauthorizedException(
           'Only admins can update system categories',
@@ -92,7 +92,7 @@ export class CategoriesService {
       if (!category) {
         throw new NotFoundException('Category not found');
       }
-      const isAdmin = user.roles.includes(ValidRoles.admin);
+      const isAdmin = user.roles.includes(Role.Admin);
       if (!isAdmin) {
         throw new UnauthorizedException(
           'Only admins can delete system categories',

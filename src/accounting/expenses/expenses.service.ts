@@ -34,7 +34,6 @@ export class ExpenseService {
 
   async findAllByDateRange(startDate: Date, endDate: Date, user: User) {
     try {
-      // Obtener todos los gastos en el rango de fechas
       const expenses = await this.expenseRepository.find({
         where: {
           user: { id: user.id },
@@ -111,7 +110,7 @@ export class ExpenseService {
       });
       if (!account)
         throw new NotFoundException(
-          `Account with id ${accountId} for ${user.name} user not found`,
+          `Account with id ${accountId} for ${user.firstName} user not found`,
         );
 
       const category = await this.categoryRepository.findOne({

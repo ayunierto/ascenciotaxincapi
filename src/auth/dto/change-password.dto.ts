@@ -1,10 +1,13 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class ChangePasswordDto {
-  @IsNotEmpty() @IsString() oldPassword: string;
-  @IsNotEmpty()
   @IsString()
-  @MinLength(6) // Adjust length as needed
-  // Add complexity regex if desired: @Matches(/.../)
+  @MinLength(6)
+  @MaxLength(100)
+  currentPassword: string;
+
+  @IsString()
+  @MinLength(6)
+  @MaxLength(100)
   newPassword: string;
 }

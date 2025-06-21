@@ -8,12 +8,12 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ValidRoles } from 'src/auth/interfaces';
+import { Role } from 'src/auth/enums/role.enum';
 
 export class CreateUserDto {
   @IsString()
   @MinLength(3)
-  name: string;
+  firstName: string;
 
   @IsString()
   @MinLength(3)
@@ -50,5 +50,5 @@ export class CreateUserDto {
   @IsString({ each: true })
   @IsArray()
   @IsOptional()
-  roles: ValidRoles[];
+  roles: Role[];
 }

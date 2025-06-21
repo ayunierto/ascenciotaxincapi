@@ -2,7 +2,6 @@ import { User } from 'src/auth/entities/user.entity';
 import { Service } from 'src/services/entities';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AppointmentState } from '../interfaces/appointment-state.interface';
 
 @Entity()
 export class Appointment {

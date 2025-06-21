@@ -22,7 +22,7 @@ export class AccountType {
   @OneToMany(() => Account, (account) => account.accountType)
   accounts: Account[];
 
-  @ManyToOne(() => User, (user) => user.accountsTypes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.accountTypes, { onDelete: 'CASCADE' })
   user: User;
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })

@@ -1,5 +1,4 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { User } from 'src/auth/entities/user.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Service } from 'src/services/entities';
 import {
@@ -7,7 +6,6 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -39,9 +37,6 @@ export class Staff {
 
   @OneToMany(() => Schedule, (schedule) => schedule.staff)
   schedules: Schedule[];
-
-  @ManyToOne((type) => User, (user) => user.staffs, { onDelete: 'CASCADE' })
-  user: User;
 
   @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

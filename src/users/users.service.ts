@@ -7,12 +7,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UtilityService } from 'src/utility/utility.service';
+import { User } from 'src/auth/entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { ExceptionResponse } from 'src/common/interfaces';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    private readonly utilityService: UtilityService,
   ) {}
 
   /**
@@ -30,20 +30,27 @@ export class UsersService {
    * @returns The created user entity.
    * @throws InternalServerErrorException on database errors.
    */
-  async create(userData: Partial<User>) {
-    try {
-      // Use the repository's create method (prepares the entity but doesn't save)
-      const newUser = this.usersRepository.create(userData);
-      // Use the repository's save method to insert the entity into the database
-      const user = await this.usersRepository.save(newUser);
-      return user;
-    } catch (error) {
-      console.error('Database error creating user:', error);
-      // Wrap database errors in a generic application error
-      throw new InternalServerErrorException(
-        'Failed to create user in the database.',
-      );
-    }
+  async create(userData: Partial<User>): Promise<User | ExceptionResponse> {
+    // Check if user already exists
+    const existingUser = await this.findByEmail(userData.email);
+    if (existingUser)
+      return {
+        cause: 'email_already_exists',
+        message: 'Email already exists, please login.',
+        error: 'Conflict',
+        statusCode: HttpStatus.CONFLICT,
+      };
+
+    // Hash the password
+    const passwordHash = await this.hashPassword(userData.password);
+
+    const newUser = this.usersRepository.create({
+      ...userData,
+      password: passwordHash,
+    });
+
+    const user = await this.usersRepository.save(newUser);
+    return user;
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -54,30 +61,16 @@ export class UsersService {
     });
   }
 
-  async findOne(id: string): Promise<User | undefined> {
-    try {
-      const user = await this.usersRepository.findOneBy({ id });
-      return user;
-    } catch (error) {
-      console.error(`Database error finding user by ID ${id}:`, error);
-      throw new InternalServerErrorException(
-        'Failed to find user in the database.',
-      );
-    }
+  async findOne(id: string): Promise<User | null> {
+    const user = await this.usersRepository.findOneBy({ id });
+
+    return user;
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    try {
-      const user = await this.usersRepository.findOne({
-        where: { email: email },
-      });
-      return user;
-    } catch (error) {
-      console.error(`Database error finding user by email ${email}:`, error);
-      throw new InternalServerErrorException(
-        'Failed to find user in the database.',
-      );
-    }
+  // For auth login
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.usersRepository.findOneBy({ email });
+    return user;
   }
 
   /**
@@ -115,7 +108,7 @@ export class UsersService {
    */
   async update(id: string, updateData: Partial<User>): Promise<User> {
     try {
-      const user = await this.usersRepository.findOneBy({ id }); // Example for TypeORM
+      const user = await this.usersRepository.findOneBy({ id });
 
       if (!user)
         throw new NotFoundException(`User with ID ${id} not found for update.`);
@@ -143,7 +136,7 @@ export class UsersService {
 
     try {
       if (password) {
-        const newPassword = await this.utilityService.hashPassword(password);
+        const newPassword = bcrypt.hashSync(password, 10);
 
         userUpdate = await this.usersRepository.preload({
           id: user.id,
@@ -189,6 +182,12 @@ export class UsersService {
         `Failed to delete user ${id} from the database.`,
       );
     }
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+
+    return bcrypt.hash(password, salt);
   }
 
   async removeAll() {

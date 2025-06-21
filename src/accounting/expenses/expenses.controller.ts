@@ -7,15 +7,16 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ExpenseService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AnalyzeExpenseDto } from './dto/analyze-expense.dto';
 import { AwsService } from 'src/aws/aws.service';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('expense')
 export class ExpenseController {
@@ -25,41 +26,41 @@ export class ExpenseController {
   ) {}
 
   @Post()
-  @Auth()
-  create(@Body() createExpenseDto: CreateExpenseDto, @GetUser() user: User) {
-    return this.expenseService.create(createExpenseDto, user);
+  @UseGuards(AuthGuard)
+  create(@Body() createExpenseDto: CreateExpenseDto, @Request() req) {
+    return this.expenseService.create(createExpenseDto, req.user);
   }
 
   @Get()
-  @Auth()
-  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.expenseService.findAll(paginationDto, user);
+  @UseGuards(AuthGuard)
+  findAll(@Query() paginationDto: PaginationDto, @Request() req) {
+    return this.expenseService.findAll(paginationDto, req.user);
   }
 
   @Get(':id')
-  @Auth()
-  findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.findOne(id, user);
+  @UseGuards(AuthGuard)
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.expenseService.findOne(id, req.user);
   }
 
   @Patch(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateExpenseDto: UpdateExpenseDto,
-    @GetUser() user: User,
+    @Request() req,
   ) {
-    return this.expenseService.update(id, updateExpenseDto, user);
+    return this.expenseService.update(id, updateExpenseDto, req.user);
   }
 
   @Delete(':id')
-  @Auth()
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.remove(id, user);
+  @UseGuards(AuthGuard)
+  remove(@Param('id') id: string, @Request() req) {
+    return this.expenseService.remove(id, req.user);
   }
 
   @Post('analyze-expense')
-  // @Auth()
+  // @UseGuards(AuthGuard)
   analyzeExpense(@Body() analyzeExpenseDto: AnalyzeExpenseDto) {
     return this.awsService.analyzeExpense(analyzeExpenseDto);
   }

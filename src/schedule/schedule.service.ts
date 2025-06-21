@@ -3,9 +3,8 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './entities/schedule.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Staff } from 'src/staff/entities/staff.entity';
-import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -16,7 +15,7 @@ export class ScheduleService {
     private readonly staffRepository: Repository<Staff>,
   ) {}
 
-  async create(createScheduleDto: CreateScheduleDto, user: User) {
+  async create(createScheduleDto: CreateScheduleDto) {
     const { staff: id, ...rest } = createScheduleDto;
 
     const staff = await this.staffRepository.findOneBy({

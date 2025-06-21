@@ -1,21 +1,18 @@
 import {
+  BadRequestException,
   createParamDecorator,
   ExecutionContext,
-  InternalServerErrorException,
 } from '@nestjs/common';
 
 export const GetUser = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
-    const req = ctx.switchToHttp().getRequest();
-    const user = req.user;
+    const request = ctx.switchToHttp().getRequest();
+    const user = request.user;
 
     if (!user) {
-      throw new InternalServerErrorException('User not found (in request)');
+      throw new BadRequestException('User not found in request context');
     }
 
-    if (data) {
-      return user[data];
-    }
-    return user;
+    return data ? user?.[data] : user;
   },
 );

@@ -12,7 +12,6 @@ import { SubcategoryModule } from 'src/accounting/subcategories/subcategories.mo
 import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
 import { AccountsTypesModule } from 'src/accounting/accounts-types/accounts-types.module';
 import { AccountModule } from 'src/accounting/accounts/accounts.module';
-import { UtilityModule } from 'src/utility/utility.module';
 
 @Module({
   controllers: [SeedController],
@@ -29,7 +28,6 @@ import { UtilityModule } from 'src/utility/utility.module';
     CurrencyModule,
     AccountsTypesModule,
     AccountModule,
-    UtilityModule,
   ],
 })
 export class SeedModule {}

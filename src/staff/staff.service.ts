@@ -1,7 +1,4 @@
 import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -14,11 +11,10 @@ import { Staff } from './entities/staff.entity';
 import { In, Repository } from 'typeorm';
 import { Service } from 'src/services/entities';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class StaffService {
-  private readonly logger = new Logger('StaffService');
+  private readonly logger = new Logger(StaffService.name);
 
   constructor(
     @InjectRepository(Staff)
@@ -29,7 +25,7 @@ export class StaffService {
     private readonly scheduleRepository: Repository<Schedule>,
   ) {}
 
-  async create(createStaffDto: CreateStaffDto, user: User) {
+  async create(createStaffDto: CreateStaffDto) {
     const {
       services: servicesIds,
       schedules: schedulesIds,
@@ -49,7 +45,6 @@ export class StaffService {
       const staff = this.staffRepository.create({
         services,
         schedules,
-        user,
         ...rest,
       });
       await this.staffRepository.save(staff);
@@ -97,12 +92,14 @@ export class StaffService {
       schedules,
       ...rest,
     });
+
     if (!staff) throw new NotFoundException();
+
     try {
       await this.staffRepository.save(staff);
       return staff;
     } catch (error) {
-      this.handleDBExceptions(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -110,15 +107,5 @@ export class StaffService {
     const staff = await this.findOne(id);
     await this.staffRepository.remove(staff);
     return staff;
-  }
-
-  // Handle Errors
-  private handleDBExceptions(error: any) {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-
-    this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs.',
-    );
   }
 }

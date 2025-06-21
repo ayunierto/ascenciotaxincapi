@@ -1,9 +1,7 @@
-import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
   Entity,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -52,12 +50,6 @@ export class Service {
 
   @ManyToMany(() => Staff, (staff) => staff.services, { onDelete: 'CASCADE' })
   staff: Staff[];
-
-  @ManyToOne(() => User, (user) => user.services, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  user: User;
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];

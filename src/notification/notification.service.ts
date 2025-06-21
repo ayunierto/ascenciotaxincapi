@@ -14,41 +14,34 @@ export class NotificationService {
       this.logger.error('MAILERSEND_SENDER_NAME is not configured.');
   }
 
-  async sendEmailVerificationCode(
+  async sendVerificationEmail(
     clientName: string,
     recipientEmail: string,
     code: string,
-  ): Promise<void> {
+    expirationTime: number,
+  ): Promise<boolean> {
     const subject = 'Verify Your Email Address';
 
     const htmlBody = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Confirmation code</title>
-      </head>
       <body style="font-family: sans-serif; margin: 20px; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
               <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Verification code</h1>
               <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
               <p style="margin-bottom: 10px;">Thank you for signing up! Please verify your email address by using the code below:</p>
               <p style="margin-bottom: 10px;">Your verification code for ${this.senderName} is: <strong style="font-weight: bold;">${code}</strong>.</p>
-              <p style="margin-bottom: 10px;">This code is valid for a limited time.</p>
+              <p style="margin-bottom: 10px;">Your code is valid for ${expirationTime} minutes.</p>
               <p style="margin-bottom: 10px;">If you did not create an account, please ignore this email.</p>
               <p style="margin-bottom: 10px;">We look forward to seeing you!</p>
               <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
           </div>
       </body>
-      </html>
     `;
 
     const textBody = `
       Hello ${clientName},
       Thank you for signing up! Please verify your email address by using the code below:
       Your Verification Code: ${code}
-      This code is valid for a limited time.
+      Your code is valid for ${expirationTime} minutes.
       If you did not create an account, please ignore this email.
 
       Best regards,
@@ -65,53 +58,50 @@ export class NotificationService {
 
     try {
       await this.mailService.sendEmail(mailOptions);
+      this.logger.log(
+        `Verification email sent successfully to: ${recipientEmail}`,
+      );
+      return true;
     } catch (error) {
       this.logger.error(
-        `Failed to send email verification to ${recipientEmail}: ${error.message}`,
+        `Failed to send email verification to: ${recipientEmail}: ${error.message}`,
       );
+      return false;
     }
   }
 
-  async sendPasswordResetCodeEmail(
+  async sendResetPasswordEmail(
     clientName: string,
     recipientEmail: string,
     code: string,
     expirationTime: number,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const subject = 'Password Reset Code';
     const htmlBody = `
-       <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Confirmation code</title>
-        </head>
-        <body style="font-family: sans-serif; margin: 20px; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Password Reset</h1>
-                <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
-                <p style="margin-bottom: 10px;">We received a request to reset the password for your account.</p>
-                <p style="margin-bottom: 10px;">Your password reset code is: <strong>${code}</strong>.</p>
-                <p style="margin-bottom: 10px;">Your code is valid for ${expirationTime} minutes.</p>
-                <p style="margin-bottom: 10px;">Please enter this code in the app to set a new password. This code is valid for a limited time.</p>
-                <p style="margin-bottom: 10px;">If you did not request a password reset, please ignore this email.</p>
-                <p style="margin-bottom: 10px;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
-            </div>
-        </body>
-        </html>
+      <body style="font-family: sans-serif; margin: 20px; color: #333;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <h1 style="color: #007bff; margin-bottom: 20px; text-align: center;">Password Reset</h1>
+              <p style="margin-bottom: 10px;">Hello <strong style="font-weight: bold;">${clientName}</strong>,</p>
+              <p style="margin-bottom: 10px;">We received a request to reset the password for your account.</p>
+              <p style="margin-bottom: 10px;">Your password reset code is: <strong>${code}</strong>.</p>
+              <p style="margin-bottom: 10px;">Your code is valid for ${expirationTime} minutes.</p>
+              <p style="margin-bottom: 10px;">Please enter this code in the app to set a new password. This code is valid for a limited time.</p>
+              <p style="margin-bottom: 10px;">If you did not request a password reset, please ignore this email.</p>
+              <p style="margin-bottom: 10px;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
+          </div>
+      </body>
       `;
     const textBody = `
-        Hello ${clientName},
-        We received a request to reset the password for your account.
-        Your password reset code is: ${code}
-        Your code is valid for ${expirationTime} minutes.
-        Please enter this code in the app to set a new password. This code is valid for a limited time.
-        If you did not request a password reset, please ignore this email.
+      Hello ${clientName},
+      We received a request to reset the password for your account.
+      Your password reset code is: ${code}
+      Your code is valid for ${expirationTime} minutes.
+      Please enter this code in the app to set a new password. This code is valid for a limited time.
+      If you did not request a password reset, please ignore this email.
 
-        Best regards,
-        ${this.senderName}
-      `;
+      Best regards,
+      ${this.senderName}
+    `;
 
     const mailOptions: SendMailOptions = {
       clientName: clientName,
@@ -123,13 +113,13 @@ export class NotificationService {
 
     try {
       await this.mailService.sendEmail(mailOptions);
+      this.logger.log('Password reset email sended.');
+      return true;
     } catch (error) {
       this.logger.error(
         `Failed to send password reset email to ${recipientEmail}: ${error.message}`,
       );
-      throw new Error(
-        `Failed to send password reset email to ${recipientEmail}: ${error.message}`,
-      );
+      return false;
     }
   }
 

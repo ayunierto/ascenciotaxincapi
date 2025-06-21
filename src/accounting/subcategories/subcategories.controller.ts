@@ -6,51 +6,49 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { SubcategoryService } from './subcategories.service';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { User } from 'src/auth/entities/user.entity';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('subcategory')
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
 
   @Post()
-  @Auth()
-  create(
-    @Body() createSubcategoryDto: CreateSubcategoryDto,
-    @GetUser() user: User,
-  ) {
-    return this.subcategoryService.create(createSubcategoryDto, user);
+  @UseGuards(AuthGuard)
+  create(@Body() createSubcategoryDto: CreateSubcategoryDto, @Request() req) {
+    return this.subcategoryService.create(createSubcategoryDto, req.user);
   }
 
   @Get()
-  @Auth()
+  @UseGuards(AuthGuard)
   findAll() {
     return this.subcategoryService.findAll();
   }
 
   @Get(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
     return this.subcategoryService.findOne(id);
   }
 
   @Patch(':id')
-  @Auth()
+  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateSubcategoryDto: UpdateSubcategoryDto,
-    @GetUser() user: User,
+    @Request() req,
   ) {
-    return this.subcategoryService.update(id, updateSubcategoryDto, user);
+    return this.subcategoryService.update(id, updateSubcategoryDto, req.user);
   }
 
   @Delete(':id')
-  @Auth()
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.subcategoryService.remove(id, user);
+  @UseGuards(AuthGuard)
+  remove(@Param('id') id: string, @Request() req) {
+    return this.subcategoryService.remove(id, req.user);
   }
 }
