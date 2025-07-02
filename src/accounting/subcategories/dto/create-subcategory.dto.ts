@@ -1,9 +1,9 @@
 import {
   IsBoolean,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateSubcategoryDto {
@@ -15,7 +15,7 @@ export class CreateSubcategoryDto {
   @IsOptional()
   isSystem?: boolean;
 
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
   categoryId: string;
 }

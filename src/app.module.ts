@@ -21,7 +21,7 @@ import { ExpenseModule } from './accounting/expenses/expenses.module';
 import { AccountModule } from './accounting/accounts/accounts.module';
 import { TagsModule } from './accounting/tags/tags.module';
 import { SubcategoryModule } from './accounting/subcategories/subcategories.module';
-import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.module';
+import { AccountsTypesModule } from './accounting/accounts-types/account-types.module';
 import { CurrencyModule } from './accounting/currencies/currencies.module';
 import { LogsModule } from './logs/logs.module';
 import { AwsModule } from './aws/aws.module';

@@ -9,5 +9,5 @@ export interface BasicUser {
   roles: string[];
   lastLoginAt?: Date;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -36,7 +37,10 @@ export class CategoriesService {
       return newCategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating category. Please try again later.',
+        'CREATE_CATEGORY_FAILED',
+      );
     }
   }
 
@@ -46,7 +50,10 @@ export class CategoriesService {
       return categories;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating category. Please try again later.',
+        'GET_CATEGORIES_FAILED',
+      );
     }
   }
 
@@ -59,7 +66,10 @@ export class CategoriesService {
       return category;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating category. Please try again later.',
+        'GET_CATEGORY_FAILED',
+      );
     }
   }
 
@@ -76,13 +86,18 @@ export class CategoriesService {
         throw new NotFoundException('Category not found');
       }
 
-      const updatedCategory = Object.assign(category, updateCategoryDto);
-      updatedCategory.updatedAt = new Date();
+      const updatedCategory = this.categoryRepository.merge(
+        category,
+        updateCategoryDto,
+      );
       await this.categoryRepository.save(updatedCategory);
       return updatedCategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating category. Please try again later.',
+        'GET_CATEGORY_FAILED',
+      );
     }
   }
 
@@ -103,7 +118,10 @@ export class CategoriesService {
       return category;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating category. Please try again later.',
+        'REMOVE_CATEGORY_FAILED',
+      );
     }
   }
 }

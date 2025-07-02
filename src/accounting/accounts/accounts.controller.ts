@@ -7,50 +7,50 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
-  Request,
 } from '@nestjs/common';
 import { AccountService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
-  create(@Body() createAccountDto: CreateAccountDto, @Request() req) {
-    return this.accountService.create(createAccountDto, req.user);
+  @Auth()
+  create(@Body() createAccountDto: CreateAccountDto, @GetUser() user: User) {
+    return this.accountService.create(createAccountDto, user);
   }
 
   @Get()
-  @UseGuards(AuthGuard)
-  findAll(@Query() paginationDto: PaginationDto, @Request() req) {
-    return this.accountService.findAll(paginationDto, req.user);
+  @Auth()
+  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
+    return this.accountService.findAll(paginationDto, user);
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.accountService.findOne(id, req.user);
+  @Auth()
+  findOne(@Param('id') id: string, @GetUser() user: User) {
+    return this.accountService.findOne(id, user);
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
+  @Auth()
   update(
     @Param('id') id: string,
     @Body() updateAccountDto: UpdateAccountDto,
-    @Request() req,
+    @GetUser() user: User,
   ) {
-    return this.accountService.update(id, updateAccountDto, req.user);
+    return this.accountService.update(id, updateAccountDto, user);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
-  remove(@Param('id') id: string, @Request() req) {
-    return this.accountService.remove(id, req.user);
+  @Auth()
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.accountService.remove(id, user);
   }
 }

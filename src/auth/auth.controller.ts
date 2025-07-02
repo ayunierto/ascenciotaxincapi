@@ -5,6 +5,8 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Delete,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Auth } from './decorators/auth.decorator';
@@ -13,12 +15,14 @@ import { User } from './entities/user.entity';
 import {
   SignInDto,
   SignUpDto,
-  VerifyCodeDto,
+  VerifyEmailCodeDto,
   ResendEmailVerificationCodeDto,
   ResendResetPasswordCodeDto,
   ChangePasswordDto,
   ForgotPasswordDto,
   ResetPasswordDto,
+  UpdateProfileDto,
+  DeleteAccountDto,
 } from './dto/';
 
 @Controller('auth')
@@ -35,12 +39,12 @@ export class AuthController {
     return this.authService.signUp(signUpDto);
   }
 
-  @Post('verify-email')
-  verifyEmail(@Body() verifyCodeDto: VerifyCodeDto) {
+  @Post('verify-email-code')
+  verifyEmail(@Body() verifyCodeDto: VerifyEmailCodeDto) {
     return this.authService.verifyEmailCode(verifyCodeDto);
   }
 
-  @Post('resend-email-verification')
+  @Post('resend-email-code')
   @HttpCode(HttpStatus.OK)
   resendEmailVerification(
     @Body() resendEmailVerificationCodeDto: ResendEmailVerificationCodeDto,
@@ -86,9 +90,21 @@ export class AuthController {
     return this.authService.changePassword(changePasswordDto, user);
   }
 
-  @Post('delete-account')
+  @Patch('update-profile')
   @Auth()
-  deleteAccount(@GetUser() user: User) {
-    return this.authService.deleteAccount(user);
+  updateProfile(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @GetUser() user: User,
+  ) {
+    return this.authService.updateProfile(updateProfileDto, user);
+  }
+
+  @Delete('delete-account')
+  @Auth()
+  deleteAccount(
+    @Body() deleteAccountDto: DeleteAccountDto,
+    @GetUser() user: User,
+  ) {
+    return this.authService.deleteAccount(deleteAccountDto, user);
   }
 }

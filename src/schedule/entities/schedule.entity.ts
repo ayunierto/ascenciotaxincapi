@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { Staff } from 'src/staff/entities/staff.entity';
 
@@ -19,9 +26,9 @@ export class Schedule {
   @ManyToOne(() => Staff, (staff) => staff.schedules, { onDelete: 'CASCADE' })
   staff: Staff;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

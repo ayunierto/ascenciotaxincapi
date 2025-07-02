@@ -1,5 +1,12 @@
 import { User } from 'src/auth/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Post {
@@ -15,9 +22,9 @@ export class Post {
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

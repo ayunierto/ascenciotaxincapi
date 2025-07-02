@@ -63,9 +63,9 @@ cp .env.example .env
 
 - Credentials to access [Zoom APIs](https://marketplace.zoom.us/user/build) from your app:
 
-  - **`ZOOM_ACCOUNT_ID`**: 
-  - **`ZOOM_CLIENT_ID`**: 
-  - **`ZOOM_CLIENT_SECRET`**: 
+  - **`ZOOM_ACCOUNT_ID`**:
+  - **`ZOOM_CLIENT_ID`**:
+  - **`ZOOM_CLIENT_SECRET`**:
 
 - **`GOOGLE_CALENDAR_ACCOUNT`**: Calendar account to use to list, add and delete appointments.
 

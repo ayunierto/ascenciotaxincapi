@@ -17,11 +17,12 @@ export interface OnlyMessageResponse {
   error?: string;
 }
 
-export type RegistrationResponse = UserMessageResponse | ExceptionResponse;
+export type SignUpResponse = UserMessageResponse | ExceptionResponse;
+export type VerifyEmailCodeResponse = UserMessageResponse | ExceptionResponse;
 export type ResendEmailVerificationResponse =
   | OnlyMessageResponse
   | ExceptionResponse;
-export type LoginResponse = UserTokenResponse | ExceptionResponse;
+export type SignInResponse = UserTokenResponse | ExceptionResponse;
 export type ForgotPasswordResponse = OnlyMessageResponse | ExceptionResponse;
 export type ResetPasswordResponse = OnlyMessageResponse | ExceptionResponse;
 export type CheckStatusResponse = UserTokenResponse | ExceptionResponse;
@@ -30,3 +31,4 @@ export type ResendResetPasswordCodeResponse =
   | ExceptionResponse;
 export type ChangePasswordResponse = UserMessageResponse | ExceptionResponse;
 export type DeleteAccountResponse = UserMessageResponse | ExceptionResponse;
+export type UpdateProfileResponse = UserMessageResponse | ExceptionResponse;

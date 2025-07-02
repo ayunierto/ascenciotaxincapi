@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -10,7 +9,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User } from 'src/auth/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { ExceptionResponse } from 'src/common/interfaces';
@@ -126,38 +124,6 @@ export class UsersService {
       throw new InternalServerErrorException(
         `Failed to update user ${id} in the database.`,
       );
-    }
-  }
-
-  async updateProfile(updateProfileDto: UpdateProfileDto, user: User) {
-    const { password, ...userData } = updateProfileDto;
-
-    let userUpdate: User;
-
-    try {
-      if (password) {
-        const newPassword = bcrypt.hashSync(password, 10);
-
-        userUpdate = await this.usersRepository.preload({
-          id: user.id,
-          password: newPassword,
-          ...userData,
-        });
-
-        await this.usersRepository.save(userUpdate);
-        return userUpdate;
-      }
-
-      userUpdate = await this.usersRepository.preload({
-        id: user.id,
-        ...userData,
-      });
-
-      await this.usersRepository.save(userUpdate);
-      return userUpdate;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Error updating user');
     }
   }
 

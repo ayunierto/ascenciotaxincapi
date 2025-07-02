@@ -8,16 +8,11 @@ import {
   Delete,
   ParseUUIDPipe,
   Query,
-  Put,
-  Request,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
@@ -47,12 +42,6 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(id, updateUserDto);
-  }
-
-  @Put('update-profile')
-  @UseGuards(AuthGuard)
-  updateProfile(@Body() updateProfileDto: UpdateProfileDto, @Request() req) {
-    return this.usersService.updateProfile(updateProfileDto, req.user);
   }
 
   @Delete(':id')

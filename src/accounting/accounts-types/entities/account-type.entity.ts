@@ -1,14 +1,14 @@
 import { Account } from 'src/accounting/accounts/entities/account.entity';
-import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('accounts_type')
+@Entity('account_types')
 export class AccountType {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,12 +22,9 @@ export class AccountType {
   @OneToMany(() => Account, (account) => account.accountType)
   accounts: Account[];
 
-  @ManyToOne(() => User, (user) => user.accountTypes, { onDelete: 'CASCADE' })
-  user: User;
-
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

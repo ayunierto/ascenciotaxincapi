@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Report } from './entities/report.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +12,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
 import { ExpenseService } from '../expenses/expenses.service';
+import { ExceptionResponse } from 'src/common/interfaces';
 
 @Injectable()
 export class ReportsService {
@@ -520,10 +525,13 @@ export class ReportsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto, user: User) {
+  async findAll(
+    paginationDto: PaginationDto,
+    user: User,
+  ): Promise<Report[] | ExceptionResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
-      const logs = await this.reportRepository.find({
+      const userReportLogs = await this.reportRepository.find({
         take: limit,
         skip: offset,
         where: { user: { id: user.id } },
@@ -531,10 +539,10 @@ export class ReportsService {
           createdAt: 'DESC',
         },
       });
-      return logs;
+      return userReportLogs;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException('Unable to find reports');
     }
   }
 }

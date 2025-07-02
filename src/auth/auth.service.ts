@@ -19,12 +19,14 @@ import {
   CheckStatusResponse,
   DeleteAccountResponse,
   ForgotPasswordResponse,
-  LoginResponse,
-  RegistrationResponse,
+  SignInResponse,
+  SignUpResponse,
   ResendEmailVerificationResponse,
   ResendResetPasswordCodeResponse,
   ResetPasswordResponse,
-} from './interfaces/auth-response';
+  VerifyEmailCodeResponse,
+  UpdateProfileResponse,
+} from './interfaces/auth-responses.interface';
 import { User } from './entities/user.entity';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { NotificationService } from 'src/notification/notification.service';
@@ -32,12 +34,14 @@ import { UserMapper } from './mappers/user.mapper';
 import {
   ForgotPasswordDto,
   ResendEmailVerificationCodeDto,
-  VerifyCodeDto,
+  VerifyEmailCodeDto,
   ResendResetPasswordCodeDto,
   ChangePasswordDto,
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
+  UpdateProfileDto,
+  DeleteAccountDto,
 } from './dto';
 
 @Injectable()
@@ -57,7 +61,7 @@ export class AuthService {
       : 15;
   }
 
-  async signUp(signUpDto: SignUpDto): Promise<RegistrationResponse> {
+  async signUp(signUpDto: SignUpDto): Promise<SignUpResponse> {
     this.logger.log(`Sign up attempt of: ${signUpDto.email}`);
 
     // Check if user already exists
@@ -96,6 +100,9 @@ export class AuthService {
       `User created successfully: ${savedUser.email}. Verification code: ${verificationCode}`,
     );
 
+    // Create default account for user
+    // TODO: Create a default account for the user
+
     // Send verification email
     const emailSent = await this.notificationService.sendVerificationEmail(
       savedUser.firstName,
@@ -129,17 +136,19 @@ export class AuthService {
   }
 
   async verifyEmailCode(
-    verifyCodeDto: VerifyCodeDto,
-  ): Promise<RegistrationResponse> {
-    this.logger.log(`Verification code attempt for: ${verifyCodeDto.email}`);
+    verifyEmailCodeDto: VerifyEmailCodeDto,
+  ): Promise<VerifyEmailCodeResponse> {
+    this.logger.log(
+      `Verification code attempt for: ${verifyEmailCodeDto.email}`,
+    );
 
     // Check if user exists
     const user = await this.usersRepository.findOneBy({
-      email: verifyCodeDto.email,
+      email: verifyEmailCodeDto.email,
     });
     if (!user) {
       this.logger.warn(
-        `Verification failed - user not found: ${verifyCodeDto.email}`,
+        `Verification failed - user not found: ${verifyEmailCodeDto.email}`,
       );
       throw new NotFoundException(
         'Verification failed - user not found',
@@ -191,7 +200,7 @@ export class AuthService {
     }
 
     //  Check if the provided code matches the stored code
-    if (user.verificationCode !== verifyCodeDto.code) {
+    if (user.verificationCode !== verifyEmailCodeDto.code) {
       // If the code is invalid, send a new verification code
       user.verificationCode = this.generateNumericCode(6);
       user.verificationCodeExpiresAt = DateTime.utc()
@@ -205,7 +214,7 @@ export class AuthService {
         this.emailVerificationCodeTTL,
       );
       this.logger.warn(
-        `Verification failed - invalid code: ${verifyCodeDto.code} for user: ${user.email}. New code sent: ${user.verificationCode}`,
+        `Verification failed - invalid code: ${verifyEmailCodeDto.code} for user: ${user.email}. New code sent: ${user.verificationCode}`,
       );
       throw new BadRequestException(
         'Invalid verification code. Please try again. A new code has been sent to your email.',
@@ -283,7 +292,7 @@ export class AuthService {
     };
   }
 
-  async signIn(signInDto: SignInDto): Promise<LoginResponse> {
+  async signIn(signInDto: SignInDto): Promise<SignInResponse> {
     const { email, password } = signInDto;
     this.logger.log(`Login attempt of: ${email}`);
 
@@ -336,55 +345,65 @@ export class AuthService {
   async forgotPassword({
     email,
   }: ForgotPasswordDto): Promise<ForgotPasswordResponse> {
-    const user = await this.usersRepository.findOneBy({ email });
-    this.logger.log(`Forgot password attempt for: ${email}`);
+    try {
+      this.logger.log(`Forgot password attempt for: ${email}`);
+      const user = await this.usersRepository.findOneBy({ email });
 
-    // Check if user exists. No send response if user not found for security reasons.
-    if (!user) {
-      this.logger.warn(`Forgot password failed - user not found: ${email}`);
-      return;
-    }
+      // Check if user exists. No send response if user not found for security reasons.
+      if (!user) {
+        this.logger.warn(`Forgot password failed - user not found: ${email}`);
+        return {
+          message: 'If this email is registered, a reset code has been sent.',
+        };
+      }
 
-    // Check if user is active
-    if (!user.isActive) {
-      this.logger.warn(`Forgot password failed - user is inactive: ${email}`);
-      throw new ForbiddenException(
-        'Your account is inactive. Please contact support.',
-        'UserInactive',
+      // Check if user is active
+      if (!user.isActive) {
+        this.logger.warn(`Forgot password failed - user is inactive: ${email}`);
+        throw new ForbiddenException(
+          'Your account is inactive. Please contact support.',
+          'USER_INACTIVE',
+        );
+      }
+
+      // Generate reset password code and expiration
+      user.passwordResetCode = this.generateNumericCode(6);
+      user.passwordResetExpiresAt = DateTime.utc()
+        .plus({ minute: this.emailVerificationCodeTTL })
+        .toJSDate();
+      await this.usersRepository.save(user);
+
+      // Send reset password email
+      const emailSent = await this.notificationService.sendResetPasswordEmail(
+        user.firstName,
+        user.email,
+        user.passwordResetCode,
+        this.emailVerificationCodeTTL,
       );
-    }
+      if (!emailSent) {
+        this.logger.error(
+          `Failed to send reset password email to: ${user.email}. Please check your MailerSend configuration.`,
+        );
+        throw new InternalServerErrorException(
+          'Failed to send reset password email',
+        );
+      }
 
-    // Generate reset password code and expiration
-    user.passwordResetCode = this.generateNumericCode(6);
-    user.passwordResetExpiresAt = DateTime.utc()
-      .plus({ minute: this.emailVerificationCodeTTL })
-      .toJSDate();
-    await this.usersRepository.save(user);
-
-    // Send reset password email
-    const emailSent = await this.notificationService.sendResetPasswordEmail(
-      user.firstName,
-      user.email,
-      user.passwordResetCode,
-      this.emailVerificationCodeTTL,
-    );
-    if (!emailSent) {
-      this.logger.error(
-        `Failed to send reset password email to: ${user.email}. Please check your MailerSend configuration.`,
+      this.logger.log(
+        `Reset password email sent successfully to: ${user.email}. Reset code: ${user.passwordResetCode}`,
       );
+
+      return {
+        message:
+          'Reset password email sent successfully. Please check your inbox.',
+      };
+    } catch (error) {
+      this.logger.error(`Forgot password failed for: ${email}`, error);
       throw new InternalServerErrorException(
-        'Failed to send reset password email',
+        'Failed to process forgot password request. Please try again later.',
+        'FORGOT_PASSWORD_ERROR',
       );
     }
-
-    this.logger.log(
-      `Reset password email sent successfully to: ${user.email}. Reset code: ${user.passwordResetCode}`,
-    );
-
-    return {
-      message:
-        'Reset password email sent successfully. Please check your inbox.',
-    };
   }
 
   async resetPassword(
@@ -604,7 +623,10 @@ export class AuthService {
     };
   }
 
-  async deleteAccount(user: User): Promise<DeleteAccountResponse> {
+  async deleteAccount(
+    deleteAccountDto: DeleteAccountDto,
+    user: User,
+  ): Promise<DeleteAccountResponse> {
     this.logger.log(`Delete account attempt for user: ${user.email}`);
 
     // Check if user exists
@@ -623,6 +645,18 @@ export class AuthService {
         'Your account is inactive. Please contact support.',
         'UserInactive',
       );
+    }
+
+    // Check if password is correct
+    const isValidPassword = await this.comparePasswords(
+      deleteAccountDto.password,
+      existingUser.password,
+    );
+    if (!isValidPassword) {
+      this.logger.warn(
+        `Delete account failed - invalid password for user: ${user.email}`,
+      );
+      throw new BadRequestException('Invalid password');
     }
 
     // Delete user
@@ -667,9 +701,51 @@ export class AuthService {
     this.logger.log(`User status check successful for: ${user.email}`);
     return {
       access_token: await this.generateJWT(existingUser),
-      message: 'User status check successful',
       user: UserMapper.toBasicUser(existingUser),
     };
+  }
+
+  async updateProfile(
+    updateProfileDto: UpdateProfileDto,
+    user: User,
+  ): Promise<UpdateProfileResponse> {
+    const { password, ...userData } = updateProfileDto;
+
+    let updatedUser: User;
+
+    try {
+      if (password) {
+        const newPassword = bcrypt.hashSync(password, 10);
+
+        updatedUser = await this.usersRepository.preload({
+          id: user.id,
+          password: newPassword,
+          ...userData,
+        });
+
+        await this.usersRepository.save(updatedUser);
+        return {
+          message: 'Profile updated successfully',
+          user: UserMapper.toBasicUser(updatedUser),
+        };
+      }
+
+      updatedUser = await this.usersRepository.preload({
+        id: user.id,
+        ...userData,
+      });
+
+      await this.usersRepository.save(updatedUser);
+      return {
+        message: 'Profile updated successfully',
+        user: UserMapper.toBasicUser(updatedUser),
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        `Failed to update profile for user ${user.id}.`,
+      );
+    }
   }
 
   private async generateJWT(user: User): Promise<string> {

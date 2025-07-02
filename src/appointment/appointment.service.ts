@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -17,6 +18,7 @@ import { CalendarService } from 'src/calendar/calendar.service';
 import { ZoomService } from 'src/zoom/zoom.service';
 import { DateTime } from 'luxon';
 import { NotificationService } from 'src/notification/notification.service';
+import { GetCurrentUserAppointmentsResponse } from './interfaces';
 
 @Injectable()
 export class AppointmentService {
@@ -205,7 +207,7 @@ export class AppointmentService {
         summary: `Appointment: ${service.name}`,
         description: `
         Zoom Meeting: ${meeting.join_url} 
-        Staff: ${staff.name} ${staff.lastName}
+        Staff: ${staff.firstName} ${staff.lastName}
         Client: ${user.firstName} ${user.lastName}
         Email: ${user.email}
         Phone Number: ${user.phoneNumber}
@@ -246,7 +248,7 @@ export class AppointmentService {
             .toFormat('HH:mm:ss'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
-          staffName: `${staff.name} ${staff.lastName}`,
+          staffName: `${staff.firstName} ${staff.lastName}`,
           meetingLink: meeting.join_url,
           clientEmail: user.email,
           clientPhoneNumber: user.phoneNumber || '',
@@ -269,7 +271,7 @@ export class AppointmentService {
             .toFormat('HH:mm:ss'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
-          staffName: `${staff.name} ${staff.lastName}`,
+          staffName: `${staff.firstName} ${staff.lastName}`,
           meetingLink: meeting.join_url,
           clientEmail: user.email,
           clientPhoneNumber: user.phoneNumber,
@@ -295,25 +297,36 @@ export class AppointmentService {
     return `This action updates a #${id} appointment`;
   }
 
-  async findCurrentUser(user: User, state: 'pending' | 'past') {
-    const now = new Date();
+  async findCurrentUser(
+    user: User,
+    state: 'pending' | 'past',
+  ): Promise<GetCurrentUserAppointmentsResponse> {
+    try {
+      const now = DateTime.utc().toJSDate();
 
-    if (state === 'pending') {
-      const appts = await this.appointmentRepository.find({
-        where: { user: { id: user.id }, startDateAndTime: MoreThan(now) },
-        relations: ['staff', 'service'],
-      });
-      if (!appts) return [];
-      return appts;
-    }
+      if (state === 'pending') {
+        const appts = await this.appointmentRepository.find({
+          where: { user: { id: user.id }, startDateAndTime: MoreThan(now) },
+          relations: ['staff', 'service'],
+        });
+        if (!appts) return [];
+        return appts;
+      }
 
-    if (state === 'past') {
-      const appts = await this.appointmentRepository.find({
-        where: { user: { id: user.id }, startDateAndTime: LessThan(now) },
-        relations: ['staff', 'service'],
-      });
-      if (!appts) return [];
-      return appts;
+      if (state === 'past') {
+        const appts = await this.appointmentRepository.find({
+          where: { user: { id: user.id }, startDateAndTime: LessThan(now) },
+          relations: ['staff', 'service'],
+        });
+        if (!appts) return [];
+        return appts;
+      }
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while fetching the appointments. Please try again later.',
+        'FETCH_APPOINTMENTS_FAILED',
+      );
     }
   }
 
@@ -329,13 +342,13 @@ export class AppointmentService {
   async getAppointmentsByStaffMember(staffMemberId: string, date: string) {
     this.appointmentRepository.find({
       where: {
-        staff: { id: staffMemberId }, // ID del miembro del staff
+        staff: { id: staffMemberId },
         startDateAndTime: Between(
-          new Date(`${date}T00:00:00.000Z`), // Inicio del día
-          new Date(`${date}T23:59:59.999Z`), // Fin del día
+          new Date(`${date}T00:00:00.000Z`),
+          new Date(`${date}T23:59:59.999Z`),
         ),
       },
-      relations: ['staff_member'], // Incluir la información del staff member en la respuesta
+      relations: ['staff_member'],
     });
   }
 }

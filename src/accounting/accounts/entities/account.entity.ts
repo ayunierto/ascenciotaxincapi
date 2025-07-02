@@ -5,10 +5,12 @@ import { Income } from 'src/accounting/incomes/entities/income.entity';
 import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'accounts' })
@@ -40,9 +42,9 @@ export class Account {
   @ManyToOne(() => User, (user) => user.accounts, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

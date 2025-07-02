@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -11,6 +13,13 @@ import { Subcategory } from './entities/subcategory.entity';
 import { Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { Role } from 'src/auth/enums/role.enum';
+import {
+  CreateSubcategoryResponse,
+  DeleteSubcategoryResponse,
+  GetSubcategoriesResponse,
+  GetSubcategoryResponse,
+  UpdateSubcategoryResponse,
+} from './interfaces';
 
 @Injectable()
 export class SubcategoryService {
@@ -22,7 +31,10 @@ export class SubcategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createSubcategoryDto: CreateSubcategoryDto, user: User) {
+  async create(
+    createSubcategoryDto: CreateSubcategoryDto,
+    user: User,
+  ): Promise<CreateSubcategoryResponse> {
     try {
       const isAdmin = user.roles.includes(Role.Admin);
       if (createSubcategoryDto.isSystem && !isAdmin) {
@@ -35,7 +47,7 @@ export class SubcategoryService {
         id: createSubcategoryDto.categoryId,
       });
       if (!category) {
-        throw new NotFoundException('Category not found');
+        throw new BadRequestException('Category not found');
       }
 
       const newSubcategory = this.subcategoryRepository.create({
@@ -48,11 +60,14 @@ export class SubcategoryService {
       return newSubcategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating subcategory. Please try again later.',
+        'CREATE_SUBCATEGORY_FAILED',
+      );
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<GetSubcategoriesResponse> {
     try {
       const subcategories = await this.subcategoryRepository.find({
         relations: {
@@ -62,20 +77,26 @@ export class SubcategoryService {
       return subcategories;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error fetching subcategories',
+        error.message,
+      );
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<GetSubcategoryResponse> {
     try {
-      const category = await this.subcategoryRepository.findOneBy({ id });
-      if (!category) {
-        throw new NotFoundException('Category not found');
+      const subcategory = await this.subcategoryRepository.findOneBy({ id });
+      if (!subcategory) {
+        throw new NotFoundException('Subcategory not found');
       }
-      return category;
+      return subcategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error fetching subcategory',
+        error.message,
+      );
     }
   }
 
@@ -83,7 +104,7 @@ export class SubcategoryService {
     id: string,
     updateSubcategoryDto: UpdateSubcategoryDto,
     user: User,
-  ) {
+  ): Promise<UpdateSubcategoryResponse> {
     try {
       const isAdmin = user.roles.includes(Role.Admin);
       if (updateSubcategoryDto.isSystem && !isAdmin) {
@@ -91,22 +112,28 @@ export class SubcategoryService {
           'Only admins can update system subcategories',
         );
       }
-      const category = await this.subcategoryRepository.findOneBy({ id });
-      if (!category) {
-        throw new NotFoundException('Category not found');
+      const subcategory = await this.subcategoryRepository.findOneBy({ id });
+      if (!subcategory) {
+        throw new NotFoundException('Subcategory not found');
       }
 
-      const updatedCategory = Object.assign(category, updateSubcategoryDto);
-      updatedCategory.updatedAt = new Date();
-      await this.subcategoryRepository.save(updatedCategory);
-      return updatedCategory;
+      const updatedSubcategory = this.subcategoryRepository.merge(
+        subcategory,
+        updateSubcategoryDto,
+      );
+
+      await this.subcategoryRepository.save(updatedSubcategory);
+      return updatedSubcategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error updating subcategory',
+        error.message,
+      );
     }
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: string, user: User): Promise<DeleteSubcategoryResponse> {
     try {
       const subcategory = await this.subcategoryRepository.findOneBy({ id });
       if (!subcategory) {
@@ -123,7 +150,10 @@ export class SubcategoryService {
       return subcategory;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error deleting subcategory',
+        error.message,
+      );
     }
   }
 }

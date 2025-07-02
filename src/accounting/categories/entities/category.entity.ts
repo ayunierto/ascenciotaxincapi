@@ -4,10 +4,12 @@ import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.e
 import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'categories' })
@@ -38,9 +40,9 @@ export class Category {
   })
   user: User;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

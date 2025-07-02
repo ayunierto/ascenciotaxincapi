@@ -1,7 +1,14 @@
 import { User } from 'src/auth/entities/user.entity';
 import { Service } from 'src/services/entities';
 import { Staff } from 'src/staff/entities/staff.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Appointment {
@@ -43,9 +50,9 @@ export class Appointment {
   @ManyToOne(() => Staff, (staff) => staff.appointments)
   staff: Staff;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

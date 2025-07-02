@@ -1,16 +1,21 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Role } from '../enums/role.enum';
 import { Log } from 'src/logs/entities/log.entity';
 import { Post } from 'src/blog/posts/entities/post.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Income } from 'src/accounting/incomes/entities/income.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
-import { Currency } from 'src/accounting/currencies/entities/currency.entity';
 import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Report } from 'src/accounting/reports/entities/report.entity';
 import { Account } from 'src/accounting/accounts/entities/account.entity';
 import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
-import { AccountType } from 'src/accounting/accounts-types/entities/account-type.entity';
 
 @Entity('users')
 export class User {
@@ -22,6 +27,9 @@ export class User {
 
   @Column()
   lastName: string;
+
+  @Column({ type: 'text', nullable: true })
+  image: string;
 
   @Column({ unique: true })
   email: string;
@@ -65,14 +73,13 @@ export class User {
   @Column('timestamp with time zone', { nullable: true })
   lastLoginAt: Date;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
   // Relationships
-  // These relationships are defined to establish connections with other entities.
   @OneToMany(() => Log, (log) => log.user)
   logs: Log[];
 
@@ -88,9 +95,6 @@ export class User {
   @OneToMany(() => Expense, (expense) => expense.user)
   expenses: Expense[];
 
-  @OneToMany(() => Currency, (currency) => currency.user)
-  currencies: Currency[];
-
   @OneToMany(() => Category, (category) => category.user)
   categories: Category[];
 
@@ -102,7 +106,4 @@ export class User {
 
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
-
-  @OneToMany(() => AccountType, (accountType) => accountType.user)
-  accountTypes: AccountType[];
 }

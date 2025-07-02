@@ -6,49 +6,50 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
-  Request,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
-  create(@Body() createCategoryDto: CreateCategoryDto, @Request() req) {
-    return this.categoriesService.create(createCategoryDto, req.user);
+  @Auth(Role.Admin, Role.Staff)
+  create(@Body() createCategoryDto: CreateCategoryDto, @GetUser() user: User) {
+    return this.categoriesService.create(createCategoryDto, user);
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @Auth()
   findAll() {
     return this.categoriesService.findAll();
   }
 
-  @UseGuards(AuthGuard)
+  @Auth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoriesService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
+  @Auth(Role.Admin, Role.Staff)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-    @Request() req,
+    @GetUser() user: User,
   ) {
-    return this.categoriesService.update(id, updateCategoryDto, req.user);
+    return this.categoriesService.update(id, updateCategoryDto, user);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
-  remove(@Param('id') id: string, @Request() req) {
-    return this.categoriesService.remove(id, req.user);
+  @Auth(Role.Admin, Role.Staff)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.categoriesService.remove(id, user);
   }
 }

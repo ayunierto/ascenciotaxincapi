@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { Account } from './entities/account.entity';
@@ -8,6 +12,13 @@ import { User } from 'src/auth/entities/user.entity';
 import { Currency } from '../currencies/entities/currency.entity';
 import { AccountType } from '../accounts-types/entities/account-type.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import {
+  CreateAccountResponse,
+  DeleteAccountResponse,
+  GetAccountResponse,
+  GetAccountsResponse,
+  UpdateAccountResponse,
+} from './interfaces/';
 
 @Injectable()
 export class AccountService {
@@ -20,7 +31,10 @@ export class AccountService {
     private readonly accountTypeRepository: Repository<AccountType>,
   ) {}
 
-  async create(createAccountDto: CreateAccountDto, user: User) {
+  async create(
+    createAccountDto: CreateAccountDto,
+    user: User,
+  ): Promise<CreateAccountResponse> {
     try {
       const { currencyId, accountTypeId, ...rest } = createAccountDto;
       const currency = await this.currencyRepository.findOne({
@@ -43,11 +57,17 @@ export class AccountService {
       return newAccount;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while created account.',
+        'CREATE_ACCOUNT_FAILED',
+      );
     }
   }
 
-  async findAll(paginationDto: PaginationDto, user: User) {
+  async findAll(
+    paginationDto: PaginationDto,
+    user: User,
+  ): Promise<GetAccountsResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const accounts = await this.accountRepository.find({
@@ -59,11 +79,14 @@ export class AccountService {
       return accounts;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while fetching accounts.',
+        'FETCH_ACCOUNTS_FAILED',
+      );
     }
   }
 
-  async findOne(id: string, user: User) {
+  async findOne(id: string, user: User): Promise<GetAccountResponse> {
     try {
       const account = await this.accountRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -75,11 +98,18 @@ export class AccountService {
       return account;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while fetching the account.',
+        'FETCH_ACCOUNT_FAILED',
+      );
     }
   }
 
-  async update(id: string, updateAccountDto: UpdateAccountDto, user: User) {
+  async update(
+    id: string,
+    updateAccountDto: UpdateAccountDto,
+    user: User,
+  ): Promise<UpdateAccountResponse> {
     try {
       const { currencyId, accountTypeId, ...rest } = updateAccountDto;
 
@@ -105,16 +135,18 @@ export class AccountService {
         currency: currency,
         ...rest,
       });
-      updatedAccount.updatedAt = new Date();
       await this.accountRepository.save(updatedAccount);
       return updatedAccount;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating the account.',
+        'UPDATE_ACCOUNT_FAILED',
+      );
     }
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: string, user: User): Promise<DeleteAccountResponse> {
     try {
       const account = await this.accountRepository.findOne({
         where: { id: id, user: user },
@@ -126,7 +158,10 @@ export class AccountService {
       return account;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while deleting the account.',
+        'DELETE_ACCOUNT_FAILED',
+      );
     }
   }
 }

@@ -7,23 +7,24 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
-  Request,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
-  create(@Body() createPostDto: CreatePostDto, @Request() req) {
-    return this.postsService.create(createPostDto, req.user);
+  @Auth(Role.Staff, Role.Admin)
+  create(@Body() createPostDto: CreatePostDto, @GetUser() user: User) {
+    return this.postsService.create(createPostDto, user);
   }
 
   @Get()
@@ -37,18 +38,18 @@ export class PostsController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
+  @Auth(Role.Staff, Role.Admin)
   update(
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
-    @Request() req,
+    @GetUser() user: User,
   ) {
-    return this.postsService.update(id, updatePostDto, req.user);
+    return this.postsService.update(id, updatePostDto, user);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(id);
+  @Auth(Role.Staff, Role.Admin)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.postsService.remove(id, user);
   }
 }

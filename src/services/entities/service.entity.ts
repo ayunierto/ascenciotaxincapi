@@ -1,11 +1,12 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { ServiceImage } from './service-image.entity';
 import { Staff } from 'src/staff/entities/staff.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
@@ -42,21 +43,21 @@ export class Service {
   })
   isActive: boolean;
 
-  @OneToMany(() => ServiceImage, (image) => image.service, {
-    cascade: true,
-    eager: true,
+  @Column('text', {
+    nullable: true,
   })
-  images?: ServiceImage[];
+  image?: string;
 
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  // Relationships
   @ManyToMany(() => Staff, (staff) => staff.services, { onDelete: 'CASCADE' })
   staff: Staff[];
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];
-
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
-  @Column('timestamp with time zone', { nullable: true })
-  updatedAt: Date;
 }

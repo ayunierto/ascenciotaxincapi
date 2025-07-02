@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class VerifyCodeDto {
+export class VerifyEmailCodeDto {
   @IsString()
   @MinLength(6, { message: 'The code must have a minimum of 6 characters' })
   @MaxLength(6, { message: 'The code must have a maximum of 6 characters' })

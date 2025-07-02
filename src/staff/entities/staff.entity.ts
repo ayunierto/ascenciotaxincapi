@@ -3,11 +3,13 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Service } from 'src/services/entities';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -16,7 +18,7 @@ export class Staff {
   id: string;
 
   @Column('text')
-  name: string;
+  firstName: string;
 
   @Column('text')
   lastName: string;
@@ -38,9 +40,9 @@ export class Staff {
   @OneToMany(() => Schedule, (schedule) => schedule.staff)
   schedules: Schedule[];
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }

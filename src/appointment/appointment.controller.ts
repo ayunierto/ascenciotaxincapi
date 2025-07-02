@@ -7,22 +7,25 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
-  Request,
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('appointment')
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
-  create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req) {
-    return this.appointmentService.create(createAppointmentDto, req.user);
+  @Auth()
+  create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+    @GetUser() user: User,
+  ) {
+    return this.appointmentService.create(createAppointmentDto, user);
   }
 
   @Get()
@@ -31,12 +34,12 @@ export class AppointmentController {
   }
 
   @Get('current-user')
-  @UseGuards(AuthGuard)
+  @Auth()
   findCurrentUser(
-    @Request() req,
+    @GetUser() user: User,
     @Query('state') state: 'pending' | 'past' = 'pending',
   ) {
-    return this.appointmentService.findCurrentUser(req.user, state);
+    return this.appointmentService.findCurrentUser(user, state);
   }
 
   @Get(':id')

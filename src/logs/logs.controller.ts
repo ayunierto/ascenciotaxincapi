@@ -1,30 +1,24 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('logs')
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
-  create(@Body() createLogDto: CreateLogDto, @Request() req) {
-    return this.logsService.create(createLogDto, req.user);
+  @Auth()
+  create(@Body() createLogDto: CreateLogDto, @GetUser() user: User) {
+    return this.logsService.create(createLogDto, user);
   }
 
   @Get()
-  @UseGuards(AuthGuard)
-  findAll(@Query() paginationDto: PaginationDto, @Request() req) {
-    return this.logsService.findAll(paginationDto, req.user);
+  @Auth()
+  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
+    return this.logsService.findAll(paginationDto, user);
   }
 }
