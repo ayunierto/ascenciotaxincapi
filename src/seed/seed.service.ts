@@ -10,7 +10,6 @@ import { SubcategoryService } from '../accounting/subcategories/subcategories.se
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
 import { AccountTypesService } from 'src/accounting/accounts-types/account-types.service';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
-// import { UtilityService } from '../utility/utility.service';
 import { Role } from 'src/auth/enums/role.enum';
 
 @Injectable()
@@ -32,9 +31,8 @@ export class SeedService {
   async runSeed() {
     try {
       await this.deleteData();
-      // return { msg: 'date eliminate' };
 
-      // Createa account type
+      // Create an account type
       const accountTypeCash = await this.accountTypesService.create({
         name: 'Cash',
         description: 'Cash account',
@@ -125,7 +123,7 @@ export class SeedService {
 
       // Create staff
       const yulierStaff = await this.staffService.create({
-        name: 'Yulier',
+        firstName: 'Yulier',
         lastName: 'Rondon',
         isActive: true,
         services: [],
@@ -138,7 +136,7 @@ export class SeedService {
         ],
       });
       const luciaStaff = await this.staffService.create({
-        name: 'Lucia',
+        firstName: 'Lucia',
         lastName: 'Ascencio',
         isActive: true,
         services: [],

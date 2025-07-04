@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,26 +31,43 @@ export class ScheduleService {
         staff,
         ...rest,
       });
-      await this.scheduleRepository.save(schedule);
-      return schedule;
+
+      return await this.scheduleRepository.save(schedule);
     } catch (error) {
-      return error;
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating schedule. Please try again later.',
+      );
     }
   }
 
   async findAll() {
-    return await this.scheduleRepository.find({
-      relations: {
-        staff: true,
-      },
-    });
+    try {
+      return await this.scheduleRepository.find({
+        relations: {
+          staff: true,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while fetching schedule. Please try again later.',
+      );
+    }
   }
 
   async findOne(id: string) {
-    const schedule = await this.scheduleRepository.findOneBy({ id });
-    if (!schedule) throw new NotFoundException();
+    try {
+      const schedule = await this.scheduleRepository.findOneBy({ id });
+      if (!schedule) throw new NotFoundException();
 
-    return schedule;
+      return schedule;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while finding schedule. Please try again later.',
+      );
+    }
   }
 
   async update(id: string, updateScheduleDto: UpdateScheduleDto) {
@@ -66,13 +87,22 @@ export class ScheduleService {
       await this.scheduleRepository.save(schedule);
       return schedule;
     } catch (error) {
-      return error;
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating schedule. Please try again later.',
+      );
     }
   }
 
   async remove(id: string) {
-    const schedule = await this.findOne(id);
-    await this.scheduleRepository.remove(schedule);
-    return schedule;
+    try {
+      const schedule = await this.scheduleRepository.findOneBy({ id });
+      return await this.scheduleRepository.remove(schedule);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while deleting schedule. Please try again later.',
+      );
+    }
   }
 }

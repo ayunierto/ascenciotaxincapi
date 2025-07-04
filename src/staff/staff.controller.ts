@@ -6,18 +6,19 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   @Post()
+  @Auth(Role.Admin)
   create(@Body() createStaffDto: CreateStaffDto) {
     return this.staffService.create(createStaffDto);
   }
@@ -33,13 +34,13 @@ export class StaffController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
+  @Auth(Role.Admin)
   update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
     return this.staffService.update(id, updateStaffDto);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @Auth(Role.Admin)
   remove(@Param('id') id: string) {
     return this.staffService.remove(id);
   }

@@ -32,42 +32,56 @@ export class StaffService {
       ...rest
     } = createStaffDto;
 
-    // Get services
-    const services = await this.serviceRepository.findBy({
-      id: In(servicesIds),
-    });
-    // Get schedules
-    const schedules = await this.scheduleRepository.findBy({
-      id: In(schedulesIds),
-    });
-
     try {
+      const services = await this.serviceRepository.findBy({
+        id: In(servicesIds),
+      });
+      const schedules = await this.scheduleRepository.findBy({
+        id: In(schedulesIds),
+      });
       const staff = this.staffRepository.create({
         services,
         schedules,
         ...rest,
       });
-      await this.staffRepository.save(staff);
-      return staff;
+
+      return await this.staffRepository.save(staff);
     } catch (error) {
-      return error;
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating staff. Please try again later.',
+      );
     }
   }
 
   async findAll() {
-    return await this.staffRepository.find({
-      relations: {
-        services: true,
-        schedules: true,
-      },
-    });
+    try {
+      return await this.staffRepository.find({
+        relations: {
+          services: true,
+          schedules: true,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while finding staff. Please try again later.',
+      );
+    }
   }
 
   async findOne(id: string) {
-    const staff = await this.staffRepository.findOneBy({ id });
-    if (!staff) throw new NotFoundException();
+    try {
+      const staff = await this.staffRepository.findOneBy({ id });
+      if (!staff) throw new NotFoundException('Staff not found.');
 
-    return staff;
+      return staff;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while finding staff. Please try again later.',
+      );
+    }
   }
 
   async update(id: string, updateStaffDto: UpdateStaffDto) {
@@ -77,35 +91,41 @@ export class StaffService {
       ...rest
     } = updateStaffDto;
 
-    // Get services
-    const services = await this.serviceRepository.findBy({
-      id: In(servicesIds),
-    });
-    // Get schedules
-    const schedules = await this.scheduleRepository.findBy({
-      id: In(schedulesIds),
-    });
-
-    const staff = await this.staffRepository.preload({
-      id,
-      services,
-      schedules,
-      ...rest,
-    });
-
-    if (!staff) throw new NotFoundException();
-
     try {
-      await this.staffRepository.save(staff);
-      return staff;
+      const services = await this.serviceRepository.findBy({
+        id: In(servicesIds),
+      });
+      const schedules = await this.scheduleRepository.findBy({
+        id: In(schedulesIds),
+      });
+
+      const staff = await this.staffRepository.preload({
+        id,
+        services,
+        schedules,
+        ...rest,
+      });
+
+      if (!staff) throw new NotFoundException();
+
+      return await this.staffRepository.save(staff);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating staff. Please try again later.',
+      );
     }
   }
 
   async remove(id: string) {
-    const staff = await this.findOne(id);
-    await this.staffRepository.remove(staff);
-    return staff;
+    try {
+      const staff = await this.findOne(id);
+      return await this.staffRepository.remove(staff);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while deleting staff. Please try again later.',
+      );
+    }
   }
 }
