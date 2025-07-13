@@ -3,16 +3,13 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
-import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subcategory } from './entities/subcategory.entity';
 import { Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
-import { Role } from 'src/auth/enums/role.enum';
 import {
   CreateSubcategoryResponse,
   DeleteSubcategoryResponse,
@@ -33,16 +30,8 @@ export class SubcategoryService {
 
   async create(
     createSubcategoryDto: CreateSubcategoryDto,
-    user: User,
   ): Promise<CreateSubcategoryResponse> {
     try {
-      const isAdmin = user.roles.includes(Role.Admin);
-      if (createSubcategoryDto.isSystem && !isAdmin) {
-        throw new UnauthorizedException(
-          'Only admins can create system categories',
-        );
-      }
-
       const category = await this.categoryRepository.findOneBy({
         id: createSubcategoryDto.categoryId,
       });
@@ -52,8 +41,6 @@ export class SubcategoryService {
 
       const newSubcategory = this.subcategoryRepository.create({
         name: createSubcategoryDto.name,
-        user: user,
-        isSystem: createSubcategoryDto.isSystem || false,
         category: category,
       });
       this.subcategoryRepository.save(newSubcategory);
@@ -103,15 +90,8 @@ export class SubcategoryService {
   async update(
     id: string,
     updateSubcategoryDto: UpdateSubcategoryDto,
-    user: User,
   ): Promise<UpdateSubcategoryResponse> {
     try {
-      const isAdmin = user.roles.includes(Role.Admin);
-      if (updateSubcategoryDto.isSystem && !isAdmin) {
-        throw new UnauthorizedException(
-          'Only admins can update system subcategories',
-        );
-      }
       const subcategory = await this.subcategoryRepository.findOneBy({ id });
       if (!subcategory) {
         throw new NotFoundException('Subcategory not found');
@@ -133,17 +113,11 @@ export class SubcategoryService {
     }
   }
 
-  async remove(id: string, user: User): Promise<DeleteSubcategoryResponse> {
+  async remove(id: string): Promise<DeleteSubcategoryResponse> {
     try {
       const subcategory = await this.subcategoryRepository.findOneBy({ id });
       if (!subcategory) {
         throw new NotFoundException('Subcategory not found');
-      }
-      const isAdmin = user.roles.includes(Role.Admin);
-      if (!isAdmin) {
-        throw new UnauthorizedException(
-          'Only admins can delete system subcategories',
-        );
       }
 
       await this.subcategoryRepository.remove(subcategory);

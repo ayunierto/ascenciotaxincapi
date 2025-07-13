@@ -16,7 +16,6 @@ import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
 import { PostsModule } from './blog/posts/posts.module';
 import { CategoriesModule } from './accounting/categories/categories.module';
-import { IncomeModule } from './accounting/incomes/incomes.module';
 import { ExpenseModule } from './accounting/expenses/expenses.module';
 import { AccountModule } from './accounting/accounts/accounts.module';
 import { TagsModule } from './accounting/tags/tags.module';
@@ -62,7 +61,6 @@ import { TwilioModule } from './twilio/twilio.module';
     MailModule,
     PostsModule,
     CategoriesModule,
-    IncomeModule,
     ExpenseModule,
     AccountModule,
     TagsModule,

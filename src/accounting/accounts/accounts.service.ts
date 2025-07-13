@@ -8,7 +8,6 @@ import { UpdateAccountDto } from './dto/update-account.dto';
 import { Account } from './entities/account.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/auth/entities/user.entity';
 import { Currency } from '../currencies/entities/currency.entity';
 import { AccountType } from '../accounts-types/entities/account-type.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -33,7 +32,6 @@ export class AccountService {
 
   async create(
     createAccountDto: CreateAccountDto,
-    user: User,
   ): Promise<CreateAccountResponse> {
     try {
       const { currencyId, accountTypeId, ...rest } = createAccountDto;
@@ -51,7 +49,6 @@ export class AccountService {
         ...rest,
         currency: currency,
         accountType: accountType,
-        user: user,
       });
       this.accountRepository.save(newAccount);
       return newAccount;
@@ -64,14 +61,10 @@ export class AccountService {
     }
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-    user: User,
-  ): Promise<GetAccountsResponse> {
+  async findAll(paginationDto: PaginationDto): Promise<GetAccountsResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const accounts = await this.accountRepository.find({
-        where: { user: { id: user.id } },
         relations: ['currency', 'accountType'],
         take: limit,
         skip: offset,
@@ -86,10 +79,10 @@ export class AccountService {
     }
   }
 
-  async findOne(id: string, user: User): Promise<GetAccountResponse> {
+  async findOne(id: string): Promise<GetAccountResponse> {
     try {
       const account = await this.accountRepository.findOne({
-        where: { id: id, user: { id: user.id } },
+        where: { id: id },
         relations: ['currency', 'accountType'],
       });
       if (!account) {
@@ -108,7 +101,6 @@ export class AccountService {
   async update(
     id: string,
     updateAccountDto: UpdateAccountDto,
-    user: User,
   ): Promise<UpdateAccountResponse> {
     try {
       const { currencyId, accountTypeId, ...rest } = updateAccountDto;
@@ -124,7 +116,7 @@ export class AccountService {
       }
 
       const account = await this.accountRepository.findOne({
-        where: { id: id, user: user },
+        where: { id: id },
       });
       if (!account) {
         throw new BadRequestException('Account not found');
@@ -146,10 +138,10 @@ export class AccountService {
     }
   }
 
-  async remove(id: string, user: User): Promise<DeleteAccountResponse> {
+  async remove(id: string): Promise<DeleteAccountResponse> {
     try {
       const account = await this.accountRepository.findOne({
-        where: { id: id, user: user },
+        where: { id: id },
       });
       if (!account) {
         throw new BadRequestException('Account not found');

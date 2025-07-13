@@ -10,12 +10,8 @@ import { Role } from '../enums/role.enum';
 import { Log } from 'src/logs/entities/log.entity';
 import { Post } from 'src/blog/posts/entities/post.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { Income } from 'src/accounting/incomes/entities/income.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
-import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Report } from 'src/accounting/reports/entities/report.entity';
-import { Account } from 'src/accounting/accounts/entities/account.entity';
-import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
 
 @Entity('users')
 export class User {
@@ -89,21 +85,9 @@ export class User {
   @OneToMany(() => Appointment, (appointment) => appointment.user)
   appointments: Appointment[];
 
-  @OneToMany(() => Income, (income) => income.user)
-  incomes: Income[];
-
   @OneToMany(() => Expense, (expense) => expense.user)
   expenses: Expense[];
 
-  @OneToMany(() => Category, (category) => category.user)
-  categories: Category[];
-
-  @OneToMany(() => Subcategory, (subcategory) => subcategory.user)
-  subcategories: Subcategory[];
-
   @OneToMany(() => Report, (report) => report.user)
   reports: Report[];
-
-  @OneToMany(() => Account, (account) => account.user)
-  accounts: Account[];
 }

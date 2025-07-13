@@ -12,7 +12,7 @@ import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 
-@Controller('currency')
+@Controller('currencies')
 export class CurrencyController {
   constructor(private readonly currencyService: CurrencyService) {}
 

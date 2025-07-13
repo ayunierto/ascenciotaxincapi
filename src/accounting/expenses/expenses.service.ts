@@ -113,7 +113,7 @@ export class ExpenseService {
 
       // Validate if the account provided exists for the user
       const account = await this.accountRepository.findOne({
-        where: { id: accountId, user: { id: user.id } },
+        where: { id: accountId },
         relations: ['currency', 'accountType'],
       });
       if (!account)
@@ -230,7 +230,7 @@ export class ExpenseService {
       let account = null;
       if (accountId) {
         account = await this.accountRepository.findOne({
-          where: { id: accountId, user: { id: user.id } },
+          where: { id: accountId },
           relations: ['currency', 'accountType'],
         });
         if (!account) {

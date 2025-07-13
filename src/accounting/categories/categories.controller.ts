@@ -12,8 +12,6 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Role } from 'src/auth/enums/role.enum';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from 'src/auth/entities/user.entity';
 
 @Controller('categories')
 export class CategoriesController {
@@ -21,8 +19,8 @@ export class CategoriesController {
 
   @Post()
   @Auth(Role.Admin, Role.Staff)
-  create(@Body() createCategoryDto: CreateCategoryDto, @GetUser() user: User) {
-    return this.categoriesService.create(createCategoryDto, user);
+  create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
@@ -42,14 +40,13 @@ export class CategoriesController {
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-    @GetUser() user: User,
   ) {
-    return this.categoriesService.update(id, updateCategoryDto, user);
+    return this.categoriesService.update(id, updateCategoryDto);
   }
 
   @Delete(':id')
   @Auth(Role.Admin, Role.Staff)
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.categoriesService.remove(id, user);
+  remove(@Param('id') id: string) {
+    return this.categoriesService.remove(id);
   }
 }

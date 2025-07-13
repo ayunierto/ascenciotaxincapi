@@ -32,6 +32,16 @@ export class SeedService {
     try {
       await this.deleteData();
 
+      // Create currencies
+      const currencyCanadianDollar = await this.currencyService.create({
+        name: 'Canadian dollar',
+        coinSuffix: 'CAD',
+        symbol: '$',
+      });
+      if ('error' in currencyCanadianDollar) {
+        throw new InternalServerErrorException(currencyCanadianDollar.message);
+      }
+
       // Create an account type
       const accountTypeCash = await this.accountTypesService.create({
         name: 'Cash',
@@ -41,14 +51,17 @@ export class SeedService {
         throw new InternalServerErrorException(accountTypeCash.message);
       }
 
-      // Create currencies
-      const currencyCanadianDollar = await this.currencyService.create({
-        name: 'Canadian dollar',
-        coinSuffix: 'CAD',
-        symbol: '$',
+      // Create an account
+      // This is the main cash account for the business
+      const accountCash = await this.accountService.create({
+        accountTypeId: accountTypeCash.id,
+        currencyId: currencyCanadianDollar.id,
+        name: 'Cash',
+        description: 'Cash account',
+        icon: 'cash',
       });
-      if ('error' in currencyCanadianDollar) {
-        throw new InternalServerErrorException(currencyCanadianDollar.message);
+      if ('error' in accountCash) {
+        throw new InternalServerErrorException(accountCash.message);
       }
 
       // Create users
@@ -313,277 +326,138 @@ export class SeedService {
       );
 
       // Create main default categories
-      const expenses = await this.categoriesService.create(
-        {
-          name: 'Expenses',
-          isSystem: true,
-          description: 'Category for expenses',
-        },
-        yulierUser,
-      );
-      const motorVehicleExpensesBusiness = await this.categoriesService.create(
-        {
-          name: 'Motor Vehicle Expenses (Business)',
-          isSystem: true,
-          description: 'Category for expenses related to motor vehicles',
-        },
-        yulierUser,
-      );
-      const businessUseOfHomeUtilities = await this.categoriesService.create(
-        {
-          name: 'Business-use-of- home (Utilities)',
-          isSystem: true,
-          description: 'Category for expenses related to business-use-of-home',
-        },
-        yulierUser,
-      );
-      await this.categoriesService.create(
-        {
-          name: 'Medical Expenses',
-          isSystem: true,
-          description: 'FOR PERSONAL TAXES',
-        },
-        yulierUser,
-      );
-      await this.categoriesService.create(
-        {
-          name: 'Rent',
-          isSystem: true,
-          description: 'FOR PERSONAL TAXES',
-        },
-        yulierUser,
-      );
+      const expenses = await this.categoriesService.create({
+        name: 'Expenses',
+        description: 'Category for expenses',
+      });
+      const motorVehicleExpensesBusiness = await this.categoriesService.create({
+        name: 'Motor Vehicle Expenses (Business)',
+        description: 'Category for expenses related to motor vehicles',
+      });
+      const businessUseOfHomeUtilities = await this.categoriesService.create({
+        name: 'Business-use-of- home (Utilities)',
+        description: 'Category for expenses related to business-use-of-home',
+      });
+      await this.categoriesService.create({
+        name: 'Medical Expenses',
+        description: 'FOR PERSONAL TAXES',
+      });
+      await this.categoriesService.create({
+        name: 'Rent',
+        description: 'FOR PERSONAL TAXES',
+      });
 
       // Create default subcategories
-      await this.subcategoryService.create(
-        {
-          name: 'Office Rental',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Utilities',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Phone',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Internet',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office maintenance/ Repairs ',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Storage Rent',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Uniform',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Rental Equipment/ Car Rental',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Accounting/ Legal/ Other professional Fees',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Memberships/ Subscriptions',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Office Rental',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Utilities',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Phone',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Internet',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office maintenance/ Repairs ',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Storage Rent',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Uniform',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Rental Equipment/ Car Rental',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Accounting/ Legal/ Other professional Fees',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Memberships/ Subscriptions',
+        categoryId: expenses.id,
+      });
       // Subcategories for motor vehicles expenses
-      await this.subcategoryService.create(
-        {
-          name: 'Gasoline',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: '407 Ert',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Parking',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Parking Fines',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Repair/ Maintenance Car',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'License/ Registration',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Car Wash',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Lease Payments ',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Purchase/ Financing',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Gasoline',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: '407 Ert',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Parking',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Parking Fines',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Repair/ Maintenance Car',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'License/ Registration',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Car Wash',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Lease Payments ',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Purchase/ Financing',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
       // Subcategories for Business-use-of- home (Utilities)
-      await this.subcategoryService.create(
-        {
-          name: 'Rental Water Heater',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Gas Natural',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Hydro/ Electricity',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Water',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Maintenance & Repairs',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Interest Mortgage',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Property Tax Bill',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Home Insurance',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-
-      await this.accountService.create(
-        {
-          accountTypeId: accountTypeCash.id,
-          currencyId: currencyCanadianDollar.id,
-          name: 'Cash',
-          description: 'Cash account',
-          icon: 'cash',
-        },
-        yulierUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Rental Water Heater',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Gas Natural',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Hydro/ Electricity',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Water',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Maintenance & Repairs',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Interest Mortgage',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Property Tax Bill',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Home Insurance',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
 
       return {
         message: 'Seed Executed',

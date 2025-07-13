@@ -13,44 +13,39 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from 'src/auth/entities/user.entity';
+import { Role } from 'src/auth/enums/role.enum';
 
-@Controller('account')
+@Controller('accounts')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  @Auth()
-  create(@Body() createAccountDto: CreateAccountDto, @GetUser() user: User) {
-    return this.accountService.create(createAccountDto, user);
+  @Auth(Role.Admin, Role.SuperUser)
+  create(@Body() createAccountDto: CreateAccountDto) {
+    return this.accountService.create(createAccountDto);
   }
 
   @Get()
   @Auth()
-  findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.accountService.findAll(paginationDto, user);
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.accountService.findAll(paginationDto);
   }
 
   @Get(':id')
   @Auth()
-  findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.accountService.findOne(id, user);
+  findOne(@Param('id') id: string) {
+    return this.accountService.findOne(id);
   }
 
   @Patch(':id')
-  @Auth()
-  update(
-    @Param('id') id: string,
-    @Body() updateAccountDto: UpdateAccountDto,
-    @GetUser() user: User,
-  ) {
-    return this.accountService.update(id, updateAccountDto, user);
+  @Auth(Role.Admin, Role.SuperUser)
+  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
+    return this.accountService.update(id, updateAccountDto);
   }
 
   @Delete(':id')
-  @Auth()
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.accountService.remove(id, user);
+  @Auth(Role.Admin, Role.SuperUser)
+  remove(@Param('id') id: string) {
+    return this.accountService.remove(id);
   }
 }

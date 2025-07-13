@@ -120,7 +120,8 @@ export class StaffService {
   async remove(id: string) {
     try {
       const staff = await this.findOne(id);
-      return await this.staffRepository.remove(staff);
+      await this.staffRepository.remove(staff);
+      return staff;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
