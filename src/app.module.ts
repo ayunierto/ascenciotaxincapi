@@ -27,7 +27,6 @@ import { AwsModule } from './aws/aws.module';
 import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
-import { TwilioModule } from './twilio/twilio.module';
 // import { UtilityModule } from './utility/utility.module';
 
 @Module({
@@ -72,10 +71,8 @@ import { TwilioModule } from './twilio/twilio.module';
     ReportsModule,
     PrinterModule,
     NotificationModule,
-    TwilioModule,
-    // UtilityModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
