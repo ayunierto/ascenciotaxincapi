@@ -1,12 +1,13 @@
-import { User } from 'src/auth/entities/user.entity';
-import { Staff } from 'src/staff/entities/staff.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+
+import { Staff } from 'src/staff/entities/staff.entity';
 
 @Entity('schedules')
 export class Schedule {
@@ -22,15 +23,13 @@ export class Schedule {
   @Column('time')
   endTime: string;
 
-  @ManyToOne(() => Staff, (staff) => staff.schedules, { onDelete: 'CASCADE' })
-  staff: Staff;
-
-  @ManyToOne((type) => User, (user) => user.schedules, { onDelete: 'CASCADE' })
-  user: User;
-
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  // Relationships
+  @ManyToOne(() => Staff, (staff) => staff.schedules, { onDelete: 'CASCADE' })
+  staff: Staff;
 }

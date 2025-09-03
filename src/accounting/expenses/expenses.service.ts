@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { Between } from 'typeorm';
 import { CreateExpenseDto } from './dto/create-expense.dto';
@@ -16,6 +16,14 @@ import { Subcategory } from '../subcategories/entities/subcategory.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { LogsService } from 'src/logs/logs.service';
 import { ExpensesByCategory } from './interfaces/expenses-by-category.interface';
+import {
+  CreateExpenseResponse,
+  DeleteExpenseResponse,
+  GetExpenseResponse,
+  GetExpensesResponse,
+  UpdateExpenseResponse,
+} from './interfaces/expenses.interface';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ExpenseService {
@@ -34,7 +42,6 @@ export class ExpenseService {
 
   async findAllByDateRange(startDate: Date, endDate: Date, user: User) {
     try {
-      // Obtener todos los gastos en el rango de fechas
       const expenses = await this.expenseRepository.find({
         where: {
           user: { id: user.id },
@@ -95,38 +102,42 @@ export class ExpenseService {
       throw error;
     }
   }
-  catch(error) {
-    console.error(error);
-    return error;
-  }
 
-  async create(createExpenseDto: CreateExpenseDto, user: User) {
+  async create(
+    createExpenseDto: CreateExpenseDto,
+    user: User,
+  ): Promise<CreateExpenseResponse> {
     try {
       const { accountId, categoryId, subcategoryId, date, ...rest } =
         createExpenseDto;
 
+      // Validate if the account provided exists for the user
       const account = await this.accountRepository.findOne({
-        where: { id: accountId, user: { id: user.id } },
+        where: { id: accountId },
         relations: ['currency', 'accountType'],
       });
       if (!account)
-        throw new NotFoundException(
-          `Account with id ${accountId} for ${user.name} user not found`,
+        throw new BadRequestException(
+          `Account with id ${accountId} for ${user.firstName} user not found`,
         );
 
-      const category = await this.categoryRepository.findOne({
-        where: { id: categoryId },
+      // Validate if the category provided exists
+      const category = await this.categoryRepository.findOneBy({
+        id: categoryId,
       });
       if (!category)
-        throw new NotFoundException(`Category with id ${categoryId} not found`);
+        throw new BadRequestException(
+          `Category with id ${categoryId} not found`,
+        );
 
+      // Validate if the subcategory provided exists
       let subcategory = null;
       if (subcategoryId) {
-        subcategory = await this.subcategoryRepository.findOne({
-          where: { id: subcategoryId },
+        subcategory = await this.subcategoryRepository.findOneBy({
+          id: subcategoryId,
         });
         if (!subcategory)
-          throw new NotFoundException(
+          throw new BadRequestException(
             `Subcategory with id ${subcategoryId} not found`,
           );
       }
@@ -150,11 +161,17 @@ export class ExpenseService {
       return newExpense;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error creating expense. Please try again later.',
+        'Internal Server Error',
+      );
     }
   }
 
-  async findAll(paginationDto: PaginationDto, user: User) {
+  async findAll(
+    paginationDto: PaginationDto,
+    user: User,
+  ): Promise<GetExpensesResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const expenses = await this.expenseRepository.find({
@@ -169,11 +186,14 @@ export class ExpenseService {
       return expenses;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error fetching expenses. Please try again later.',
+        'Internal Server Error',
+      );
     }
   }
 
-  async findOne(id: string, user: User) {
+  async findOne(id: string, user: User): Promise<GetExpenseResponse> {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -184,26 +204,33 @@ export class ExpenseService {
       return expense;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error fetching expense. Please try again later.',
+        'Internal Server Error',
+      );
     }
   }
 
-  async update(id: string, updateExpenseDto: UpdateExpenseDto, user: User) {
+  async update(
+    id: string,
+    updateExpenseDto: UpdateExpenseDto,
+    user: User,
+  ): Promise<UpdateExpenseResponse> {
     try {
       const { accountId, categoryId, subcategoryId, date, ...rest } =
         updateExpenseDto;
 
-      const currentExpense = await this.expenseRepository.findOne({
+      const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
       });
-      if (!currentExpense) {
+      if (!expense) {
         throw new BadRequestException('Expense not found');
       }
 
       let account = null;
       if (accountId) {
         account = await this.accountRepository.findOne({
-          where: { id: accountId, user: { id: user.id } },
+          where: { id: accountId },
           relations: ['currency', 'accountType'],
         });
         if (!account) {
@@ -212,7 +239,7 @@ export class ExpenseService {
           );
         }
       } else {
-        account = currentExpense.account;
+        account = expense.account;
       }
 
       let category = null;
@@ -226,7 +253,7 @@ export class ExpenseService {
           );
         }
       } else {
-        category = currentExpense.category;
+        category = expense.category;
       }
 
       let subcategory = null;
@@ -238,7 +265,7 @@ export class ExpenseService {
           throw new BadRequestException('Subcategory not found');
         }
       } else {
-        subcategory = currentExpense.subcategory;
+        subcategory = expense.subcategory;
       }
 
       const updatedExpense = await this.expenseRepository.preload({
@@ -251,23 +278,26 @@ export class ExpenseService {
         user: user,
       });
 
-      updatedExpense.updateAt = new Date();
+      updatedExpense.updateAt = DateTime.utc().toJSDate();
 
       await this.expenseRepository.save(updatedExpense);
 
       await this.logService.create(
-        { description: `Expense updated: ${category.name}` },
+        { description: `Expense updated: ${updatedExpense.merchant}` },
         user,
       );
 
       return updatedExpense;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error updating expense. Please try again later.',
+        'Internal Server Error',
+      );
     }
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: string, user: User): Promise<DeleteExpenseResponse> {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -278,14 +308,17 @@ export class ExpenseService {
       await this.expenseRepository.remove(expense);
 
       await this.logService.create(
-        { description: `Expense deleted: ${expense.category.name}` },
+        { description: `Expense deleted: ${expense.merchant}` },
         user,
       );
 
       return expense;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'Error deleting expense. Please try again later.',
+        'Internal Server Error',
+      );
     }
   }
 }

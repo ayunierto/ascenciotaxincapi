@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateLogDto } from './dto/create-log.dto';
-import { UpdateLogDto } from './dto/update-log.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Log } from './entities/log.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CreateLogResponse, GetLogsResponse } from './interfaces';
 
 @Injectable()
 export class LogsService {
@@ -14,7 +14,10 @@ export class LogsService {
     private readonly logRepository: Repository<Log>,
   ) {}
 
-  async create(createLogDto: CreateLogDto, user: User) {
+  async create(
+    createLogDto: CreateLogDto,
+    user: User,
+  ): Promise<CreateLogResponse> {
     try {
       const newLog = this.logRepository.create({
         ...createLogDto,
@@ -24,11 +27,17 @@ export class LogsService {
       return newLog;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating the log. Please try again later.',
+        'LOG_CREATE_FAILED',
+      );
     }
   }
 
-  async findAll(paginationDto: PaginationDto, user: User) {
+  async findAll(
+    paginationDto: PaginationDto,
+    user: User,
+  ): Promise<GetLogsResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const logs = await this.logRepository.find({
@@ -36,25 +45,16 @@ export class LogsService {
         skip: offset,
         where: { user: { id: user.id } },
         order: {
-          date: 'DESC',
+          createdAt: 'DESC',
         },
       });
       return logs;
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while fetching logs. Please try again later.',
+        'LOG_FIND_FAILED',
+      );
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} log`;
-  }
-
-  update(id: number, updateLogDto: UpdateLogDto) {
-    return `This action updates a #${id} log`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} log`;
   }
 }

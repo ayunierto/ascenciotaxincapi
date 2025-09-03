@@ -1,21 +1,11 @@
-import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEmail,
-  IsPhoneNumber,
-  IsString,
-  MinLength,
-} from 'class-validator';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { Service } from 'src/services/entities';
+import { IsArray, IsBoolean, IsString, MinLength } from 'class-validator';
 
 export class CreateStaffDto {
   @IsString()
   @MinLength(3, {
-    message: 'The name must have a minimum of 3 characters',
+    message: 'The first name must have a minimum of 3 characters',
   })
-  name: string;
+  firstName: string;
 
   @IsString()
   @MinLength(3, {
@@ -26,9 +16,11 @@ export class CreateStaffDto {
   @IsBoolean()
   isActive: boolean;
 
+  @IsString({ each: true })
   @IsArray()
   services: string[];
 
+  @IsString({ each: true })
   @IsArray()
   schedules: string[];
 }

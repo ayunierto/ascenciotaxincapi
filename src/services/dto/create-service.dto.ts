@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   MinLength,
 } from 'class-validator';
 
@@ -33,10 +34,9 @@ export class CreateServiceDto {
   @IsBoolean()
   isActive: boolean;
 
-  @IsArray()
-  @IsString({ each: true })
+  @IsUrl()
   @IsOptional()
-  images?: string[];
+  image?: string;
 
   @IsArray()
   @ArrayMinSize(1)

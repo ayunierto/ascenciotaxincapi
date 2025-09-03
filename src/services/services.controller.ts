@@ -13,18 +13,17 @@ import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { ValidRoles } from 'src/auth/interfaces';
-import { User } from 'src/auth/entities/user.entity';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
-  @Auth(ValidRoles.admin)
-  create(@Body() createServiceDto: CreateServiceDto, @GetUser() user: User) {
-    return this.servicesService.create(createServiceDto, user);
+  @Auth(Role.Admin, Role.Staff, Role.SuperUser)
+  create(@Body() createServiceDto: CreateServiceDto) {
+    return this.servicesService.create(createServiceDto);
   }
 
   @Get()
@@ -38,17 +37,16 @@ export class ServicesController {
   }
 
   @Patch(':id')
-  @Auth(ValidRoles.admin)
+  @Auth(Role.Admin, Role.Staff, Role.SuperUser)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateServiceDto: UpdateServiceDto,
-    @GetUser() user: User,
   ) {
-    return this.servicesService.update(id, updateServiceDto, user);
+    return this.servicesService.update(id, updateServiceDto);
   }
 
   @Delete(':id')
-  @Auth(ValidRoles.admin)
+  @Auth(Role.Admin, Role.Staff, Role.SuperUser)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.servicesService.remove(id);
   }

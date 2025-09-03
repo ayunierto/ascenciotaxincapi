@@ -10,20 +10,17 @@ import {
 import { SubcategoryService } from './subcategories.service';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { User } from 'src/auth/entities/user.entity';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('subcategory')
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
 
   @Post()
-  @Auth()
-  create(
-    @Body() createSubcategoryDto: CreateSubcategoryDto,
-    @GetUser() user: User,
-  ) {
-    return this.subcategoryService.create(createSubcategoryDto, user);
+  @Auth(Role.Admin, Role.Staff)
+  create(@Body() createSubcategoryDto: CreateSubcategoryDto) {
+    return this.subcategoryService.create(createSubcategoryDto);
   }
 
   @Get()
@@ -39,18 +36,17 @@ export class SubcategoryController {
   }
 
   @Patch(':id')
-  @Auth()
+  @Auth(Role.Admin, Role.Staff)
   update(
     @Param('id') id: string,
     @Body() updateSubcategoryDto: UpdateSubcategoryDto,
-    @GetUser() user: User,
   ) {
-    return this.subcategoryService.update(id, updateSubcategoryDto, user);
+    return this.subcategoryService.update(id, updateSubcategoryDto);
   }
 
   @Delete(':id')
-  @Auth()
-  remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.subcategoryService.remove(id, user);
+  @Auth(Role.Admin, Role.Staff)
+  remove(@Param('id') id: string) {
+    return this.subcategoryService.remove(id);
   }
 }

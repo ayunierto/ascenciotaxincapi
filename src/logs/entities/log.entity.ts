@@ -1,5 +1,11 @@
 import { User } from 'src/auth/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Log {
@@ -10,11 +16,10 @@ export class Log {
   description: string;
 
   @ManyToOne(() => User, (user) => user.logs, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   user: User;
 
-  @Column('timestamp with time zone', { default: () => 'CURRENT_TIMESTAMP' })
-  date: Date;
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt: Date;
 }

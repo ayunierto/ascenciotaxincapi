@@ -1,21 +1,11 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateSubcategoryDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsBoolean()
-  @IsOptional()
-  isSystem?: boolean;
-
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
   categoryId: string;
 }

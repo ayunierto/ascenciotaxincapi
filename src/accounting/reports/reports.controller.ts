@@ -1,10 +1,11 @@
 import { Controller, Get, Header, Query, Res } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Response } from 'express';
-import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { User } from 'src/auth/entities/user.entity';
 import { CreateReportDto } from './dto/create-report.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('reports')
 export class ReportsController {

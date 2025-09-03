@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { ServicesService } from 'src/services/services.service';
 import { UsersService } from '../users/users.service';
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { StaffService } from 'src/staff/staff.service';
-import { ValidRoles } from 'src/auth/interfaces';
 import { PostsService } from '../blog/posts/posts.service';
 import { CategoriesService } from 'src/accounting/categories/categories.service';
 import { SubcategoryService } from '../accounting/subcategories/subcategories.service';
 import { CurrencyService } from 'src/accounting/currencies/currencies.service';
-import { AccountsTypesService } from 'src/accounting/accounts-types/accounts-types.service';
+import { AccountTypesService } from 'src/accounting/accounts-types/account-types.service';
 import { AccountService } from 'src/accounting/accounts/accounts.service';
-import { UtilityService } from '../utility/utility.service';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Injectable()
 export class SeedService {
@@ -23,324 +23,267 @@ export class SeedService {
     private readonly categoriesService: CategoriesService,
     private readonly subcategoryService: SubcategoryService,
     private readonly currencyService: CurrencyService,
-    private readonly accountTypeService: AccountsTypesService,
+    private readonly accountTypesService: AccountTypesService,
     private readonly accountService: AccountService,
-    private readonly utilityService: UtilityService,
+    // private readonly utilityService: UtilityService,
   ) {}
 
   async runSeed() {
     try {
       await this.deleteData();
-      // return { msg: 'date eliminate' };
+
+      // Create currencies
+      const currencyCanadianDollar = await this.currencyService.create({
+        name: 'Canadian dollar',
+        coinSuffix: 'CAD',
+        symbol: '$',
+      });
+      if ('error' in currencyCanadianDollar) {
+        throw new InternalServerErrorException(currencyCanadianDollar.message);
+      }
+
+      // Create an account type
+      const accountTypeCash = await this.accountTypesService.create({
+        name: 'Cash',
+        description: 'Cash account',
+      });
+      if ('error' in accountTypeCash) {
+        throw new InternalServerErrorException(accountTypeCash.message);
+      }
+
+      // Create an account
+      // This is the main cash account for the business
+      const accountCash = await this.accountService.create({
+        accountTypeId: accountTypeCash.id,
+        currencyId: currencyCanadianDollar.id,
+        name: 'Cash',
+        description: 'Cash account',
+        icon: 'cash',
+      });
+      if ('error' in accountCash) {
+        throw new InternalServerErrorException(accountCash.message);
+      }
 
       // Create users
       const yulierUser = await this.usersService.create({
-        name: 'Yulier',
+        firstName: 'Yulier',
         lastName: 'Rondon',
         email: 'rondonyulier@gmail.com',
-        phoneNumber: '+16474669318',
-        password: await this.utilityService.hashPassword('Abcd1234'),
-        birthdate: new Date('1993-01-18'),
+        // phoneNumber: '+16474669318',
+        // password: await this.utilityService.hashPassword('Abcd1234'),
+        password: bcrypt.hashSync('Abcd1234', 10),
         isActive: true,
         isEmailVerified: true,
-        roles: [ValidRoles.staff, ValidRoles.admin],
+        roles: [Role.Staff, Role.Admin],
       });
-      const luciaUser = await this.usersService.create({
-        name: 'Lucia',
-        lastName: 'Ascencio',
-        email: 'lucia@ascenciotaxinc.com',
-        phoneNumber: '+10000000002',
-        password: await this.utilityService.hashPassword('Abcd1234'),
-        birthdate: new Date('2000-01-01'),
-        isEmailVerified: true,
-        isActive: true,
-        roles: [ValidRoles.superUser],
-      });
+      if ('error' in yulierUser) {
+        return ' failed to create user: ' + yulierUser.message;
+      }
 
       // Create Schedule
       // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
       // for luxon
-      const scheduleMondayYulier = await this.scheduleService.create(
-        {
-          weekday: 1,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleTuesdayYulier = await this.scheduleService.create(
-        {
-          weekday: 2,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleWednesdayYulier = await this.scheduleService.create(
-        {
-          weekday: 3,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleThursdayYulier = await this.scheduleService.create(
-        {
-          weekday: 4,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleFridayYulier = await this.scheduleService.create(
-        {
-          weekday: 5,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleMondayLucia = await this.scheduleService.create(
-        {
-          weekday: 1,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleTuesdayLucia = await this.scheduleService.create(
-        {
-          weekday: 2,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleWednesdayLucia = await this.scheduleService.create(
-        {
-          weekday: 3,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleThursdayLucia = await this.scheduleService.create(
-        {
-          weekday: 4,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
-      const scheduleFridayLucia = await this.scheduleService.create(
-        {
-          weekday: 5,
-          startTime: '09:30:00',
-          endTime: '19:30:00',
-        },
-        yulierUser,
-      );
+      const scheduleMondayYulier = await this.scheduleService.create({
+        weekday: 1,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleTuesdayYulier = await this.scheduleService.create({
+        weekday: 2,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleWednesdayYulier = await this.scheduleService.create({
+        weekday: 3,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleThursdayYulier = await this.scheduleService.create({
+        weekday: 4,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleFridayYulier = await this.scheduleService.create({
+        weekday: 5,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleMondayLucia = await this.scheduleService.create({
+        weekday: 1,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleTuesdayLucia = await this.scheduleService.create({
+        weekday: 2,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleWednesdayLucia = await this.scheduleService.create({
+        weekday: 3,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleThursdayLucia = await this.scheduleService.create({
+        weekday: 4,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
+      const scheduleFridayLucia = await this.scheduleService.create({
+        weekday: 5,
+        startTime: '09:30:00',
+        endTime: '19:30:00',
+      });
 
       // Create staff
-      const yulierStaff = await this.staffService.create(
-        {
-          name: 'Yulier',
-          lastName: 'Rondon',
-          isActive: true,
-          services: [],
-          schedules: [
-            scheduleMondayYulier.id,
-            scheduleTuesdayYulier.id,
-            scheduleWednesdayYulier.id,
-            scheduleThursdayYulier.id,
-            scheduleFridayYulier.id,
-          ],
-        },
-        yulierUser,
-      );
-      const luciaStaff = await this.staffService.create(
-        {
-          name: 'Lucia',
-          lastName: 'Ascencio',
-          isActive: true,
-          services: [],
-          schedules: [
-            scheduleMondayLucia.id,
-            scheduleTuesdayLucia.id,
-            scheduleWednesdayLucia.id,
-            scheduleThursdayLucia.id,
-            scheduleFridayLucia.id,
-          ],
-        },
-        yulierUser,
-      );
+      const yulierStaff = await this.staffService.create({
+        firstName: 'Yulier',
+        lastName: 'Rondon',
+        isActive: true,
+        services: [],
+        schedules: [
+          scheduleMondayYulier.id,
+          scheduleTuesdayYulier.id,
+          scheduleWednesdayYulier.id,
+          scheduleThursdayYulier.id,
+          scheduleFridayYulier.id,
+        ],
+      });
+      const luciaStaff = await this.staffService.create({
+        firstName: 'Lucia',
+        lastName: 'Ascencio',
+        isActive: true,
+        services: [],
+        schedules: [
+          scheduleMondayLucia.id,
+          scheduleTuesdayLucia.id,
+          scheduleWednesdayLucia.id,
+          scheduleThursdayLucia.id,
+          scheduleFridayLucia.id,
+        ],
+      });
 
       // Create services
-      await this.servicesService.create(
-        {
-          name: 'In-person Tax Filing (Walk-in)',
-          isAvailableOnline: false,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Personal Income Tax',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/21276e9bb2a04809a76f2a7bfe161219.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/21276e9bb2a04809a76f2a7bfe161219.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Corporate Taxes',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Self-Employed & Small Business Tax',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'GST/HST or WSIB Report',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg/v1/fill/w_239,h_154,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Business Registration',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Rental Income Taxes',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Social insurance number for non-resident',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,lg_1,q_80,enc_auto/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg',
-          ],
-          staff: [yulierStaff.id, luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Canada Child Benefit Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Canada Pension Plan(CPP) Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
-      await this.servicesService.create(
-        {
-          name: 'Old Age Security Application',
-          isAvailableOnline: true,
-          isActive: true,
-          duration: 60,
-          images: [
-            'https://static.wixstatic.com/media/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png',
-          ],
-          staff: [luciaStaff.id],
-          price: 0,
-          address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
-        },
-        yulierUser,
-      );
+      await this.servicesService.create({
+        name: 'In-person Tax Filing (Walk-in)',
+        isAvailableOnline: false,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_5fb808f66e4b41038b49b058c95190c2~mv2.png',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Personal Income Tax',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/21276e9bb2a04809a76f2a7bfe161219.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/21276e9bb2a04809a76f2a7bfe161219.jpg',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Corporate Taxes',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_c9f84384d13c494299acf45125117e96~mv2.jpg',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Self-Employed & Small Business Tax',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_0aea4a48bc864e5ab04c1d94b1a145fb~mv2.png',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'GST/HST or WSIB Report',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg/v1/fill/w_239,h_154,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_e73f109535a947268a55a563aa3b0e2c~mv2.jpg',
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Business Registration',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/11062b_f91c262d508e47da8314867ab2d623f4~mv2.jpg',
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Rental Income Taxes',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_69ebf2d97fbc4330a8f37ec181f07a88~mv2.jpg',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Social insurance number for non-resident',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,lg_1,q_80,enc_auto/aa0f39_bc524b4aad49445aaadc48d1a7d8ea33~mv2.jpg',
+        staff: [yulierStaff.id, luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Canada Child Benefit Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_7e98e260c35f4223bb0f9e2bef147b59~mv2.jpg',
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Canada Pension Plan(CPP) Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg/v1/fill/w_266,h_172,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_auto/aa0f39_1b6aa90b46a54c21800559f2b0a04030~mv2.jpg',
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
+      await this.servicesService.create({
+        name: 'Old Age Security Application',
+        isAvailableOnline: true,
+        isActive: true,
+        duration: 60,
+        image:
+          'https://static.wixstatic.com/media/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png/v1/fill/w_266,h_172,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_auto/aa0f39_41fd90ee5d43439387b7fda342727dde~mv2.png',
+        staff: [luciaStaff.id],
+        price: 0,
+        address: '1219 St Clair Ave W suite 15, Toronto, ON, Canada',
+      });
 
       // Create posts
       await this.postsService.create(
@@ -383,314 +326,138 @@ export class SeedService {
       );
 
       // Create main default categories
-      const expenses = await this.categoriesService.create(
-        {
-          name: 'Expenses',
-          isSystem: true,
-          description: 'Category for expenses',
-        },
-        yulierUser,
-      );
-      const motorVehicleExpensesBusiness = await this.categoriesService.create(
-        {
-          name: 'Motor Vehicle Expenses (Business)',
-          isSystem: true,
-          description: 'Category for expenses related to motor vehicles',
-        },
-        yulierUser,
-      );
-      const businessUseOfHomeUtilities = await this.categoriesService.create(
-        {
-          name: 'Business-use-of- home (Utilities)',
-          isSystem: true,
-          description: 'Category for expenses related to business-use-of-home',
-        },
-        yulierUser,
-      );
-      await this.categoriesService.create(
-        {
-          name: 'Medical Expenses',
-          isSystem: true,
-          description: 'FOR PERSONAL TAXES',
-        },
-        yulierUser,
-      );
-      await this.categoriesService.create(
-        {
-          name: 'Rent',
-          isSystem: true,
-          description: 'FOR PERSONAL TAXES',
-        },
-        yulierUser,
-      );
+      const expenses = await this.categoriesService.create({
+        name: 'Expenses',
+        description: 'Category for expenses',
+      });
+      const motorVehicleExpensesBusiness = await this.categoriesService.create({
+        name: 'Motor Vehicle Expenses (Business)',
+        description: 'Category for expenses related to motor vehicles',
+      });
+      const businessUseOfHomeUtilities = await this.categoriesService.create({
+        name: 'Business-use-of- home (Utilities)',
+        description: 'Category for expenses related to business-use-of-home',
+      });
+      await this.categoriesService.create({
+        name: 'Medical Expenses',
+        description: 'FOR PERSONAL TAXES',
+      });
+      await this.categoriesService.create({
+        name: 'Rent',
+        description: 'FOR PERSONAL TAXES',
+      });
 
       // Create default subcategories
-      await this.subcategoryService.create(
-        {
-          name: 'Office Rental',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Utilities',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Phone',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office Internet',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Office maintenance/ Repairs ',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Storage Rent',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Uniform',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Rental Equipment/ Car Rental',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Accounting/ Legal/ Other professional Fees',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Memberships/ Subscriptions',
-          isSystem: true,
-          categoryId: expenses.id,
-        },
-        yulierUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Office Rental',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Utilities',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Phone',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office Internet',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Office maintenance/ Repairs ',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Storage Rent',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Uniform',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Rental Equipment/ Car Rental',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Accounting/ Legal/ Other professional Fees',
+        categoryId: expenses.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Memberships/ Subscriptions',
+        categoryId: expenses.id,
+      });
       // Subcategories for motor vehicles expenses
-      await this.subcategoryService.create(
-        {
-          name: 'Gasoline',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: '407 Ert',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Parking',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Parking Fines',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Repair/ Maintenance Car',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'License/ Registration',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Car Wash',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Lease Payments ',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Purchase/ Financing',
-          isSystem: true,
-          categoryId: motorVehicleExpensesBusiness.id,
-        },
-        yulierUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Gasoline',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: '407 Ert',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Parking',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Parking Fines',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Repair/ Maintenance Car',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'License/ Registration',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Car Wash',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Lease Payments ',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Purchase/ Financing',
+        categoryId: motorVehicleExpensesBusiness.id,
+      });
       // Subcategories for Business-use-of- home (Utilities)
-      await this.subcategoryService.create(
-        {
-          name: 'Rental Water Heater',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Gas Natural',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Hydro/ Electricity',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Water',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Maintenance & Repairs',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Interest Mortgage',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Property Tax Bill',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-      await this.subcategoryService.create(
-        {
-          name: 'Home Insurance',
-          isSystem: true,
-          categoryId: businessUseOfHomeUtilities.id,
-        },
-        yulierUser,
-      );
-
-      // Create currencies
-      const currencyCanadianDollar = await this.currencyService.create(
-        {
-          name: 'Canadian dollar',
-          coinSuffix: 'CAD',
-          symbol: '$',
-        },
-        yulierUser,
-      );
-
-      // Create accountType and account for yulierUser
-      const accountTypeCashYulier = await this.accountTypeService.create(
-        {
-          name: 'Cash',
-          description: 'Cash account',
-        },
-        yulierUser,
-      );
-      await this.accountService.create(
-        {
-          accountTypeId: accountTypeCashYulier.id,
-          currencyId: currencyCanadianDollar.id,
-          name: 'Cash',
-          description: 'Cash account',
-          icon: 'cash',
-        },
-        yulierUser,
-      );
-
-      // Create accountType and account for luciaUser
-      const accountTypeCashLucia = await this.accountTypeService.create(
-        {
-          name: 'Cash',
-          description: 'Cash account',
-        },
-        luciaUser,
-      );
-      await this.accountService.create(
-        {
-          accountTypeId: accountTypeCashLucia.id,
-          currencyId: currencyCanadianDollar.id,
-          name: 'Cash',
-          description: 'Cash account',
-          icon: 'cash',
-        },
-        luciaUser,
-      );
+      await this.subcategoryService.create({
+        name: 'Rental Water Heater',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Gas Natural',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Hydro/ Electricity',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Water',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Maintenance & Repairs',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Interest Mortgage',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Property Tax Bill',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
+      await this.subcategoryService.create({
+        name: 'Home Insurance',
+        categoryId: businessUseOfHomeUtilities.id,
+      });
 
       return {
         message: 'Seed Executed',

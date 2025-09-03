@@ -11,11 +11,12 @@ import {
 import { ExpenseService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AnalyzeExpenseDto } from './dto/analyze-expense.dto';
 import { AwsService } from 'src/aws/aws.service';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('expense')
 export class ExpenseController {
@@ -59,7 +60,7 @@ export class ExpenseController {
   }
 
   @Post('analyze-expense')
-  // @Auth()
+  @Auth()
   analyzeExpense(@Body() analyzeExpenseDto: AnalyzeExpenseDto) {
     return this.awsService.analyzeExpense(analyzeExpenseDto);
   }

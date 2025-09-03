@@ -2,10 +2,12 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import {
   AnalyzeExpenseCommand,
+  AnalyzeExpenseCommandInput,
   TextractClient,
 } from '@aws-sdk/client-textract';
 import { AnalyzeExpenseDto } from '../accounting/expenses/dto/analyze-expense.dto';
 import { DateTime } from 'luxon';
+import { AnalyzeExpenseResponse } from './interfaces';
 
 @Injectable()
 export class AwsService {
@@ -25,10 +27,12 @@ export class AwsService {
     });
   }
 
-  async analyzeExpense(analyzeExpenseDto: AnalyzeExpenseDto) {
+  async analyzeExpense(
+    analyzeExpenseDto: AnalyzeExpenseDto,
+  ): Promise<AnalyzeExpenseResponse> {
     const { base64Image } = analyzeExpenseDto;
     try {
-      const input = {
+      const input: AnalyzeExpenseCommandInput = {
         Document: {
           Bytes: Buffer.from(base64Image, 'base64'),
         },

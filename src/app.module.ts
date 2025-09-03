@@ -15,14 +15,12 @@ import { CalendarModule } from './calendar/calendar.module';
 import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
 import { PostsModule } from './blog/posts/posts.module';
-
 import { CategoriesModule } from './accounting/categories/categories.module';
-import { IncomeModule } from './accounting/incomes/incomes.module';
 import { ExpenseModule } from './accounting/expenses/expenses.module';
 import { AccountModule } from './accounting/accounts/accounts.module';
 import { TagsModule } from './accounting/tags/tags.module';
 import { SubcategoryModule } from './accounting/subcategories/subcategories.module';
-import { AccountsTypesModule } from './accounting/accounts-types/accounts-types.module';
+import { AccountsTypesModule } from './accounting/accounts-types/account-types.module';
 import { CurrencyModule } from './accounting/currencies/currencies.module';
 import { LogsModule } from './logs/logs.module';
 import { AwsModule } from './aws/aws.module';
@@ -30,7 +28,7 @@ import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 import { TwilioModule } from './twilio/twilio.module';
-import { UtilityModule } from './utility/utility.module';
+// import { UtilityModule } from './utility/utility.module';
 
 @Module({
   imports: [
@@ -45,8 +43,8 @@ import { UtilityModule } from './utility/utility.module';
       // database: process.env.DB_NAME,
       // username: process.env.DB_USERNAME,
       // password: process.env.DB_PASSWORD,
-      autoLoadEntities: true,
-      synchronize: true,
+      autoLoadEntities: process.env.STAGE === 'dev' ? true : false,
+      synchronize: process.env.STAGE === 'dev' ? true : false,
     }),
     AuthModule,
     ServicesModule,
@@ -63,7 +61,6 @@ import { UtilityModule } from './utility/utility.module';
     MailModule,
     PostsModule,
     CategoriesModule,
-    IncomeModule,
     ExpenseModule,
     AccountModule,
     TagsModule,
@@ -76,7 +73,7 @@ import { UtilityModule } from './utility/utility.module';
     PrinterModule,
     NotificationModule,
     TwilioModule,
-    UtilityModule,
+    // UtilityModule,
   ],
   controllers: [],
   providers: [],

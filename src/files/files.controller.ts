@@ -8,15 +8,13 @@ import {
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileFilter } from './helpers/fileFilter.helper';
-import { v2 as cloudinary, UploadStream } from 'cloudinary';
-import { Auth } from 'src/auth/decorators';
+import { v2 as cloudinary } from 'cloudinary';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Post('upload')
-  @Auth()
   @UseInterceptors(
     FileInterceptor('file', {
       fileFilter: FileFilter,
@@ -42,17 +40,17 @@ export class FilesController {
 
       console.log(uploadResult);
 
-       if ('public_id' in uploadResult) {
+      if ('public_id' in uploadResult) {
         const optimizeUrl = cloudinary.url(uploadResult.public_id, {
-            fetch_format: 'auto',
-            quality: 'auto'
+          fetch_format: 'auto',
+          quality: 'auto',
         });
         return { image: optimizeUrl };
-      } 
+      }
       console.log('UploadStream:', uploadResult);
       return {
-        image: 'No image uploaded'
-      }
+        image: 'No image uploaded',
+      };
     } catch (error) {
       console.error(error);
       return new BadRequestException('Upload Failed');
