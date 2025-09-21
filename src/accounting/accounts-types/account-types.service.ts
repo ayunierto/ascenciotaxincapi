@@ -20,7 +20,7 @@ export class AccountTypesService {
   constructor(
     @InjectRepository(AccountType)
     private readonly accountTypeRepository: Repository<AccountType>,
-  ) {}
+  ) { }
 
   async create(
     createAccountTypeDto: CreateAccountTypeDto,
@@ -53,24 +53,16 @@ export class AccountTypesService {
   }
 
   async findOne(id: string): Promise<GetAccountTypeResponse> {
-    try {
-      const account = await this.accountTypeRepository.findOneBy({ id });
-      if (!account) {
-        throw new NotFoundException('Account type not found');
-      }
-      return account;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred while finding account type. Please try again later.',
-        'GET_ACCOUNT_TYPE_FAILED',
-      );
+    const account = await this.accountTypeRepository.findOneBy({ id });
+    if (!account) {
+      throw new NotFoundException('Account type not found');
     }
+    return account;
   }
 
   async update(id: string, updateAccountTypeDto: UpdateAccountTypeDto) {
     try {
-      const accountType = await this.accountTypeRepository.findOneBy({ id });
+      const accountType = await this.findOne(id);
       if (!accountType) {
         throw new NotFoundException('Account type not found');
       }

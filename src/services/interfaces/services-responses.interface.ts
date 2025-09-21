@@ -1,8 +1,11 @@
-import { ExceptionResponse } from 'src/common/interfaces';
 import { Service } from '../entities';
 
-export type CreateServiceResponse = Service | ExceptionResponse;
-export type GetServiceResponse = Service | ExceptionResponse;
-export type GetServicesResponse = Service[] | ExceptionResponse;
-export type UpdateServiceResponse = Service | ExceptionResponse;
-export type DeleteServiceResponse = Service | ExceptionResponse;
+export type CreateServiceResponse = Service;
+export type GetServiceResponse = Service;
+export type GetServicesResponse = {
+  count: number;
+  pages: number;
+  services: Service[];
+};
+export type UpdateServiceResponse = Service;
+export type DeleteServiceResponse = Service;

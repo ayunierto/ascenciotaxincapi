@@ -25,7 +25,7 @@ export class User {
   lastName: string;
 
   @Column({ type: 'text', nullable: true })
-  image: string;
+  imageUrl: string;
 
   @Column({ unique: true })
   email: string;

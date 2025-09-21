@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -17,10 +18,10 @@ export class Schedule {
   @Column('integer')
   weekday: number;
 
-  @Column('time')
+  @Column()
   startTime: string;
 
-  @Column('time')
+  @Column()
   endTime: string;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
@@ -30,6 +31,6 @@ export class Schedule {
   updatedAt: Date;
 
   // Relationships
-  @ManyToOne(() => Staff, (staff) => staff.schedules, { onDelete: 'CASCADE' })
-  staff: Staff;
+  @ManyToMany(() => Staff, (staff) => staff.schedules)
+  staff: Staff[];
 }

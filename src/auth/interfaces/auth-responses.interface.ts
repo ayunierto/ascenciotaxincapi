@@ -1,4 +1,3 @@
-import { ExceptionResponse } from 'src/common/interfaces';
 import { BasicUser } from './basic-user.interface';
 
 export interface UserTokenResponse {
@@ -17,18 +16,14 @@ export interface OnlyMessageResponse {
   error?: string;
 }
 
-export type SignUpResponse = UserMessageResponse | ExceptionResponse;
-export type VerifyEmailCodeResponse = UserMessageResponse | ExceptionResponse;
-export type ResendEmailVerificationResponse =
-  | OnlyMessageResponse
-  | ExceptionResponse;
-export type SignInResponse = UserTokenResponse | ExceptionResponse;
-export type ForgotPasswordResponse = OnlyMessageResponse | ExceptionResponse;
-export type ResetPasswordResponse = OnlyMessageResponse | ExceptionResponse;
-export type CheckStatusResponse = UserTokenResponse | ExceptionResponse;
-export type ResendResetPasswordCodeResponse =
-  | OnlyMessageResponse
-  | ExceptionResponse;
-export type ChangePasswordResponse = UserMessageResponse | ExceptionResponse;
-export type DeleteAccountResponse = UserMessageResponse | ExceptionResponse;
-export type UpdateProfileResponse = UserMessageResponse | ExceptionResponse;
+export type SignUpResponse = UserMessageResponse;
+export type VerifyEmailCodeResponse = UserMessageResponse;
+export type ResendEmailVerificationResponse = OnlyMessageResponse;
+export type SignInResponse = UserTokenResponse;
+export type ForgotPasswordResponse = OnlyMessageResponse;
+export type ResetPasswordResponse = OnlyMessageResponse;
+export type CheckStatusResponse = UserTokenResponse;
+export type ResendResetPasswordCodeResponse = OnlyMessageResponse;
+export type ChangePasswordResponse = UserMessageResponse;
+export type DeleteAccountResponse = UserMessageResponse;
+export type UpdateProfileResponse = UserMessageResponse;

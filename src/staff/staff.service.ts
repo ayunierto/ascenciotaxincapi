@@ -33,12 +33,23 @@ export class StaffService {
     } = createStaffDto;
 
     try {
-      const services = await this.serviceRepository.findBy({
-        id: In(servicesIds),
-      });
-      const schedules = await this.scheduleRepository.findBy({
-        id: In(schedulesIds),
-      });
+      const services = [];
+      if (servicesIds && servicesIds.length > 0) {
+        services.push(
+          ...(await this.serviceRepository.findBy({
+            id: In(servicesIds),
+          })),
+        );
+      }
+      const schedules = [];
+      if (schedulesIds && schedulesIds.length > 0) {
+        schedules.push(
+          ...(await this.scheduleRepository.findBy({
+            id: In(schedulesIds),
+          })),
+        );
+      }
+
       const staff = this.staffRepository.create({
         services,
         schedules,
@@ -49,7 +60,8 @@ export class StaffService {
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating staff. Please try again later.',
+        error.message ||
+          'An unexpected error occurred while creating staff. Please try again later.',
       );
     }
   }
@@ -72,12 +84,17 @@ export class StaffService {
 
   async findOne(id: string) {
     try {
-      const staff = await this.staffRepository.findOneBy({ id });
+      const staff = await this.staffRepository.findOne({
+        where: { id },
+        relations: {
+          services: true,
+          schedules: true,
+        },
+      });
       if (!staff) throw new NotFoundException('Staff not found.');
 
       return staff;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while finding staff. Please try again later.',
       );
@@ -92,12 +109,22 @@ export class StaffService {
     } = updateStaffDto;
 
     try {
-      const services = await this.serviceRepository.findBy({
-        id: In(servicesIds),
-      });
-      const schedules = await this.scheduleRepository.findBy({
-        id: In(schedulesIds),
-      });
+      const services = [];
+      if (servicesIds && servicesIds.length > 0) {
+        services.push(
+          ...(await this.serviceRepository.findBy({
+            id: In(servicesIds),
+          })),
+        );
+      }
+      const schedules = [];
+      if (schedulesIds && schedulesIds.length > 0) {
+        schedules.push(
+          ...(await this.scheduleRepository.findBy({
+            id: In(schedulesIds),
+          })),
+        );
+      }
 
       const staff = await this.staffRepository.preload({
         id,

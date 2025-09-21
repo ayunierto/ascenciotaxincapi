@@ -27,16 +27,18 @@ export class UsersController {
   }
 
   @Get()
+  @Auth(Role.Admin)
   findAll(@Query() paginationDto: PaginationDto) {
     return this.usersService.findAll(paginationDto);
   }
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersService.findOne(id);
+    return this.usersService.findById(id);
   }
 
   @Patch(':id')
+  @Auth(Role.Admin)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -45,6 +47,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Auth(Role.Admin)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }

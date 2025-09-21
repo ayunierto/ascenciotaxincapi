@@ -36,22 +36,26 @@ export class ServicesService {
     try {
       const { staff: staffIds, ...rest } = createServiceDto;
 
-      const staff = await this.staffRepository.findBy({
-        id: In(staffIds),
-      });
-      if (!staff) throw new BadRequestException(`Provided staff  not found.`);
+      const staff = [];
+      if (staffIds && staffIds.length > 0) {
+        staff.push(
+          ...(await this.staffRepository.findBy({
+            id: In(staffIds),
+          })),
+        );
+      }
 
       const service = this.serviceRepository.create({
         staff,
         ...rest,
       });
-      await this.serviceRepository.save(service);
-      return service;
+
+      return await this.serviceRepository.save(service);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating service. Please try again later.',
-        'CREATE_SERVICE_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating service. Please try again later.',
       );
     }
   }
@@ -66,16 +70,22 @@ export class ServicesService {
           staff: true,
         },
         order: {
-          name: 'ASC',
+          id: 'ASC',
         },
       });
 
-      return services;
+      const total = await this.serviceRepository.count();
+
+      return {
+        count: total,
+        pages: Math.ceil(total / limit),
+        services: services,
+      };
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while finding services. Please try again later.',
-        'GET_SERVICES_FAILED',
+        error.message ||
+          'An unexpected error occurred while finding services. Please try again later.',
       );
     }
   }
@@ -90,14 +100,14 @@ export class ServicesService {
           staff: true,
         },
       });
-      if (!service) throw new NotFoundException();
+      if (!service) throw new NotFoundException('Service not found.');
 
       return service;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while finding services. Please try again later.',
-        'GET_SERVICE_FAILED',
+        error.message ||
+          'An unexpected error occurred while finding services. Please try again later.',
       );
     }
   }
@@ -106,54 +116,44 @@ export class ServicesService {
     id: string,
     updateServiceDto: UpdateServiceDto,
   ): Promise<UpdateServiceResponse> {
-    const { staff, ...rest } = updateServiceDto;
-    const dbStaff = await this.staffRepository.findBy({
-      id: In(staff),
-    });
-    if (!dbStaff) throw new BadRequestException('Provided staff not found');
-    const service = await this.serviceRepository.preload({
-      id,
-      staff: dbStaff,
-      ...rest,
-    });
-    if (!service) throw new NotFoundException(`Image not found`);
-
-    // Create queryRunner
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const { staff: staffIds, ...rest } = updateServiceDto;
 
     try {
-      await queryRunner.manager.save(service);
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
-      // await this.serviceRepository.save(service);
-      return this.findOne(id);
+      const staff: Staff[] = [];
+      if (staffIds && staffIds.length > 0) {
+        staff.push(
+          ...(await this.staffRepository.findBy({
+            id: In(staffIds),
+          })),
+        );
+      }
+
+      const service = await this.serviceRepository.preload({
+        id,
+        staff,
+        ...rest,
+      });
+      if (!service) throw new NotFoundException('Service not found.');
+
+      return await this.serviceRepository.save(service);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      await queryRunner.release();
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while updating service. Please try again later.',
-        'UPDATE_SERVICE_FAILED',
+        error.message ||
+          'An unexpected error occurred while updating service. Please try again later.',
       );
     }
   }
 
   async remove(id: string): Promise<DeleteServiceResponse> {
     try {
-      const service = await this.serviceRepository.findOneBy({ id });
-      if (!service)
-        throw new NotFoundException(`Service with id ${id} not found`);
-
+      const service = await this.findOne(id);
       await this.serviceRepository.remove(service);
-
       return service;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while deleting service. Please try again later.',
-        'DELETE_SERVICE_FAILED',
+        error.message ||
+          'An unexpected error occurred while deleting service. Please try again later.',
       );
     }
   }

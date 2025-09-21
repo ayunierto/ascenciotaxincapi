@@ -8,24 +8,17 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { Repository } from 'typeorm';
 import { Currency } from './entities/currency.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  CreateCurrencyResponse,
-  DeleteCurrencyResponse,
-  GetCurrenciesResponse,
-  GetCurrencyResponse,
-  UpdateCurrencyResponse,
-} from './interfaces';
 
 @Injectable()
 export class CurrencyService {
   constructor(
     @InjectRepository(Currency)
     private readonly currencyRepository: Repository<Currency>,
-  ) {}
+  ) { }
 
   async create(
     createCurrencyDto: CreateCurrencyDto,
-  ): Promise<CreateCurrencyResponse> {
+  ): Promise<Currency> {
     try {
       const newCurrency = this.currencyRepository.create({
         ...createCurrencyDto,
@@ -41,7 +34,7 @@ export class CurrencyService {
     }
   }
 
-  async findAll(): Promise<GetCurrenciesResponse> {
+  async findAll(): Promise<Currency[]> {
     try {
       const currencies = await this.currencyRepository.find();
       return currencies;
@@ -54,7 +47,7 @@ export class CurrencyService {
     }
   }
 
-  async findOne(id: string): Promise<GetCurrencyResponse> {
+  async findOne(id: string): Promise<Currency> {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
       if (!currency) {
@@ -73,7 +66,7 @@ export class CurrencyService {
   async update(
     id: string,
     updateCurrencyDto: UpdateCurrencyDto,
-  ): Promise<UpdateCurrencyResponse> {
+  ): Promise<Currency> {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
       if (!currency) throw new NotFoundException('Currency not found');
@@ -93,7 +86,7 @@ export class CurrencyService {
     }
   }
 
-  async remove(id: string): Promise<DeleteCurrencyResponse> {
+  async remove(id: string): Promise<Currency> {
     try {
       const currency = await this.currencyRepository.findOneBy({ id });
       if (!currency) {

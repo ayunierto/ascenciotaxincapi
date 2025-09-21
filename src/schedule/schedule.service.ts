@@ -8,45 +8,32 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './entities/schedule.entity';
 import { Repository } from 'typeorm';
-import { Staff } from 'src/staff/entities/staff.entity';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
-    @InjectRepository(Staff)
-    private readonly staffRepository: Repository<Staff>,
   ) {}
 
-  async create(createScheduleDto: CreateScheduleDto) {
-    const { staff: id, ...rest } = createScheduleDto;
-
-    const staff = await this.staffRepository.findOneBy({
-      id,
-    });
-
+  async create(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
     try {
-      const schedule = this.scheduleRepository.create({
-        staff,
-        ...rest,
-      });
+      const schedule = this.scheduleRepository.create(createScheduleDto);
 
       return await this.scheduleRepository.save(schedule);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating schedule. Please try again later.',
+        error.message ||
+          'An unexpected error occurred while creating schedule. Please try again later.',
       );
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<Schedule[]> {
     try {
       return await this.scheduleRepository.find({
-        relations: {
-          staff: true,
-        },
+        order: { weekday: 'ASC' },
       });
     } catch (error) {
       console.error(error);
@@ -56,7 +43,7 @@ export class ScheduleService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Schedule> {
     try {
       const schedule = await this.scheduleRepository.findOneBy({ id });
       if (!schedule) throw new NotFoundException();
@@ -70,39 +57,32 @@ export class ScheduleService {
     }
   }
 
-  async update(id: string, updateScheduleDto: UpdateScheduleDto) {
-    const { staff, ...rest } = updateScheduleDto;
-
-    const dbStaff = await this.staffRepository.findOneBy({
-      id: staff,
-    });
-
-    const schedule = await this.scheduleRepository.preload({
-      id,
-      staff: dbStaff,
-      ...rest,
-    });
-    if (!staff) throw new NotFoundException();
+  async update(
+    id: string,
+    updateScheduleDto: UpdateScheduleDto,
+  ): Promise<Schedule> {
     try {
-      await this.scheduleRepository.save(schedule);
-      return schedule;
+      const schedule = await this.findOne(id);
+      const updatedSchedule = this.scheduleRepository.merge(
+        schedule,
+        updateScheduleDto,
+      );
+      const result = await this.scheduleRepository.save(updatedSchedule);
+      return result;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred while updating schedule. Please try again later.',
-      );
+      throw error;
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<Schedule> {
     try {
-      const schedule = await this.scheduleRepository.findOneBy({ id });
-      return await this.scheduleRepository.remove(schedule);
+      const schedule = await this.findOne(id);
+      await this.scheduleRepository.remove(schedule);
+      return schedule;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred while deleting schedule. Please try again later.',
-      );
+      throw error;
     }
   }
 }

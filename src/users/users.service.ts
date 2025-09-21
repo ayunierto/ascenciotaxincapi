@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -22,52 +23,56 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  /**
-   * Creates a new user record in the database.
-   * @param userData The data for the new user.
-   * @returns The created user entity.
-   * @throws InternalServerErrorException on database errors.
-   */
-  async create(userData: Partial<User>): Promise<User | ExceptionResponse> {
-    // Check if user already exists
-    const existingUser = await this.findByEmail(userData.email);
-    if (existingUser)
-      return {
-        cause: 'email_already_exists',
-        message: 'Email already exists, please login.',
-        error: 'Conflict',
-        statusCode: HttpStatus.CONFLICT,
-      };
+  async create(userData: Partial<User>): Promise<User> {
+    const user = await this.usersRepository.findOneBy({
+      email: userData.email,
+    });
+    if (user)
+      throw new ConflictException('Email already in use.', {
+        cause: 'email_already_in_use',
+        description: `The email ${userData.email} is already registered.`,
+      });
 
-    // Hash the password
-    const passwordHash = await this.hashPassword(userData.password);
+    const hashedPassword = await this.hashPassword(userData.password);
 
     const newUser = this.usersRepository.create({
       ...userData,
-      password: passwordHash,
+      password: hashedPassword,
     });
 
-    const user = await this.usersRepository.save(newUser);
-    return user;
+    return await this.usersRepository.save(newUser);
   }
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return await this.usersRepository.find({
+    const users = await this.usersRepository.find({
       take: limit,
       skip: offset,
+      order: { firstName: 'ASC' },
     });
+
+    const total = await this.usersRepository.count();
+
+    return {
+      count: total,
+      pages: Math.ceil(total / limit),
+      users: users,
+    };
   }
 
-  async findOne(id: string): Promise<User | null> {
+  async findById(id: string): Promise<User> {
     const user = await this.usersRepository.findOneBy({ id });
-
+    if (!user) {
+      throw new NotFoundException(`User not found.`);
+    }
     return user;
   }
 
-  // For auth login
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException(`User not found.`);
+    }
     return user;
   }
 
@@ -95,35 +100,18 @@ export class UsersService {
     }
   }
 
-  /**
-   * Updates a user record in the database.
-   * Can be used for full or partial updates.
-   * @param id The ID of the user to update.
-   * @param updateData The data to update the user with (can be a partial object).
-   * @returns The updated user entity.
-   * @throws NotFoundException if the user ID does not exist.
-   * @throws InternalServerErrorException on database errors.
-   */
   async update(id: string, updateData: Partial<User>): Promise<User> {
     try {
-      const user = await this.usersRepository.findOneBy({ id });
+      const user = await this.findById(id);
 
-      if (!user)
-        throw new NotFoundException(`User with ID ${id} not found for update.`);
-
-      const updatedUser = Object.assign(user, updateData);
+      const updatedUser = this.usersRepository.merge(user, updateData);
 
       const result = await this.usersRepository.save(updatedUser);
 
       return result;
     } catch (error) {
       console.error(`Database error updating user ${id}:`, error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        `Failed to update user ${id} in the database.`,
-      );
+      throw error;
     }
   }
 
@@ -134,10 +122,7 @@ export class UsersService {
    * @throws InternalServerErrorException on database errors.
    */
   async remove(id: string) {
-    const user = await this.findOne(id);
-
-    if (!user)
-      throw new NotFoundException(`User with ID ${id} not found for delete.`);
+    const user = await this.findById(id);
 
     try {
       await this.usersRepository.remove(user);

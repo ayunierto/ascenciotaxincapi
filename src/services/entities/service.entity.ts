@@ -23,9 +23,6 @@ export class Service {
   @Column('int')
   duration: number;
 
-  @Column('numeric')
-  price: number;
-
   @Column({
     type: 'text',
     nullable: true,
@@ -46,7 +43,7 @@ export class Service {
   @Column('text', {
     nullable: true,
   })
-  image?: string;
+  imageUrl?: string;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
@@ -55,7 +52,7 @@ export class Service {
   updatedAt: Date;
 
   // Relationships
-  @ManyToMany(() => Staff, (staff) => staff.services, { onDelete: 'CASCADE' })
+  @ManyToMany(() => Staff, (staff) => staff.services)
   staff: Staff[];
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)

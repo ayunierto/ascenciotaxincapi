@@ -9,9 +9,8 @@ export class NotificationService {
   private senderName: string;
 
   constructor(private readonly mailService: MailService) {
-    this.senderName = process.env.MAILERSEND_SENDER_NAME;
-    if (!this.senderName)
-      this.logger.error('MAILERSEND_SENDER_NAME is not configured.');
+    this.senderName = process.env.SENDER_NAME;
+    if (!this.senderName) this.logger.error('SENDER_NAME is not configured.');
   }
 
   async sendVerificationEmail(
@@ -57,7 +56,7 @@ export class NotificationService {
     };
 
     try {
-      await this.mailService.sendEmail(mailOptions);
+      await this.mailService.sendMail(mailOptions);
       this.logger.log(
         `Verification email sent successfully to: ${recipientEmail}`,
       );
@@ -112,7 +111,7 @@ export class NotificationService {
     };
 
     try {
-      await this.mailService.sendEmail(mailOptions);
+      await this.mailService.sendMail(mailOptions);
       this.logger.log('Password reset email sended.');
       return true;
     } catch (error) {
@@ -190,7 +189,7 @@ export class NotificationService {
     };
 
     try {
-      await this.mailService.sendEmail(mailOptions);
+      await this.mailService.sendMail(mailOptions);
     } catch (error) {
       console.error(
         `Failed to send appointment confirmation email to ${recipientEmail}:`,
@@ -272,7 +271,7 @@ export class NotificationService {
     };
 
     try {
-      await this.mailService.sendEmail(mailOptions);
+      await this.mailService.sendMail(mailOptions);
       console.log(`Appointment confirmation email sent to ${recipientEmail}`);
     } catch (error) {
       console.error(

@@ -30,6 +30,18 @@ export class CreateUserDto {
   phoneNumber?: string;
 
   @IsString()
+  @IsOptional()
+  locale?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isEmailVerified?: boolean;
+
+  @IsString()
   @MinLength(6)
   @MaxLength(50)
   // @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
@@ -40,12 +52,6 @@ export class CreateUserDto {
 
   @IsBoolean()
   isActive: boolean;
-
-  @IsDate()
-  birthdate?: Date;
-
-  @IsDate()
-  registrationDate: Date;
 
   @IsString({ each: true })
   @IsArray()

@@ -299,25 +299,25 @@ export class AuthService {
     // Check if user exists
     const user = await this.usersRepository.findOneBy({ email });
     if (!user) {
-      this.logger.warn(`Login failed - user not found: ${email}`);
-      throw new UnauthorizedException('Login failed - invalid credentials');
+      this.logger.warn(`Login failed, user not found: ${email}`);
+      throw new UnauthorizedException('Login failed, invalid credentials');
     }
 
     // Check if user is active
     if (!user.isActive) {
-      this.logger.warn(`Login failed - user is inactive: ${email}`);
+      this.logger.warn(`Login failed, user is inactive: ${email}`);
       throw new UnauthorizedException(
-        'Login failed - user is inactive',
-        'UserInactive',
+        'Login failed, user is inactive',
+        'User Inactive',
       );
     }
 
     // Check if email is verified
     if (!user.isEmailVerified) {
-      this.logger.warn(`Login failed - email not verified: ${email}`);
+      this.logger.warn(`Login failed, email not verified: ${email}`);
       throw new UnauthorizedException(
-        'Login failed - email not verified. Please verify your email first.',
-        'EmailNotVerified',
+        'Login failed, email not verified. Please verify your email first.',
+        'Email Not Verified',
       );
     }
 
@@ -328,7 +328,7 @@ export class AuthService {
     );
     if (!isValidCredentials) {
       this.logger.warn(`Login failed - invalid credentials: ${email}`);
-      throw new UnauthorizedException('Login failed - invalid credentials');
+      throw new UnauthorizedException('Login failed, invalid credentials');
     }
     this.logger.log(`Login successful for user: ${email}`);
 
@@ -337,7 +337,6 @@ export class AuthService {
 
     return {
       access_token: await this.generateJWT(user),
-      message: 'Login success',
       user: UserMapper.toBasicUser(user),
     };
   }
@@ -362,7 +361,7 @@ export class AuthService {
         this.logger.warn(`Forgot password failed - user is inactive: ${email}`);
         throw new ForbiddenException(
           'Your account is inactive. Please contact support.',
-          'USER_INACTIVE',
+          'User Inactive',
         );
       }
 
@@ -401,7 +400,7 @@ export class AuthService {
       this.logger.error(`Forgot password failed for: ${email}`, error);
       throw new InternalServerErrorException(
         'Failed to process forgot password request. Please try again later.',
-        'FORGOT_PASSWORD_ERROR',
+        'Forgot Password Error',
       );
     }
   }

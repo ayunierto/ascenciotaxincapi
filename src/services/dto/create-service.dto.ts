@@ -18,9 +18,6 @@ export class CreateServiceDto {
   @IsInt()
   duration: number;
 
-  @IsNumber()
-  price: number;
-
   @IsString()
   @IsOptional()
   description?: string;
@@ -36,9 +33,11 @@ export class CreateServiceDto {
 
   @IsUrl()
   @IsOptional()
-  image?: string;
+  imageUrl?: string;
 
   @IsArray()
-  @ArrayMinSize(1)
-  staff: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  // @ArrayMinSize(1)
+  staff?: string[];
 }

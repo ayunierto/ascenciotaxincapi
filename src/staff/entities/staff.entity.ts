@@ -28,6 +28,12 @@ export class Staff {
   })
   isActive: boolean;
 
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt: Date;
+
   @ManyToMany(() => Service, (service) => service.staff, {
     onDelete: 'CASCADE',
   })
@@ -37,12 +43,7 @@ export class Staff {
   @OneToMany(() => Appointment, (appointment) => appointment.staff)
   appointments: Appointment[];
 
-  @OneToMany(() => Schedule, (schedule) => schedule.staff)
+  @ManyToMany(() => Schedule, (schedule) => schedule.staff)
+  @JoinTable()
   schedules: Schedule[];
-
-  @CreateDateColumn({ type: 'timestamp with time zone' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
-  updatedAt: Date;
 }

@@ -1,4 +1,10 @@
-import { IsArray, IsBoolean, IsString, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateStaffDto {
   @IsString()
@@ -16,11 +22,13 @@ export class CreateStaffDto {
   @IsBoolean()
   isActive: boolean;
 
-  @IsString({ each: true })
   @IsArray()
-  services: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  services?: string[];
 
-  @IsString({ each: true })
   @IsArray()
-  schedules: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  schedules?: string[];
 }
