@@ -28,12 +28,6 @@ export class Staff {
   })
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'timestamp with time zone' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
-  updatedAt: Date;
-
   @ManyToMany(() => Service, (service) => service.staff, {
     onDelete: 'CASCADE',
   })

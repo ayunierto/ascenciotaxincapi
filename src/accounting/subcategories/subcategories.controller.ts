@@ -13,7 +13,7 @@ import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
-@Controller('subcategory')
+@Controller('subcategories')
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
 

@@ -16,19 +16,13 @@ export class Schedule {
   id: string;
 
   @Column('integer')
-  weekday: number;
+  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
 
   @Column()
-  startTime: string;
+  startTime: string; // HH:mm
 
   @Column()
-  endTime: string;
-
-  @CreateDateColumn({ type: 'timestamp with time zone' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
-  updatedAt: Date;
+  endTime: string; // HH:mm
 
   // Relationships
   @ManyToMany(() => Staff, (staff) => staff.schedules)

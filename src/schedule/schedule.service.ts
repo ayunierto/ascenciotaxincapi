@@ -33,7 +33,7 @@ export class ScheduleService {
   async findAll(): Promise<Schedule[]> {
     try {
       return await this.scheduleRepository.find({
-        order: { weekday: 'ASC' },
+        order: { dayOfWeek: 'ASC' },
       });
     } catch (error) {
       console.error(error);

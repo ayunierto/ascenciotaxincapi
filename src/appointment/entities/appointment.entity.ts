@@ -21,7 +21,7 @@ export class Appointment {
   @Column('timestamp with time zone')
   endDateAndTime: Date;
 
-  @Column('text', { default: 'pending' })
+  @Column('text', { default: 'confirmed' })
   // @Column({
   //   type: 'enum',
   //   enum: ['pending', 'confirmed', 'cancelled', 'completed'],
@@ -41,6 +41,7 @@ export class Appointment {
   @Column('text', { nullable: true })
   zoomMeetingLink: string;
 
+  // Relations
   @ManyToOne(() => Service, (service) => service.appointments)
   service: Service;
 

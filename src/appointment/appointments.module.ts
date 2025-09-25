@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AppointmentService } from './appointment.service';
-import { AppointmentController } from './appointment.controller';
+import { AppointmentsService } from './appointments.service';
+import { AppointmentsController } from './appointments.controller';
 import { Appointment } from './entities/appointment.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Service } from 'src/services/entities';
@@ -13,8 +13,8 @@ import { ZoomModule } from 'src/zoom/zoom.module';
 import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  controllers: [AppointmentController],
-  providers: [AppointmentService, DateUtils],
+  controllers: [AppointmentsController],
+  providers: [AppointmentsService, DateUtils],
   imports: [
     TypeOrmModule.forFeature([Appointment, Service, Staff, Schedule]),
     AuthModule,
@@ -22,6 +22,6 @@ import { NotificationModule } from 'src/notification/notification.module';
     ZoomModule,
     NotificationModule,
   ],
-  exports: [AppointmentService, TypeOrmModule],
+  exports: [AppointmentsService, TypeOrmModule],
 })
-export class AppointmentModule {}
+export class AppointmentsModule {}

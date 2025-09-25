@@ -5,7 +5,7 @@ import { ServicesModule } from 'src/services/services.module';
 import { UsersModule } from 'src/users/users.module';
 import { ScheduleModule } from 'src/schedule/schedule.module';
 import { StaffModule } from 'src/staff/staff.module';
-import { AppointmentModule } from 'src/appointment/appointment.module';
+import { AppointmentsModule } from 'src/appointment/appointments.module';
 import { PostsModule } from 'src/blog/posts/posts.module';
 import { CategoriesModule } from 'src/accounting/categories/categories.module';
 import { SubcategoryModule } from 'src/accounting/subcategories/subcategories.module';
@@ -21,7 +21,7 @@ import { AccountModule } from 'src/accounting/accounts/accounts.module';
     UsersModule,
     ScheduleModule,
     StaffModule,
-    AppointmentModule,
+    AppointmentsModule,
     PostsModule,
     CategoriesModule,
     SubcategoryModule,

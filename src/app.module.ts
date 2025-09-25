@@ -8,9 +8,8 @@ import { UsersModule } from './users/users.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
 import { StaffModule } from './staff/staff.module';
-import { AppointmentModule } from './appointment/appointment.module';
+import { AppointmentsModule } from './appointment/appointments.module';
 import { ScheduleModule } from './schedule/schedule.module';
-import { AvailabilityModule } from './availability/availability.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
@@ -52,9 +51,8 @@ import { NotificationModule } from './notification/notification.module';
     SeedModule,
     FilesModule,
     StaffModule,
-    AppointmentModule,
+    AppointmentsModule,
     ScheduleModule,
-    AvailabilityModule,
     CalendarModule,
     ZoomModule,
     MailModule,
@@ -75,4 +73,4 @@ import { NotificationModule } from './notification/notification.module';
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

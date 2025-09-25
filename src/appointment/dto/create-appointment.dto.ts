@@ -1,34 +1,28 @@
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
 
 export class CreateAppointmentDto {
   @IsNotEmpty()
-  @IsDateString()
-  startDateAndTime: string;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'The date format must be YYYY-MM-DD.',
+  })
+  date: string;
 
   @IsNotEmpty()
-  @IsDateString()
-  endDateAndTime: string;
+  @Matches(/^\d{2}:\d{2}$/, {
+    message: 'The time format must be HH:mm.',
+  })
+  time: string;
 
+  @IsNotEmpty()
   @IsString()
-  @IsOptional()
-  state: string;
+  timeZone: string;
 
   @IsString()
   comments: string;
 
-  @IsString()
-  service: string;
+  @IsUUID()
+  serviceId: string;
 
-  @IsString()
-  staff: string;
-
-  // TODO: implementar zona horaria en los eventos y email del  susuario de acorde a su zona
-  @IsString()
-  @IsOptional()
-  timeZone: string;
+  @IsUUID()
+  staffId: string;
 }

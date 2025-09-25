@@ -79,32 +79,31 @@ export class SeedService {
       });
 
       // Create Schedule
-      // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
-      // for luxon
+      // 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday,
       const mondaySchedule = await this.scheduleService.create({
-        weekday: 1,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
+        dayOfWeek: 1,
+        startTime: '09:30',
+        endTime: '19:30',
       });
       const tuesdaySchedule = await this.scheduleService.create({
-        weekday: 2,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
+        dayOfWeek: 2,
+        startTime: '09:30',
+        endTime: '19:30',
       });
       const wednesdaySchedule = await this.scheduleService.create({
-        weekday: 3,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
+        dayOfWeek: 3,
+        startTime: '09:30',
+        endTime: '19:30',
       });
       const thursdaySchedule = await this.scheduleService.create({
-        weekday: 4,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
+        dayOfWeek: 4,
+        startTime: '09:30',
+        endTime: '19:30',
       });
       const fridaySchedule = await this.scheduleService.create({
-        weekday: 5,
-        startTime: '09:30:00',
-        endTime: '19:30:00',
+        dayOfWeek: 5,
+        startTime: '09:30',
+        endTime: '19:30',
       });
 
       // Create staff members
