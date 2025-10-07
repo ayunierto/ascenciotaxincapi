@@ -27,7 +27,10 @@ export class ServicesController {
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query('lang') lang: 'es' | 'en' = 'es',
+  ) {
     return this.servicesService.findAll(paginationDto);
   }
 

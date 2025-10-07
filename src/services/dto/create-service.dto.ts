@@ -13,31 +13,32 @@ import {
 export class CreateServiceDto {
   @IsString()
   @MinLength(3)
-  name: string;
-
-  @IsInt()
-  duration: number;
-
+  title_es: string;
+  @IsString()
+  @MinLength(3)
+  title_en: string;
   @IsString()
   @IsOptional()
-  description?: string;
-
+  description_es: string;
   @IsString()
+  @IsOptional()
+  description_en: string;
+  @IsString()
+  @MinLength(3)
   address: string;
-
+  @IsInt()
+  duration_minutes: number;
   @IsBoolean()
-  isAvailableOnline: boolean;
-
-  @IsBoolean()
-  isActive: boolean;
-
+  is_online_available: boolean;
+  @IsString()
   @IsUrl()
   @IsOptional()
-  imageUrl?: string;
+  image_url?: string;
+  @IsBoolean()
+  is_active: boolean;
 
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  // @ArrayMinSize(1)
-  staff?: string[];
+  staff_ids: string[];
 }

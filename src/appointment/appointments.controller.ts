@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -14,10 +15,18 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+import { CheckAvailabilityDto } from './dto/check-availability.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
+
+  @Post('availability')
+  async checkAvailability(@Body() checkAvailabilityDto: CheckAvailabilityDto) {
+    return await this.appointmentsService.checkAvailability(
+      checkAvailabilityDto,
+    );
+  }
 
   @Post()
   @Auth()
@@ -43,7 +52,7 @@ export class AppointmentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.appointmentsService.findOne(id);
   }
 
@@ -58,21 +67,5 @@ export class AppointmentsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.appointmentsService.remove(id);
-  }
-
-  @Get('availability')
-  async checkAvailability(
-    @Query('staffId') staffId: string, // 84097f13-8d57-46a8-ac1d-1f713f3fd2ea
-    @Query('date') date: string, // 2025-01-023
-    // @Query('serviceId') serviceId: string, // 0f4e8b1c-8e2a-4b6d-9f0c-5c3e2e3f4a1b
-  ) {
-    if (!staffId || !date) {
-      return { message: 'The staff and date fields are required.' };
-    }
-    return await this.appointmentsService.checkAvailability(
-      staffId,
-      date,
-      // serviceId,
-    );
   }
 }

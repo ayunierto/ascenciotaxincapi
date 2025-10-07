@@ -9,35 +9,22 @@ import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Account } from '../accounts/entities/account.entity';
 import { Expense } from './entities/expense.entity';
-import { Category } from '../categories/entities/category.entity';
-import { Subcategory } from '../subcategories/entities/subcategory.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { LogsService } from 'src/logs/logs.service';
 import { ExpensesByCategory } from './interfaces/expenses-by-category.interface';
-import {
-  CreateExpenseResponse,
-  DeleteExpenseResponse,
-  GetExpenseResponse,
-  GetExpensesResponse,
-  UpdateExpenseResponse,
-} from './interfaces/expenses.interface';
-import { DateTime } from 'luxon';
+
+import { CategoriesService } from '../categories/categories.service';
+import { SubcategoriesService } from '../subcategories/subcategories.service';
 
 @Injectable()
 export class ExpenseService {
   constructor(
     @InjectRepository(Expense)
     private readonly expenseRepository: Repository<Expense>,
-    @InjectRepository(Account)
-    private readonly accountRepository: Repository<Account>,
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(Subcategory)
-    private readonly subcategoryRepository: Repository<Subcategory>,
-
     private readonly logService: LogsService,
+    private readonly categoriesService: CategoriesService,
+    private readonly subcategoriesService: SubcategoriesService,
   ) {}
 
   async findAllByDateRange(startDate: Date, endDate: Date, user: User) {
@@ -106,44 +93,20 @@ export class ExpenseService {
   async create(
     createExpenseDto: CreateExpenseDto,
     user: User,
-  ): Promise<CreateExpenseResponse> {
+  ): Promise<Expense> {
     try {
-      const { accountId, categoryId, subcategoryId, date, ...rest } =
-        createExpenseDto;
-
-      // Validate if the account provided exists for the user
-      const account = await this.accountRepository.findOne({
-        where: { id: accountId },
-        relations: ['currency', 'accountType'],
-      });
-      if (!account)
-        throw new BadRequestException(
-          `Account with id ${accountId} for ${user.firstName} user not found`,
-        );
+      const { categoryId, subcategoryId, date, ...rest } = createExpenseDto;
 
       // Validate if the category provided exists
-      const category = await this.categoryRepository.findOneBy({
-        id: categoryId,
-      });
-      if (!category)
-        throw new BadRequestException(
-          `Category with id ${categoryId} not found`,
-        );
+      const category = await this.categoriesService.findOne(categoryId);
 
       // Validate if the subcategory provided exists
       let subcategory = null;
       if (subcategoryId) {
-        subcategory = await this.subcategoryRepository.findOneBy({
-          id: subcategoryId,
-        });
-        if (!subcategory)
-          throw new BadRequestException(
-            `Subcategory with id ${subcategoryId} not found`,
-          );
+        subcategory = await this.subcategoriesService.findOne(subcategoryId);
       }
 
       const newExpense = this.expenseRepository.create({
-        account: account,
         category: category,
         date: new Date(date),
         subcategory: subcategory,
@@ -160,53 +123,41 @@ export class ExpenseService {
 
       return newExpense;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'Error creating expense. Please try again later.',
-        'Internal Server Error',
+        error.message || 'Error creating expense. Please try again later.',
       );
     }
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-    user: User,
-  ): Promise<GetExpensesResponse> {
+  async findAll(paginationDto: PaginationDto, user: User): Promise<Expense[]> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const expenses = await this.expenseRepository.find({
         take: limit,
         skip: offset,
         where: { user: { id: user.id } },
-        relations: ['account', 'category', 'subcategory'],
+        relations: { category: true, subcategory: true },
         order: {
-          createdAt: 'ASC',
+          createdAt: 'DESC',
         },
       });
       return expenses;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
         'Error fetching expenses. Please try again later.',
-        'Internal Server Error',
       );
     }
   }
 
-  async findOne(id: string, user: User): Promise<GetExpenseResponse> {
+  async findOne(id: string, user: User): Promise<Expense> {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
       });
-      if (!expense) {
-        throw new BadRequestException('Expense not found');
-      }
       return expense;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'Error fetching expense. Please try again later.',
-        'Internal Server Error',
+        error.message || 'Error fetching expense. Please try again later.',
       );
     }
   }
@@ -215,10 +166,9 @@ export class ExpenseService {
     id: string,
     updateExpenseDto: UpdateExpenseDto,
     user: User,
-  ): Promise<UpdateExpenseResponse> {
+  ): Promise<Expense> {
     try {
-      const { accountId, categoryId, subcategoryId, date, ...rest } =
-        updateExpenseDto;
+      const { categoryId, subcategoryId, date, ...rest } = updateExpenseDto;
 
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -227,40 +177,16 @@ export class ExpenseService {
         throw new BadRequestException('Expense not found');
       }
 
-      let account = null;
-      if (accountId) {
-        account = await this.accountRepository.findOne({
-          where: { id: accountId },
-          relations: ['currency', 'accountType'],
-        });
-        if (!account) {
-          throw new BadRequestException(
-            `Account with id ${accountId} not found`,
-          );
-        }
-      } else {
-        account = expense.account;
-      }
-
       let category = null;
       if (categoryId) {
-        category = await this.categoryRepository.findOne({
-          where: { id: categoryId },
-        });
-        if (!category) {
-          throw new BadRequestException(
-            `Category with id ${categoryId} not found`,
-          );
-        }
+        category = await this.categoriesService.findOne(categoryId);
       } else {
         category = expense.category;
       }
 
       let subcategory = null;
       if (subcategoryId) {
-        subcategory = await this.subcategoryRepository.findOne({
-          where: { id: subcategoryId },
-        });
+        subcategory = await this.subcategoriesService.findOne(subcategoryId);
         if (!subcategory) {
           throw new BadRequestException('Subcategory not found');
         }
@@ -272,13 +198,10 @@ export class ExpenseService {
         id,
         ...rest,
         date: new Date(date),
-        account: account,
         category: category,
         subcategory: subcategory,
         user: user,
       });
-
-      updatedExpense.updateAt = DateTime.utc().toJSDate();
 
       await this.expenseRepository.save(updatedExpense);
 
@@ -289,15 +212,13 @@ export class ExpenseService {
 
       return updatedExpense;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
         'Error updating expense. Please try again later.',
-        'Internal Server Error',
       );
     }
   }
 
-  async remove(id: string, user: User): Promise<DeleteExpenseResponse> {
+  async remove(id: string, user: User): Promise<Expense> {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
@@ -314,10 +235,8 @@ export class ExpenseService {
 
       return expense;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
         'Error deleting expense. Please try again later.',
-        'Internal Server Error',
       );
     }
   }

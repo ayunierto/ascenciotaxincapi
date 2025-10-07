@@ -1,8 +1,14 @@
-import { Account } from 'src/accounting/accounts/entities/account.entity';
 import { Category } from 'src/accounting/categories/entities/category.entity';
 import { Subcategory } from 'src/accounting/subcategories/entities/subcategory.entity';
 import { User } from 'src/auth/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({ name: 'expenses' })
 export class Expense {
@@ -24,42 +30,26 @@ export class Expense {
   @Column('text', {
     nullable: true,
   })
-  image: string;
-
-  @ManyToOne(() => Category, (category) => category.expenses, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  category: Category;
-
-  @ManyToOne(() => Subcategory, (subcategory) => subcategory.expenses, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  subcategory: Subcategory;
-
-  @ManyToOne(() => Account, (account) => account.expenses, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  account: Account;
-
-  @ManyToOne(() => User, (user) => user.expenses, { onDelete: 'CASCADE' })
-  user: User;
+  imageUrl: string;
 
   @Column('text', {
     nullable: true,
   })
   notes: string;
 
-  @Column('timestamp with time zone', {
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', {
-    nullable: true,
-  })
-  updateAt: Date;
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => Category, (category) => category.expenses)
+  category: Category;
+
+  @ManyToOne(() => Subcategory, (subcategory) => subcategory.expenses)
+  subcategory: Subcategory;
+
+  @ManyToOne(() => User, (user) => user.expenses, { onDelete: 'CASCADE' })
+  user: User;
 }

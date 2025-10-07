@@ -27,7 +27,6 @@ export class Subcategory {
   // Relationships
   @ManyToOne(() => Category, (category) => category.subcategories, {
     onDelete: 'CASCADE',
-    eager: true,
   })
   category: Category;
 

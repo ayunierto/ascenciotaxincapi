@@ -16,11 +16,8 @@ import { MailModule } from './mail/mail.module';
 import { PostsModule } from './blog/posts/posts.module';
 import { CategoriesModule } from './accounting/categories/categories.module';
 import { ExpenseModule } from './accounting/expenses/expenses.module';
-import { AccountModule } from './accounting/accounts/accounts.module';
 import { TagsModule } from './accounting/tags/tags.module';
-import { SubcategoryModule } from './accounting/subcategories/subcategories.module';
-import { AccountsTypesModule } from './accounting/accounts-types/account-types.module';
-import { CurrencyModule } from './accounting/currencies/currencies.module';
+import { SubcategoriesModule } from './accounting/subcategories/subcategories.module';
 import { LogsModule } from './logs/logs.module';
 import { AwsModule } from './aws/aws.module';
 import { ReportsModule } from './accounting/reports/reports.module';
@@ -59,11 +56,8 @@ import { NotificationModule } from './notification/notification.module';
     PostsModule,
     CategoriesModule,
     ExpenseModule,
-    AccountModule,
     TagsModule,
-    SubcategoryModule,
-    AccountsTypesModule,
-    CurrencyModule,
+    SubcategoriesModule,
     LogsModule,
     AwsModule,
     ReportsModule,

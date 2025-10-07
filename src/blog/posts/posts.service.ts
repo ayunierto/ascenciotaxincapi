@@ -10,13 +10,6 @@ import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { User } from '../../auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import {
-  CreatePostResponse,
-  DeletePostResponse,
-  GetPostResponse,
-  GetPostsResponse,
-  UpdatePostResponse,
-} from './interfaces';
 
 @Injectable()
 export class PostsService {
@@ -25,10 +18,7 @@ export class PostsService {
     private readonly postRepository: Repository<Post>,
   ) {}
 
-  async create(
-    createPostDto: CreatePostDto,
-    user: User,
-  ): Promise<CreatePostResponse> {
+  async create(createPostDto: CreatePostDto, user: User): Promise<Post> {
     try {
       const post = this.postRepository.create({
         user,
@@ -41,9 +31,9 @@ export class PostsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<GetPostsResponse> {
+  async findAll(paginationDto: PaginationDto): Promise<Post[]> {
     try {
-      const { limit = 10, offset = 0 } = paginationDto;
+      const { limit = 20, offset = 0 } = paginationDto;
       const posts = await this.postRepository.find({
         take: limit,
         skip: offset,
@@ -58,7 +48,7 @@ export class PostsService {
     }
   }
 
-  async findOne(id: string): Promise<GetPostResponse> {
+  async findOne(id: string): Promise<Post> {
     try {
       const post = await this.postRepository.findOne({ where: { id } });
       if (!post) {
@@ -74,7 +64,7 @@ export class PostsService {
     id: string,
     updatePostDto: UpdatePostDto,
     user: User,
-  ): Promise<UpdatePostResponse> {
+  ): Promise<Post> {
     try {
       const post = await this.postRepository.findOne({
         where: { id, user: { id: user.id } },
@@ -86,15 +76,14 @@ export class PostsService {
       await this.postRepository.save(post);
       return post;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while updating the post. Please try again later.',
-        'POST_UPDATE_FAILED',
+        error.message ||
+          'An unexpected error occurred while updating the post. Please try again later.',
       );
     }
   }
 
-  async remove(id: string, user: User): Promise<DeletePostResponse> {
+  async remove(id: string, user: User): Promise<Post> {
     try {
       const post = await this.postRepository.findOne({
         where: { id, user: { id: user.id } },

@@ -7,32 +7,32 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { SubcategoryService } from './subcategories.service';
+import { SubcategoriesService } from './subcategories.service';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('subcategories')
-export class SubcategoryController {
-  constructor(private readonly subcategoryService: SubcategoryService) {}
+export class SubcategoriesController {
+  constructor(private readonly subcategoriesService: SubcategoriesService) {}
 
   @Post()
   @Auth(Role.Admin, Role.Staff)
   create(@Body() createSubcategoryDto: CreateSubcategoryDto) {
-    return this.subcategoryService.create(createSubcategoryDto);
+    return this.subcategoriesService.create(createSubcategoryDto);
   }
 
   @Get()
   @Auth()
   findAll() {
-    return this.subcategoryService.findAll();
+    return this.subcategoriesService.findAll();
   }
 
   @Get(':id')
   @Auth()
   findOne(@Param('id') id: string) {
-    return this.subcategoryService.findOne(id);
+    return this.subcategoriesService.findOne(id);
   }
 
   @Patch(':id')
@@ -41,12 +41,12 @@ export class SubcategoryController {
     @Param('id') id: string,
     @Body() updateSubcategoryDto: UpdateSubcategoryDto,
   ) {
-    return this.subcategoryService.update(id, updateSubcategoryDto);
+    return this.subcategoriesService.update(id, updateSubcategoryDto);
   }
 
   @Delete(':id')
   @Auth(Role.Admin, Role.Staff)
   remove(@Param('id') id: string) {
-    return this.subcategoryService.remove(id);
+    return this.subcategoriesService.remove(id);
   }
 }

@@ -12,7 +12,6 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
 import { ExpenseService } from '../expenses/expenses.service';
-import { ExceptionResponse } from 'src/common/interfaces';
 
 @Injectable()
 export class ReportsService {
@@ -520,15 +519,11 @@ export class ReportsService {
       await this.reportRepository.save(plan);
       return plan;
     } catch (error) {
-      console.error(error);
       throw new BadRequestException('Unable to create plans');
     }
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-    user: User,
-  ): Promise<Report[] | ExceptionResponse> {
+  async findAll(paginationDto: PaginationDto, user: User): Promise<Report[]> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const userReportLogs = await this.reportRepository.find({
@@ -541,7 +536,6 @@ export class ReportsService {
       });
       return userReportLogs;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException('Unable to find reports');
     }
   }

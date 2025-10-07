@@ -25,23 +25,26 @@ export class CategoriesService {
       await this.categoryRepository.save(newCategory);
       return newCategory;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating category. Please try again later.',
-        'CREATE_CATEGORY_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
 
   async findAll() {
     try {
-      const categories = await this.categoryRepository.find();
+      const categories = await this.categoryRepository.find({
+        relations: {
+          subcategories: true,
+        },
+      });
       return categories;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating category. Please try again later.',
-        'GET_CATEGORIES_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
@@ -54,20 +57,16 @@ export class CategoriesService {
       }
       return category;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating category. Please try again later.',
-        'GET_CATEGORY_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     try {
-      const category = await this.categoryRepository.findOneBy({ id });
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
+      const category = await this.findOne(id);
 
       const updatedCategory = this.categoryRepository.merge(
         category,
@@ -76,28 +75,23 @@ export class CategoriesService {
       await this.categoryRepository.save(updatedCategory);
       return updatedCategory;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating category. Please try again later.',
-        'GET_CATEGORY_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
 
   async remove(id: string) {
     try {
-      const category = await this.categoryRepository.findOneBy({ id });
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
+      const category = await this.findOne(id);
 
       await this.categoryRepository.remove(category);
       return category;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating category. Please try again later.',
-        'REMOVE_CATEGORY_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }

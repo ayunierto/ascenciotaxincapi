@@ -19,7 +19,7 @@ import { CalendarService } from 'src/calendar/calendar.service';
 import { ZoomService } from 'src/zoom/zoom.service';
 import { DateTime } from 'luxon';
 import { NotificationService } from 'src/notification/notification.service';
-import { GetCurrentUserAppointmentsResponse } from './interfaces';
+import { CheckAvailabilityDto } from './dto/check-availability.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -160,7 +160,11 @@ export class AppointmentsService {
     );
   }
 
-  async create(createAppointmentDto: CreateAppointmentDto, user: User) {
+  async create(
+    createAppointmentDto: CreateAppointmentDto,
+    user: User,
+    lang: 'es' | 'en' = 'es',
+  ) {
     try {
       const { staffId, serviceId, date, time, comments, timeZone } =
         createAppointmentDto;
@@ -168,7 +172,7 @@ export class AppointmentsService {
       // Check if the service exists
       const service = await this.serviceRepository.findOneBy({ id: serviceId });
       if (!service) throw new BadRequestException('Service not found');
-      const serviceDurationMinutes = service.duration; // Duration in minutes
+      const serviceDurationMinutes = service.duration_minutes; // Duration in minutes
 
       // Check if the staff member exists
       const staff = await this.staffRepository.findOneBy({ id: staffId });
@@ -258,13 +262,16 @@ export class AppointmentsService {
         },
         start_time: startDateAndTime,
         timezone: 'America/Toronto',
-        topic: service.name,
+        topic:
+          lang === 'es'
+            ? `Cita: ${service.title_es}`
+            : `Appointment: ${service.title_en}`,
         type: 2,
       });
 
       // Create event in calendar
       const eventId = await this.calendarService.createEvent({
-        summary: `Appointment: ${service.name}`,
+        summary: `Appointment: ${service.title_en}`,
         description: `
         Zoom Meeting: ${meeting.join_url} 
         Staff: ${staff.firstName} ${staff.lastName}
@@ -294,7 +301,7 @@ export class AppointmentsService {
       await this.notificationService.sendAppointmentConfirmationEmailToClient(
         user.email,
         {
-          serviceName: service.name,
+          serviceName: lang === 'es' ? service.title_es : service.title_en,
           appointmentDate: DateTime.fromJSDate(startDateAndTime, {
             zone: 'utc',
           })
@@ -317,7 +324,7 @@ export class AppointmentsService {
       await this.notificationService.sendAppointmentConfirmationEmailToStaff(
         'ascenciotaxinc@gmail.com',
         {
-          serviceName: service.name,
+          serviceName: service.title_en,
           appointmentDate: DateTime.fromJSDate(startDateAndTime, {
             zone: 'utc',
           })
@@ -359,7 +366,7 @@ export class AppointmentsService {
   async findCurrentUser(
     user: User,
     state: 'pending' | 'past',
-  ): Promise<GetCurrentUserAppointmentsResponse> {
+  ): Promise<Appointment[]> {
     try {
       const now = DateTime.utc().toJSDate();
 
@@ -412,12 +419,12 @@ export class AppointmentsService {
   }
 
   async checkAvailability(
-    staffId: string,
-    date: string,
+    checkAvailabilityDto: CheckAvailabilityDto,
     userTimeZone: string = 'America/Toronto',
   ) {
-    try {
-    } catch (error) {}
+    const { date, staffId } = checkAvailabilityDto;
+    // console.log(date, staffId);
+    // return;
     const dayOfWeek = DateTime.fromISO(date).weekday;
     const schedule = await this.scheduleRepository.findOne({
       where: { staff: { id: staffId }, dayOfWeek },

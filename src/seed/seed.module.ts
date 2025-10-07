@@ -8,10 +8,7 @@ import { StaffModule } from 'src/staff/staff.module';
 import { AppointmentsModule } from 'src/appointment/appointments.module';
 import { PostsModule } from 'src/blog/posts/posts.module';
 import { CategoriesModule } from 'src/accounting/categories/categories.module';
-import { SubcategoryModule } from 'src/accounting/subcategories/subcategories.module';
-import { CurrencyModule } from 'src/accounting/currencies/currencies.module';
-import { AccountsTypesModule } from 'src/accounting/accounts-types/account-types.module';
-import { AccountModule } from 'src/accounting/accounts/accounts.module';
+import { SubcategoriesModule } from 'src/accounting/subcategories/subcategories.module';
 
 @Module({
   controllers: [SeedController],
@@ -24,10 +21,7 @@ import { AccountModule } from 'src/accounting/accounts/accounts.module';
     AppointmentsModule,
     PostsModule,
     CategoriesModule,
-    SubcategoryModule,
-    CurrencyModule,
-    AccountsTypesModule,
-    AccountModule,
+    SubcategoriesModule,
   ],
 })
 export class SeedModule {}

@@ -1,5 +1,3 @@
-import { ExceptionResponse } from 'src/common/interfaces';
-
 export interface ExpenseFields {
   merchant: string;
   date: string;
@@ -10,4 +8,4 @@ export interface ExpenseFields {
   // subcategory: string;
 }
 
-export type AnalyzeExpenseResponse = ExpenseFields | ExceptionResponse;
+export type AnalyzeExpenseResponse = ExpenseFields;

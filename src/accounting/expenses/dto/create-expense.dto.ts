@@ -18,7 +18,11 @@ export class CreateExpenseDto {
 
   @IsUrl()
   @IsOptional()
-  image?: string;
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
 
   @IsString()
   categoryId: string;
@@ -26,11 +30,4 @@ export class CreateExpenseDto {
   @IsString()
   @IsOptional()
   subcategoryId?: string;
-
-  @IsString()
-  accountId: string;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
 }

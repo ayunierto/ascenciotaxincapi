@@ -12,7 +12,6 @@ import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/auth/entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { ExceptionResponse } from 'src/common/interfaces';
 
 @Injectable()
 export class UsersService {

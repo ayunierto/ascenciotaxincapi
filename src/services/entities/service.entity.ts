@@ -12,49 +12,22 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 
 @Entity('services')
 export class Service {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column('text', {
-    unique: true,
-  })
-  name: string;
-
-  @Column('int')
-  duration: number;
-
-  @Column({
-    type: 'text',
-    nullable: true,
-  })
-  description: string;
-
-  @Column('text')
-  address: string;
-
-  @Column('bool')
-  isAvailableOnline: boolean;
-
-  @Column('bool', {
-    default: true,
-  })
-  isActive: boolean;
-
-  @Column('text', {
-    nullable: true,
-  })
-  imageUrl?: string;
-
-  @CreateDateColumn({ type: 'timestamp with time zone' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
-  updatedAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() title_es: string;
+  @Column() title_en: string;
+  @Column({ default: '' }) description_es: string;
+  @Column({ default: '' }) description_en: string;
+  @Column() address: string;
+  @Column('int') duration_minutes: number;
+  @Column({ default: true }) is_online_available: boolean;
+  @Column({ nullable: true }) image_url?: string;
+  @Column({ default: true }) is_active: boolean;
+  @CreateDateColumn() created_at: Date;
+  @CreateDateColumn() updated_at: Date;
 
   // Relationships
   @ManyToMany(() => Staff, (staff) => staff.services)
   staff: Staff[];
-
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];
 }

@@ -9,35 +9,23 @@ import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subcategory } from './entities/subcategory.entity';
 import { Repository } from 'typeorm';
-import { Category } from '../categories/entities/category.entity';
-import {
-  CreateSubcategoryResponse,
-  DeleteSubcategoryResponse,
-  GetSubcategoriesResponse,
-  GetSubcategoryResponse,
-  UpdateSubcategoryResponse,
-} from './interfaces';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
-export class SubcategoryService {
+export class SubcategoriesService {
   constructor(
     @InjectRepository(Subcategory)
     private readonly subcategoryRepository: Repository<Subcategory>,
 
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   async create(
     createSubcategoryDto: CreateSubcategoryDto,
-  ): Promise<CreateSubcategoryResponse> {
+  ): Promise<Subcategory> {
+    const { categoryId } = createSubcategoryDto;
     try {
-      const category = await this.categoryRepository.findOneBy({
-        id: createSubcategoryDto.categoryId,
-      });
-      if (!category) {
-        throw new BadRequestException('Category not found');
-      }
+      const category = await this.categoriesService.findOne(categoryId);
 
       const newSubcategory = this.subcategoryRepository.create({
         name: createSubcategoryDto.name,
@@ -46,32 +34,25 @@ export class SubcategoryService {
       this.subcategoryRepository.save(newSubcategory);
       return newSubcategory;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating subcategory. Please try again later.',
-        'CREATE_SUBCATEGORY_FAILED',
+        error.message ||
+          'An unexpected error occurred while creating subcategory. Please try again later.',
       );
     }
   }
 
-  async findAll(): Promise<GetSubcategoriesResponse> {
+  async findAll(): Promise<Subcategory[]> {
     try {
-      const subcategories = await this.subcategoryRepository.find({
-        relations: {
-          category: true,
-        },
-      });
+      const subcategories = await this.subcategoryRepository.find({});
       return subcategories;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'Error fetching subcategories',
-        error.message,
+        error.message || 'Error fetching subcategories',
       );
     }
   }
 
-  async findOne(id: string): Promise<GetSubcategoryResponse> {
+  async findOne(id: string): Promise<Subcategory> {
     try {
       const subcategory = await this.subcategoryRepository.findOneBy({ id });
       if (!subcategory) {
@@ -79,10 +60,8 @@ export class SubcategoryService {
       }
       return subcategory;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
-        'Error fetching subcategory',
-        error.message,
+        error.message || 'Error fetching subcategory',
       );
     }
   }
@@ -90,12 +69,9 @@ export class SubcategoryService {
   async update(
     id: string,
     updateSubcategoryDto: UpdateSubcategoryDto,
-  ): Promise<UpdateSubcategoryResponse> {
+  ): Promise<Subcategory> {
     try {
-      const subcategory = await this.subcategoryRepository.findOneBy({ id });
-      if (!subcategory) {
-        throw new NotFoundException('Subcategory not found');
-      }
+      const subcategory = await this.findOne(id);
 
       const updatedSubcategory = this.subcategoryRepository.merge(
         subcategory,
@@ -105,7 +81,6 @@ export class SubcategoryService {
       await this.subcategoryRepository.save(updatedSubcategory);
       return updatedSubcategory;
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(
         'Error updating subcategory',
         error.message,
@@ -113,20 +88,16 @@ export class SubcategoryService {
     }
   }
 
-  async remove(id: string): Promise<DeleteSubcategoryResponse> {
+  async remove(id: string): Promise<Subcategory> {
     try {
-      const subcategory = await this.subcategoryRepository.findOneBy({ id });
-      if (!subcategory) {
-        throw new NotFoundException('Subcategory not found');
-      }
+      const subcategory = await this.findOne(id);
 
       await this.subcategoryRepository.remove(subcategory);
       return subcategory;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'Error deleting subcategory',
-        error.message,
+        error.message || 'Error deleting subcategory',
       );
     }
   }

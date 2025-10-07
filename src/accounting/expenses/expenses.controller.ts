@@ -18,7 +18,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 
-@Controller('expense')
+@Controller('expenses')
 export class ExpenseController {
   constructor(
     private readonly expenseService: ExpenseService,

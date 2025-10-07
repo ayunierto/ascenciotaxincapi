@@ -34,13 +34,13 @@ export class ServicesService {
     createServiceDto: CreateServiceDto,
   ): Promise<CreateServiceResponse> {
     try {
-      const { staff: staffIds, ...rest } = createServiceDto;
+      const { staff_ids, ...rest } = createServiceDto;
 
       const staff = [];
-      if (staffIds && staffIds.length > 0) {
+      if (staff_ids && staff_ids.length > 0) {
         staff.push(
           ...(await this.staffRepository.findBy({
-            id: In(staffIds),
+            id: In(staff_ids),
           })),
         );
       }
@@ -60,7 +60,10 @@ export class ServicesService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<GetServicesResponse> {
+  async findAll(
+    paginationDto: PaginationDto,
+    lang: 'es' | 'en' = 'es',
+  ): Promise<GetServicesResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const services = await this.serviceRepository.find({
@@ -79,7 +82,14 @@ export class ServicesService {
       return {
         count: total,
         pages: Math.ceil(total / limit),
-        services: services,
+        services: services.map((service) => {
+          return {
+            ...service,
+            title: lang === 'es' ? service.title_es : service.title_en,
+            description:
+              lang === 'es' ? service.description_es : service.description_en,
+          };
+        }),
       };
     } catch (error) {
       console.error(error);
@@ -116,14 +126,14 @@ export class ServicesService {
     id: string,
     updateServiceDto: UpdateServiceDto,
   ): Promise<UpdateServiceResponse> {
-    const { staff: staffIds, ...rest } = updateServiceDto;
+    const { staff_ids, ...rest } = updateServiceDto;
 
     try {
       const staff: Staff[] = [];
-      if (staffIds && staffIds.length > 0) {
+      if (staff_ids && staff_ids.length > 0) {
         staff.push(
           ...(await this.staffRepository.findBy({
-            id: In(staffIds),
+            id: In(staff_ids),
           })),
         );
       }

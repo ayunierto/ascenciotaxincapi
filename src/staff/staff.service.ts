@@ -96,7 +96,8 @@ export class StaffService {
       return staff;
     } catch (error) {
       throw new InternalServerErrorException(
-        'An unexpected error occurred while finding staff. Please try again later.',
+        error.message ||
+          'An unexpected error occurred while finding staff. Please try again later.',
       );
     }
   }
