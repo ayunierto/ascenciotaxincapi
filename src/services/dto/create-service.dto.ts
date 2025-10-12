@@ -1,9 +1,7 @@
 import {
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsInt,
-  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -13,32 +11,32 @@ import {
 export class CreateServiceDto {
   @IsString()
   @MinLength(3)
-  title_es: string;
-  @IsString()
-  @MinLength(3)
-  title_en: string;
+  name: string;
+
   @IsString()
   @IsOptional()
-  description_es: string;
-  @IsString()
-  @IsOptional()
-  description_en: string;
+  description: string;
+
   @IsString()
   @MinLength(3)
   address: string;
+
   @IsInt()
-  duration_minutes: number;
+  durationMinutes: number;
+
   @IsBoolean()
-  is_online_available: boolean;
+  isAvailableOnline: boolean;
+
   @IsString()
   @IsUrl()
   @IsOptional()
-  image_url?: string;
+  imageUrl?: string;
+
   @IsBoolean()
-  is_active: boolean;
+  isActive: boolean;
 
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  staff_ids: string[];
+  staffIds: string[];
 }

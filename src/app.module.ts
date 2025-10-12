@@ -24,6 +24,7 @@ import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 // import { UtilityModule } from './utility/utility.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { NotificationModule } from './notification/notification.module';
     ReportsModule,
     PrinterModule,
     NotificationModule,
+    SettingsModule,
   ],
   controllers: [],
   providers: [],

@@ -9,6 +9,7 @@ import { AppointmentsModule } from 'src/appointment/appointments.module';
 import { PostsModule } from 'src/blog/posts/posts.module';
 import { CategoriesModule } from 'src/accounting/categories/categories.module';
 import { SubcategoriesModule } from 'src/accounting/subcategories/subcategories.module';
+import { SettingsModule } from 'src/settings/settings.module';
 
 @Module({
   controllers: [SeedController],
@@ -22,6 +23,7 @@ import { SubcategoriesModule } from 'src/accounting/subcategories/subcategories.
     PostsModule,
     CategoriesModule,
     SubcategoriesModule,
+    SettingsModule,
   ],
 })
 export class SeedModule {}

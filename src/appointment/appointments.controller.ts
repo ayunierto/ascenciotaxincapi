@@ -19,6 +19,7 @@ import { CheckAvailabilityDto } from './dto/check-availability.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
+  // eslint-disable-next-line no-unused-vars
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post('availability')

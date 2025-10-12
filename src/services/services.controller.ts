@@ -18,6 +18,7 @@ import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('services')
 export class ServicesController {
+  // eslint-disable-next-line no-unused-vars
   constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
@@ -27,10 +28,7 @@ export class ServicesController {
   }
 
   @Get()
-  findAll(
-    @Query() paginationDto: PaginationDto,
-    @Query('lang') lang: 'es' | 'en' = 'es',
-  ) {
+  findAll(@Query() paginationDto: PaginationDto) {
     return this.servicesService.findAll(paginationDto);
   }
 

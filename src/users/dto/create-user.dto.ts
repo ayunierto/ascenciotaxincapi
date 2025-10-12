@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  IsTimeZone,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -27,6 +28,9 @@ export class CreateUserDto {
 
   @IsOptional()
   phoneNumber?: string;
+
+  @IsTimeZone()
+  timeZone: string;
 
   @IsString()
   @IsOptional()

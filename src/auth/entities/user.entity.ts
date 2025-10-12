@@ -39,6 +39,9 @@ export class User {
   @Column({ type: 'text', nullable: true })
   phoneNumber: string;
 
+  @Column()
+  timeZone: string;
+
   @Column({ type: 'text', nullable: true })
   locale: string;
 

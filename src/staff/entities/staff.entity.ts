@@ -40,4 +40,13 @@ export class Staff {
   @ManyToMany(() => Schedule, (schedule) => schedule.staff)
   @JoinTable()
   schedules: Schedule[];
+
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  @Column('timestamp with time zone', { nullable: true })
+  deletedAt: Date;
 }

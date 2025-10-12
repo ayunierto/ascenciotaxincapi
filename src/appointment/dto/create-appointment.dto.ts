@@ -1,28 +1,31 @@
-import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
+import {
+  IsInt,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateAppointmentDto {
-  @IsNotEmpty()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'The date format must be YYYY-MM-DD.',
-  })
-  date: string;
-
-  @IsNotEmpty()
-  @Matches(/^\d{2}:\d{2}$/, {
-    message: 'The time format must be HH:mm.',
-  })
-  time: string;
-
-  @IsNotEmpty()
-  @IsString()
-  timeZone: string;
-
-  @IsString()
-  comments: string;
-
   @IsUUID()
   serviceId: string;
 
   @IsUUID()
   staffId: string;
+
+  @IsISO8601()
+  start!: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
+
+  @IsString()
+  timezone!: string; // IANA
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationMin?: number; // opcional si servicio tiene variable
+
+  @IsString()
+  @IsOptional()
+  comments?: string;
 }

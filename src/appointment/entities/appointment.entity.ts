@@ -21,7 +21,7 @@ export class Appointment {
   @Column('timestamp with time zone')
   endDateAndTime: Date;
 
-  @Column('text', { default: 'confirmed' })
+  @Column({ default: 'confirmed' })
   // @Column({
   //   type: 'enum',
   //   enum: ['pending', 'confirmed', 'cancelled', 'completed'],
@@ -29,17 +29,24 @@ export class Appointment {
   // })
   state: string;
 
-  @Column('text')
+  @Column()
   comments: string;
 
-  @Column('text')
+  @Column()
   calendarEventId: string;
 
-  @Column('text')
+  @Column()
   zoomMeetingId: string;
 
-  @Column('text', { nullable: true })
+  @Column({ nullable: true })
   zoomMeetingLink: string;
+
+  @Column({ nullable: true })
+  // "enum[app, admin, imported, api]"
+  source: string;
+
+  @Column({ nullable: true })
+  cancellationReason: string;
 
   // Relations
   @ManyToOne(() => Service, (service) => service.appointments)
@@ -56,4 +63,7 @@ export class Appointment {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  @Column('timestamp with time zone', { nullable: true })
+  deletedAt: Date;
 }

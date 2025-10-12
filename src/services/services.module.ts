@@ -14,6 +14,6 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
     TypeOrmModule.forFeature([Service, Staff, Appointment]),
     AuthModule,
   ],
-  exports: [ServicesService, TypeOrmModule],
+  exports: [ServicesService],
 })
 export class ServicesModule {}

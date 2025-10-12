@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsTimeZone,
   MinLength,
 } from 'class-validator';
 
@@ -32,6 +33,9 @@ export class SignUpDto {
   @IsString()
   @IsOptional()
   phoneNumber?: string;
+
+  @IsTimeZone()
+  timeZone: string;
 
   @IsString()
   @IsOptional()

@@ -16,6 +16,6 @@ import { UsersModule } from 'src/users/users.module';
   ],
   controllers: [StaffController],
   providers: [StaffService],
-  exports: [StaffService, TypeOrmModule],
+  exports: [StaffService],
 })
 export class StaffModule {}

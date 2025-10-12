@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
-  BadRequestException,
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -23,10 +22,12 @@ import {
 export class ServicesService {
   constructor(
     @InjectRepository(Service)
+    // eslint-disable-next-line no-unused-vars
     private readonly serviceRepository: Repository<Service>,
     @InjectRepository(Staff)
+    // eslint-disable-next-line no-unused-vars
     private staffRepository: Repository<Staff>,
-
+    // eslint-disable-next-line no-unused-vars
     private readonly dataSource: DataSource,
   ) {}
 
@@ -34,13 +35,13 @@ export class ServicesService {
     createServiceDto: CreateServiceDto,
   ): Promise<CreateServiceResponse> {
     try {
-      const { staff_ids, ...rest } = createServiceDto;
+      const { staffIds, ...rest } = createServiceDto;
 
       const staff = [];
-      if (staff_ids && staff_ids.length > 0) {
+      if (staffIds && staffIds.length > 0) {
         staff.push(
           ...(await this.staffRepository.findBy({
-            id: In(staff_ids),
+            id: In(staffIds),
           })),
         );
       }
@@ -60,10 +61,7 @@ export class ServicesService {
     }
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-    lang: 'es' | 'en' = 'es',
-  ): Promise<GetServicesResponse> {
+  async findAll(paginationDto: PaginationDto): Promise<GetServicesResponse> {
     try {
       const { limit = 10, offset = 0 } = paginationDto;
       const services = await this.serviceRepository.find({
@@ -82,14 +80,7 @@ export class ServicesService {
       return {
         count: total,
         pages: Math.ceil(total / limit),
-        services: services.map((service) => {
-          return {
-            ...service,
-            title: lang === 'es' ? service.title_es : service.title_en,
-            description:
-              lang === 'es' ? service.description_es : service.description_en,
-          };
-        }),
+        services: services,
       };
     } catch (error) {
       console.error(error);
@@ -101,39 +92,31 @@ export class ServicesService {
   }
 
   async findOne(id: string): Promise<GetServiceResponse> {
-    try {
-      const service = await this.serviceRepository.findOne({
-        where: {
-          id,
-        },
-        relations: {
-          staff: true,
-        },
-      });
-      if (!service) throw new NotFoundException('Service not found.');
+    const service = await this.serviceRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        staff: true,
+      },
+    });
+    if (!service) throw new NotFoundException('Service not found.');
 
-      return service;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while finding services. Please try again later.',
-      );
-    }
+    return service;
   }
 
   async update(
     id: string,
     updateServiceDto: UpdateServiceDto,
   ): Promise<UpdateServiceResponse> {
-    const { staff_ids, ...rest } = updateServiceDto;
+    const { staffIds, ...rest } = updateServiceDto;
 
     try {
       const staff: Staff[] = [];
-      if (staff_ids && staff_ids.length > 0) {
+      if (staffIds && staffIds.length > 0) {
         staff.push(
           ...(await this.staffRepository.findBy({
-            id: In(staff_ids),
+            id: In(staffIds),
           })),
         );
       }

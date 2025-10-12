@@ -3,15 +3,13 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { User } from '../auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Service } from 'src/services/entities';
-import { Between, In, LessThan, MoreThan, Repository } from 'typeorm';
-import { Staff } from 'src/staff/entities/staff.entity';
+import { Between, LessThan, MoreThan, Repository } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { DateUtils } from './utils/date.utils';
@@ -20,24 +18,33 @@ import { ZoomService } from 'src/zoom/zoom.service';
 import { DateTime } from 'luxon';
 import { NotificationService } from 'src/notification/notification.service';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
+import { ServicesService } from 'src/services/services.service';
+import { StaffService } from 'src/staff/staff.service';
 
 @Injectable()
 export class AppointmentsService {
+  private readonly logger = new Logger(AppointmentsService.name);
+
   constructor(
     @InjectRepository(Appointment)
+    // eslint-disable-next-line no-unused-vars
     private readonly appointmentsRepository: Repository<Appointment>,
-    @InjectRepository(Service)
-    private readonly serviceRepository: Repository<Service>,
-    @InjectRepository(Staff)
-    private readonly staffRepository: Repository<Staff>,
     @InjectRepository(Schedule)
+    // eslint-disable-next-line no-unused-vars
     private readonly scheduleRepository: Repository<Schedule>,
 
+    // eslint-disable-next-line no-unused-vars
     private readonly zoomService: ZoomService,
+    // eslint-disable-next-line no-unused-vars
     private readonly calendarService: CalendarService,
+    // eslint-disable-next-line no-unused-vars
     private readonly notificationService: NotificationService,
-
+    // eslint-disable-next-line no-unused-vars
     private readonly dateUtils: DateUtils,
+    // eslint-disable-next-line no-unused-vars
+    private readonly servicesService: ServicesService,
+    // eslint-disable-next-line no-unused-vars
+    private readonly staffService: StaffService,
   ) {}
 
   /**
@@ -51,196 +58,75 @@ export class AppointmentsService {
     return hours * 60 + minutes + second / 60;
   };
 
-  /**
-   * Checks if a given time is within a specified range.
-   *
-   * @param time - The time to check, in the format "HH:MM:SS".
-   * @param startTime - The start time of the range, in the format "HH:MM:SS".
-   * @param endTime - The end time of the range, in the format "HH:MM:SS".
-   * @returns `true` if the time is within the range, `false` otherwise.
-   *
-   * If the start time is greater than the end time, the range is considered to
-   * cross midnight. In this case, the function will return `true` if the time
-   * is either greater than or equal to the start time, or less than or equal to
-   * the end time.
-   */
-  private checkIfTimeIsInRange(
-    time: string,
-    startTime: string,
-    endTime: string,
-  ) {
-    const timeInMinutes = this.convertTimeToMinutesOfDay(time);
-    const startTimeInMinutes = this.convertTimeToMinutesOfDay(startTime);
-    const endTimeInMinutes = this.convertTimeToMinutesOfDay(endTime);
-
-    if (startTimeInMinutes > endTimeInMinutes) {
-      // Rank crosses midnight
-      return (
-        timeInMinutes >= startTimeInMinutes || timeInMinutes <= endTimeInMinutes
-      );
-    }
-    return (
-      timeInMinutes >= startTimeInMinutes && timeInMinutes <= endTimeInMinutes
-    );
-  }
-
-  async checkAvailabilityOld(
-    staffId: string,
-    startDateAndTime: Date,
-    endDateAndTime: Date,
-  ): Promise<boolean> {
-    // Get the day of the selected date (1-7) 1: Monday, ..., 7: Sunday
-    const startDateTime = startDateAndTime.toISOString();
-    const weekday = DateTime.fromISO(startDateTime).weekday;
-
-    // Check if the staff has a defined schedule for that day
-    const staffSchedule = await this.scheduleRepository.findOne({
-      where: { dayOfWeek: weekday, staff: { id: staffId } },
-    });
-
-    // Check if the staff member has a defined schedule for the indicated day
-    if (!staffSchedule)
-      throw new BadRequestException(
-        'The staff member has no work schedule for the selected day',
-      );
-
-    const appointmentStartTimeToronto =
-      this.dateUtils.convertToIso8601ToToronto(
-        new Date(startDateAndTime).toISOString(),
-      );
-    const appointmentEndTimeToronto = this.dateUtils.convertToIso8601ToToronto(
-      new Date(endDateAndTime).toISOString(),
-    );
-    // Check if the start and end times are the same
-    if (appointmentStartTimeToronto === appointmentEndTimeToronto)
-      throw new BadRequestException(
-        'Selected start and end times are the same',
-      );
-
-    const startTimeInRange = this.checkIfTimeIsInRange(
-      appointmentStartTimeToronto,
-      staffSchedule.startTime,
-      staffSchedule.endTime,
-    );
-    // Comprobar si las horas de inicio y fin estan en el rango de horario establecido
-    if (!startTimeInRange)
-      throw new BadRequestException(
-        'The start time does not match the staff member schedule',
-      );
-    const endTimeInRange = this.checkIfTimeIsInRange(
-      appointmentEndTimeToronto,
-      staffSchedule.startTime,
-      staffSchedule.endTime,
-    );
-    if (!endTimeInRange)
-      throw new BadRequestException(
-        'The end time does not match the staff member schedule',
-      );
-
-    const overlappingAppointments = await this.appointmentsRepository.find({
-      where: {
-        staff: { id: staffId },
-        startDateAndTime: In([startDateAndTime, endDateAndTime]),
-        endDateAndTime: In([startDateAndTime, endDateAndTime]),
-      },
-    });
-
-    const conflictingAppointments = await this.appointmentsRepository
-      .createQueryBuilder('appointment')
-      .where('appointment.staffId = :staffId', { staffId })
-      .andWhere(
-        '(appointment.startDateAndTime < :endDateAndTime AND appointment.endDateAndTime > :startDateAndTime)',
-        { startDateAndTime, endDateAndTime },
-      )
-      .getMany();
-
-    return (
-      overlappingAppointments.length === 0 &&
-      conflictingAppointments.length === 0
-    );
-  }
-
-  async create(
-    createAppointmentDto: CreateAppointmentDto,
-    user: User,
-    lang: 'es' | 'en' = 'es',
-  ) {
+  async create(createAppointmentDto: CreateAppointmentDto, user: User) {
     try {
-      const { staffId, serviceId, date, time, comments, timeZone } =
+      const { staffId, serviceId, utcDateTime, timeZone } =
         createAppointmentDto;
 
-      // Check if the service exists
-      const service = await this.serviceRepository.findOneBy({ id: serviceId });
-      if (!service) throw new BadRequestException('Service not found');
-      const serviceDurationMinutes = service.duration_minutes; // Duration in minutes
+      // Verificar si existe el servicio proporcionado
+      const service = await this.servicesService.findOne(serviceId);
 
       // Check if the staff member exists
-      const staff = await this.staffRepository.findOneBy({ id: staffId });
-      if (!staff) throw new BadRequestException('Staff member not found');
+      const staff = await this.staffService.findOne(staffId);
 
-      // 2. Obtener el horario del personal para el día
-      const dayOfWeek = DateTime.fromISO(date).weekday;
+      // 2. Obtener el horario del staff para el día seleccionado
+      // 0: Sunday, ..., 6: Saturday. Map 0 Sunday
+      const dayOfWeek: number =
+        DateTime.fromISO(utcDateTime, { zone: 'utc' }).weekday === 7
+          ? 0
+          : DateTime.fromISO(utcDateTime, { zone: 'utc' }).weekday;
+
       const schedule = await this.scheduleRepository.findOne({
         where: {
           staff: { id: staffId },
-          dayOfWeek: dayOfWeek === 7 ? 0 : dayOfWeek,
-        }, // Map to 0=Domingo
+          dayOfWeek,
+        },
       });
       if (!schedule) {
-        throw new NotFoundException(
-          'The staff has no schedule for the selected day',
+        throw new BadRequestException(
+          'The staff has no schedule for the selected day. Please verify information.',
         );
       }
 
-      // 3. Crear objetos de fecha/hora con Luxon y convertir a UTC
-      const [startHour, startMinute] = time.split(':').map(Number);
-      const startDateLocal = DateTime.fromObject(
-        {
-          year: Number(date.split('-')[0]), // YYYY
-          month: Number(date.split('-')[1]), // MM
-          day: Number(date.split('-')[2]), // DD
-          hour: startHour,
-          minute: startMinute,
-        },
-        { zone: timeZone },
-      );
-      const startDateAndTime = startDateLocal.toUTC().toJSDate(); // Convert to UTC Date object
-      const endDateAndTime = startDateLocal
-        .plus({ minutes: serviceDurationMinutes })
-        .toUTC()
-        .toJSDate(); // Convert to UTC Date object
+      // 3. Establecer fecha y hora del comienzo y fin de la cita
+      const startDateAndTime = DateTime.fromISO(utcDateTime, { zone: 'utc' });
+      const endDateAndTime = startDateAndTime.plus({ minutes: 59 }); // Add 59 minutes
 
       // 4. Verificar si la hora seleccionada está dentro del horario laboral
-      const scheduleStartLocal = DateTime.fromISO(
-        `${date}T${schedule.startTime}`,
-        { zone: timeZone },
-      );
-      const scheduleEndLocal = DateTime.fromISO(`${date}T${schedule.endTime}`, {
-        zone: timeZone,
+      // 4.1 Establece comienzo y fin de horario segun dia seleccionado
+      const startOfSchedule = startDateAndTime.set({
+        hour: parseInt(schedule.startTime.split(':')[0]),
+        minute: parseInt(schedule.startTime.split(':')[1]),
+        second: 0,
+        millisecond: 0,
+      });
+      const endOfSchedule = startDateAndTime.set({
+        hour: parseInt(schedule.endTime.split(':')[0]),
+        minute: parseInt(schedule.endTime.split(':')[1]),
+        second: 0,
+        millisecond: 0,
       });
 
-      if (
-        startDateLocal < scheduleStartLocal ||
-        startDateLocal.plus({ minutes: serviceDurationMinutes }) >
-          scheduleEndLocal
-      ) {
+      // 4.2 Retorna un conflicto si la hora de inicio proporcionada en menor a la hora de inicio del horario
+      // y si la hora de finalizacion de la cita es mayor que la hora de fin del horario.
+      if (startDateAndTime < startOfSchedule) {
         throw new ConflictException(
-          'The selected time is outside the staff working hours',
+          `The appointment start time is before staff work hours, staff starts at ${schedule.startTime} and ends at ${schedule.endTime}`,
+        );
+      }
+      if (endDateAndTime > endOfSchedule) {
+        throw new ConflictException(
+          `The appointment end time is after staff working hours, staff finish at ${schedule.endTime} and start at ${schedule.startTime}`,
         );
       }
 
-      // 5. Verificar si hay solapamiento con citas existentes
+      // 5. Verificar si hay solapamiento con citas existentes segun staff seleccionado
       const overlappingAppointment = await this.appointmentsRepository.findOne({
-        where: [
-          {
-            staff: { id: staffId },
-            startDateAndTime: startDateAndTime, // Comprueba si ya existe una cita en ese mismo momento exacto
-          },
-          {
-            staff: { id: staffId },
-            startDateAndTime: endDateAndTime,
-          },
-        ],
+        where: {
+          staff: { id: staffId },
+          startDateAndTime: LessThan(endDateAndTime.toJSDate()),
+          endDateAndTime: MoreThan(startDateAndTime.toJSDate()),
+        },
       });
 
       if (overlappingAppointment) {
@@ -262,16 +148,13 @@ export class AppointmentsService {
         },
         start_time: startDateAndTime,
         timezone: 'America/Toronto',
-        topic:
-          lang === 'es'
-            ? `Cita: ${service.title_es}`
-            : `Appointment: ${service.title_en}`,
+        topic: `Appointment: ${service.name}`,
         type: 2,
       });
 
       // Create event in calendar
       const eventId = await this.calendarService.createEvent({
-        summary: `Appointment: ${service.title_en}`,
+        summary: `Appointment: ${service.name}`,
         description: `
         Zoom Meeting: ${meeting.join_url} 
         Staff: ${staff.firstName} ${staff.lastName}
@@ -279,8 +162,8 @@ export class AppointmentsService {
         Email: ${user.email}
         Phone Number: ${user.phoneNumber}
         `,
-        startTime: startDateAndTime.toISOString(),
-        endTime: endDateAndTime.toISOString(),
+        startTime: startDateAndTime.toISO(),
+        endTime: endDateAndTime.toISO(),
         timeZone: 'America/Toronto',
         location: `${service.address}`,
       });
@@ -293,25 +176,22 @@ export class AppointmentsService {
         startDateAndTime: startDateAndTime,
         endDateAndTime: endDateAndTime,
         calendarEventId: typeof eventId === 'string' ? eventId : 'N/A',
-        zoomMeetingId: meeting.id,
-        zoomMeetingLink: meeting.join_url,
+        zoomMeetingId: meeting.id || 'N/A',
+        zoomMeetingLink: meeting.join_url || 'N/A',
       });
       await this.appointmentsRepository.save(newAppointment);
 
+      // Send email notifications to staff and customers
       await this.notificationService.sendAppointmentConfirmationEmailToClient(
         user.email,
         {
-          serviceName: lang === 'es' ? service.title_es : service.title_en,
-          appointmentDate: DateTime.fromJSDate(startDateAndTime, {
-            zone: 'utc',
-          })
+          serviceName: service.name,
+          appointmentDate: startDateAndTime
             .setZone(timeZone)
             .toFormat('yyyy-MM-dd'),
-          appointmentTime: DateTime.fromJSDate(startDateAndTime, {
-            zone: 'utc',
-          })
+          appointmentTime: startDateAndTime
             .setZone(timeZone)
-            .toFormat('HH:mm:ss'),
+            .toFormat('HH:mm a'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
           staffName: `${staff.firstName} ${staff.lastName}`,
@@ -322,19 +202,15 @@ export class AppointmentsService {
       );
 
       await this.notificationService.sendAppointmentConfirmationEmailToStaff(
-        'ascenciotaxinc@gmail.com',
+        process.env.EMAIL_USER,
         {
-          serviceName: service.title_en,
-          appointmentDate: DateTime.fromJSDate(startDateAndTime, {
-            zone: 'utc',
-          })
+          serviceName: service.name,
+          appointmentDate: startDateAndTime
             .setZone('America/Toronto')
             .toFormat('yyyy-MM-dd'),
-          appointmentTime: DateTime.fromJSDate(startDateAndTime, {
-            zone: 'utc',
-          })
+          appointmentTime: startDateAndTime
             .setZone('America/Toronto')
-            .toFormat('HH:mm:ss'),
+            .toFormat('HH:mm a'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
           staffName: `${staff.firstName} ${staff.lastName}`,
@@ -423,9 +299,9 @@ export class AppointmentsService {
     userTimeZone: string = 'America/Toronto',
   ) {
     const { date, staffId } = checkAvailabilityDto;
-    // console.log(date, staffId);
-    // return;
-    const dayOfWeek = DateTime.fromISO(date).weekday;
+    const dayOfWeek: number =
+      DateTime.fromISO(date).weekday === 7 ? 0 : DateTime.fromISO(date).weekday; // Map Sunday to 7 for Luxon's weekday
+
     const schedule = await this.scheduleRepository.findOne({
       where: { staff: { id: staffId }, dayOfWeek },
     });
@@ -509,84 +385,4 @@ export class AppointmentsService {
 
     return events.length > 0; // True if there's at least one event
   }
-
-  // async checkAvailabilityForTest(
-  //   staffId: string,
-  //   date: string,
-  //   serviceId: string,
-  // ): Promise<string[]> {
-  //   const service = await this.serviceRepository.findOne({
-  //     where: { id: serviceId },
-  //   });
-  //   if (!service) {
-  //     throw new NotFoundException('Servicio no encontrado.');
-  //   }
-
-  //   const serviceDuration = service.duration;
-  //   const bookingInterval = 15; // Intervalo de reserva, ej. cada 15 minutos
-
-  //   // 1. Obtener el horario de trabajo del personal para el día de la semana
-  //   const dayOfWeek = DateTime.fromISO(date).weekday; // Luxon retorna 1=Lunes a 7=Domingo
-  //   const schedule = await this.scheduleRepository.findOne({
-  //     where: {
-  //       staff: { id: staffId },
-  //       dayOfWeek: dayOfWeek === 7 ? 0 : dayOfWeek,
-  //     }, // Mapea a 0=Domingo
-  //   });
-
-  //   if (!schedule) {
-  //     return []; // No hay horario de trabajo para este día
-  //   }
-
-  //   const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
-  //   const [endHour, endMinute] = schedule.endTime.split(':').map(Number);
-
-  //   // 2. Obtener las citas ya agendadas para el staff y la fecha
-  //   const dayStart = DateTime.fromISO(date).startOf('day').toJSDate();
-  //   const dayEnd = DateTime.fromISO(date).endOf('day').toJSDate();
-
-  //   const existingAppointments = await this.appointmentsRepository.find({
-  //     where: {
-  //       staff: { id: staffId },
-  //       startDateAndTime: Between(dayStart, dayEnd),
-  //     },
-  //     order: {
-  //       startDateAndTime: 'ASC', // Ordenar para un cálculo más fácil
-  //     },
-  //   });
-
-  //   // 3. Generar todas las franjas de tiempo posibles
-  //   const availableSlots = new Set<string>();
-  //   let currentTime = DateTime.fromISO(date).set({
-  //     hour: startHour,
-  //     minute: startMinute,
-  //     second: 0,
-  //     millisecond: 0,
-  //   });
-  //   const endTime = DateTime.fromISO(date).set({
-  //     hour: endHour,
-  //     minute: endMinute,
-  //     second: 0,
-  //     millisecond: 0,
-  //   });
-
-  //   while (currentTime.plus({ minutes: serviceDuration }) <= endTime) {
-  //     availableSlots.add(currentTime.toFormat('HH:mm'));
-  //     currentTime = currentTime.plus({ minutes: bookingInterval });
-  //   }
-
-  //   // 4. Filtrar las franjas de tiempo ocupadas
-  //   existingAppointments.forEach((appointment) => {
-  //     const apptStart = DateTime.fromJSDate(appointment.startDateAndTime);
-  //     const apptEnd = DateTime.fromJSDate(appointment.endDateAndTime);
-
-  //     let occupiedTime = apptStart;
-  //     while (occupiedTime < apptEnd) {
-  //       availableSlots.delete(occupiedTime.toFormat('HH:mm'));
-  //       occupiedTime = occupiedTime.plus({ minutes: bookingInterval });
-  //     }
-  //   });
-
-  //   return Array.from(availableSlots);
-  // }
 }

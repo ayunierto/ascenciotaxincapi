@@ -1,14 +1,32 @@
-import globals from 'globals';
-import pluginJs from '@eslint/js';
+// eslint.config.js
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
+import prettier from 'eslint-plugin-prettier';
+import nestjsPlugin from '@darraghor/eslint-plugin-nestjs-typed'; // Optional: for NestJS-specific rules
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
-  { languageOptions: { globals: globals.browser } },
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+export default defineConfig([
+  // ESLint's recommended rules
+  tseslint.configs.recommended,
+  // TypeScript-specific recommended rules (type-aware)
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   {
-    rules: { 'no-unused-vars': ['warn'] },
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.json', // Path to your tsconfig.json
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      prettier,
+      '@darraghor/nestjs-typed': nestjsPlugin, // Optional: for NestJS-specific rules
+    },
+    rules: {
+      'prettier/prettier': 'error',
+      // Other custom rules or overrides
+      '@darraghor/nestjs-typed/injectable-should-be-provided': 'error', // Example NestJS rule
+    },
   },
-];
+]);
