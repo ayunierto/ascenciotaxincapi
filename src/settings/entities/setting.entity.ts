@@ -14,6 +14,9 @@ export class Setting {
   @Column()
   timeZone: string;
 
+  @Column()
+  locale: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

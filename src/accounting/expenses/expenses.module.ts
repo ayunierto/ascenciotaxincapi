@@ -8,6 +8,9 @@ import { LogsModule } from 'src/logs/logs.module';
 import { AwsModule } from 'src/aws/aws.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { SubcategoriesModule } from '../subcategories/subcategories.module';
+import { FilesModule } from 'src/files/files.module';
+import { OcrModule } from 'src/ocr/ocr.module';
+import { OpenaiModule } from 'src/openai/openai.module';
 
 @Module({
   controllers: [ExpenseController],
@@ -19,6 +22,9 @@ import { SubcategoriesModule } from '../subcategories/subcategories.module';
     AwsModule,
     CategoriesModule,
     SubcategoriesModule,
+    FilesModule,
+    OcrModule,
+    OpenaiModule,
   ],
   exports: [ExpenseService],
 })

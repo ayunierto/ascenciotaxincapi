@@ -1,6 +1,7 @@
 import {
-  BadRequestException,
   Controller,
+  Delete,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -13,13 +14,21 @@ import { FileFilter } from './helpers/fileFilter.helper';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('upload-image')
+  @Post('upload')
   @UseInterceptors(
-    FileInterceptor('file', {
-      fileFilter: FileFilter,
-    }),
+    FileInterceptor(
+      'file',
+      //   {
+      //   fileFilter: FileFilter,
+      // }
+    ),
   )
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.filesService.uploadFile(file);
+    return this.filesService.upload(file);
+  }
+
+  @Delete(':publicId')
+  async deleteFile(@Param('publicId') publicId: string) {
+    return this.filesService.delete(publicId);
   }
 }

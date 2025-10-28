@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "engines": {
-    "node": "22.x"
+    "node": "20.x"
   },
   "scripts": {
     "build": "nest build",
@@ -32,6 +32,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.2",
+    "@types/streamifier": "^0.1.2",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -40,19 +41,18 @@
     "cloudinary": "^2.5.1",
     "googleapis": "^105.0.0",
     "luxon": "^3.5.0",
-    "mailersend": "^2.6.0",
     "nodemailer": "^7.0.6",
+    "openai": "^6.7.0",
     "pdfmake": "^0.2.18",
     "pg": "^8.13.0",
     "query-string": "^9.1.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "stripe": "^17.6.0",
-    "twilio": "^5.4.0",
+    "streamifier": "^0.1.1",
+    "tesseract.js": "^6.0.1",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@types/pdfmake": "^0.2.11",
     "@eslint/js": "^9.20.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
@@ -67,6 +67,7 @@
     "@types/node": "^20.3.1",
     "@types/nodemailer": "^7.0.1",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pdfmake": "^0.2.11",
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

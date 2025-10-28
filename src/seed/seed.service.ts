@@ -27,7 +27,10 @@ export class SeedService {
     try {
       await this.deleteData();
 
-      await this.settingsService.create({ timeZone: 'America/Toronto' });
+      await this.settingsService.create({
+        timeZone: 'America/Toronto',
+        locale: 'en-CA',
+      });
 
       // await this.usersService.create({
       //   firstName: 'Alcides',

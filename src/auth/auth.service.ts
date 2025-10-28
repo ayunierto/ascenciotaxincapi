@@ -112,7 +112,7 @@ export class AuthService {
     );
     if (!emailSent) {
       this.logger.error(
-        `Failed to send verification email to: ${savedUser.email}. Please check your MailerSend configuration.`,
+        `Failed to send verification email to: ${savedUser.email}. Please check your configuration.`,
       );
       // If email sending fails, remove the user from the database
       await this.usersRepository.remove(savedUser); // Clean up the user if email fails
@@ -276,7 +276,7 @@ export class AuthService {
     );
     if (!emailSent) {
       this.logger.error(
-        `Failed to send verification email to: ${user.email}. Please check your MailerSend configuration.`,
+        `Failed to send verification email to: ${user.email}. Please check your configuration.`,
       );
       throw new InternalServerErrorException(
         'Failed to send verification email',
@@ -381,7 +381,7 @@ export class AuthService {
       );
       if (!emailSent) {
         this.logger.error(
-          `Failed to send reset password email to: ${user.email}. Please check your MailerSend configuration.`,
+          `Failed to send reset password email to: ${user.email}. Please check your configuration.`,
         );
         throw new InternalServerErrorException(
           'Failed to send reset password email',
@@ -568,7 +568,7 @@ export class AuthService {
     );
     if (!emailSent) {
       this.logger.error(
-        `Failed to send reset password email to: ${user.email}. Please check your MailerSend configuration.`,
+        `Failed to send reset password email to: ${user.email}. Please check your configuration.`,
       );
       throw new InternalServerErrorException(
         'Failed to send reset password email',

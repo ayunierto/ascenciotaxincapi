@@ -5,10 +5,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Auth, calendar_v3, google } from 'googleapis';
-import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
 
-// import * as fs from 'fs';
-import { DateTime } from 'luxon';
+import { DateTime, Interval } from 'luxon';
 
 @Injectable()
 export class CalendarService implements OnModuleInit {
@@ -46,26 +44,11 @@ export class CalendarService implements OnModuleInit {
       ],
     });
 
-    // const credentialsBase64 = process.env.CREDENTIALS_BASE64;
-    // const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString(
-    //   'utf-8',
-    // );
-
-    // fs.writeFileSync('/tmp/credentials.json', credentialsJson); // Save the file temporarily
-
-    // const auth = new google.auth.GoogleAuth({
-    //     keyFile: '/tmp/credentials.json', // Use the temporal file
-    //   scopes: ['https://www.googleapis.com/auth/calendar'],
-    // });
-
-    // ... After using the AUH, you can delete the file:
-    // fs.unlinkSync('/tmp/credentials.json');
-
     this.calendar = google.calendar({ version: 'v3', auth: this.auth });
   }
 
   // Method to create an event on Google Calendar
-  async createEvent(event: CreateCalendarEventDto) {
+  async createEvent(body: calendar_v3.Schema$Event) {
     if (!this.calendar) {
       this.logger.error('Calendar client not initialized.');
       throw new Error(
@@ -76,19 +59,7 @@ export class CalendarService implements OnModuleInit {
     try {
       const response = await this.calendar.events.insert({
         calendarId: this.calendarId,
-        requestBody: {
-          summary: event.summary,
-          location: event.location,
-          start: {
-            dateTime: event.startTime,
-            timeZone: event.timeZone,
-          },
-          end: {
-            dateTime: event.endTime,
-            timeZone: event.timeZone,
-          },
-          description: `${event.description}`,
-        },
+        requestBody: body,
       });
 
       this.logger.log(`Event created: ${response.data.htmlLink}`);
@@ -146,43 +117,6 @@ export class CalendarService implements OnModuleInit {
       );
       // Puedes relanzar el error o manejarlo de forma más específica
       throw new Error(`Failed to list upcoming events: ${error.message}`);
-    }
-  }
-
-  /**
-   * Creates a new event in the configured calendar.
-   * @param eventDetails Details of the event to create.
-   * @returns The created event.
-   */
-  async createEvent2(
-    eventDetails: calendar_v3.Schema$Event,
-  ): Promise<calendar_v3.Schema$Event> {
-    if (!this.calendar) {
-      this.logger.error('Calendar client not initialized.');
-      throw new Error(
-        'Calendar client not initialized. Check initialization logs.',
-      );
-    }
-    try {
-      const response = await this.calendar.events.insert({
-        calendarId: this.calendarId,
-        requestBody: eventDetails,
-      });
-      this.logger.log(`Event created: ${response.data.htmlLink}`);
-      return response.data;
-    } catch (error) {
-      this.logger.error(`Error creating event: ${error.message}`, error.stack);
-      // Considerar si el error es por `error.response.data.error` para mensajes más específicos de la API de Google
-      const googleApiError = error.response?.data?.error;
-      if (googleApiError) {
-        this.logger.error(
-          `Google API Error: ${googleApiError.message} (Code: ${googleApiError.code})`,
-        );
-        throw new Error(
-          `Failed to create event (Google API: ${googleApiError.message})`,
-        );
-      }
-      throw new Error(`Failed to create event: ${error.message}`);
     }
   }
 
@@ -303,12 +237,18 @@ export class CalendarService implements OnModuleInit {
   }
 
   /**
+   * Verifica si hay eventos en un rango de fechas dado.
    *
    * @param startDateTime 2025-01-06T00:00:00.000Z
    * @param endDateTime 2025-01-06T14:00:00.000Z
-   * @returns
+   * @param targetTimeZone Zona horaria para convertir los tiempos (por defecto 'America/Toronto')
+   * @returns Una lista de intervalos ocupados en la zona horaria objetivo.
    */
-  async checkEventsInRange(startDateTime: string, endDateTime: string) {
+  async checkEventsInRange(
+    startDateTime: string,
+    endDateTime: string,
+    targetTimeZone: string = 'America/Toronto',
+  ): Promise<Interval[]> {
     try {
       const timeMin = new Date(startDateTime).toISOString();
       const timeMax = new Date(endDateTime).toISOString();
@@ -321,13 +261,26 @@ export class CalendarService implements OnModuleInit {
         orderBy: 'startTime',
       });
 
-      return response.data.items.map((item) => {
-        return {
-          summary: item.summary,
-          start: DateTime.fromISO(item.start.dateTime).toUTC(),
-          end: DateTime.fromISO(item.end.dateTime).toUTC(),
-        };
-      });
+      const eventIntervals = response.data.items.map((event) =>
+        Interval.fromDateTimes(
+          DateTime.fromISO(event.start.dateTime, {
+            zone: event.start.timeZone,
+          }).setZone(targetTimeZone),
+          DateTime.fromISO(event.end.dateTime, {
+            zone: event.end.timeZone,
+          }).setZone(targetTimeZone),
+        ),
+      );
+
+      return eventIntervals;
+
+      // return response.data.items.map((item) => {
+      //   return {
+      //     summary: item.summary,
+      //     start: DateTime.fromISO(item.start.dateTime).toUTC(),
+      //     end: DateTime.fromISO(item.end.dateTime).toUTC(),
+      //   };
+      // });
     } catch (error) {
       console.error(error);
       return [];
@@ -347,11 +300,28 @@ export class CalendarService implements OnModuleInit {
     return response.data.items;
   }
 
-  async remove(id: string) {
-    const response = await this.calendar.events.delete({
-      calendarId: this.calendarId,
-      eventId: id,
-    });
-    return response;
+  async remove(eventId: string) {
+    try {
+      const response = await this.calendar.events.delete({
+        calendarId: this.calendarId,
+        eventId: eventId,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error(
+        `Error removing event ${eventId}: ${error.message}`,
+        error.stack,
+      );
+      const googleApiError = error.response?.data?.error;
+      if (googleApiError) {
+        this.logger.error(
+          `Google API Error: ${googleApiError.message} (Code: ${googleApiError.code})`,
+        );
+        throw new Error(
+          `Failed to remove event (Google API: ${googleApiError.message})`,
+        );
+      }
+      throw new Error(`Failed to remove event ${eventId}: ${error.message}`);
+    }
   }
 }

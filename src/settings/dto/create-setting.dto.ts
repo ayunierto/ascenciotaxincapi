@@ -1,6 +1,9 @@
-import { IsTimeZone } from 'class-validator';
+import { IsLocale, IsTimeZone } from 'class-validator';
 
 export class CreateSettingDto {
   @IsTimeZone()
   timeZone: string;
+
+  @IsLocale()
+  locale: string;
 }

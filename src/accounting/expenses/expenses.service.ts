@@ -16,6 +16,7 @@ import { ExpensesByCategory } from './interfaces/expenses-by-category.interface'
 
 import { CategoriesService } from '../categories/categories.service';
 import { SubcategoriesService } from '../subcategories/subcategories.service';
+import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class ExpenseService {
@@ -25,6 +26,7 @@ export class ExpenseService {
     private readonly logService: LogsService,
     private readonly categoriesService: CategoriesService,
     private readonly subcategoriesService: SubcategoriesService,
+    private readonly filesService: FilesService,
   ) {}
 
   async findAllByDateRange(startDate: Date, endDate: Date, user: User) {
@@ -95,7 +97,16 @@ export class ExpenseService {
     user: User,
   ): Promise<Expense> {
     try {
-      const { categoryId, subcategoryId, date, ...rest } = createExpenseDto;
+      const { categoryId, subcategoryId, date, imageUrl, ...rest } =
+        createExpenseDto;
+
+      const oldPath = this.extractPublicId(imageUrl);
+      // const oldPath = `ascencio_tax_inc/temp_receipts/${user.id}/${publicId}`;
+      // const newPath = `ascencio_tax_inc/receipts/${user.id}/${publicId}`;
+      const newPath = oldPath.replace('temp_receipts', 'receipts');
+      const updatedImageUrl = imageUrl.replace(oldPath, newPath);
+
+      await this.filesService.move(oldPath, newPath);
 
       // Validate if the category provided exists
       const category = await this.categoriesService.findOne(categoryId);
@@ -111,6 +122,7 @@ export class ExpenseService {
         date: new Date(date),
         subcategory: subcategory,
         user: user,
+        imageUrl: updatedImageUrl,
         ...rest,
       });
 
@@ -123,6 +135,8 @@ export class ExpenseService {
 
       return newExpense;
     } catch (error) {
+      console.error(error);
+
       throw new InternalServerErrorException(
         error.message || 'Error creating expense. Please try again later.',
       );
@@ -153,10 +167,11 @@ export class ExpenseService {
     try {
       const expense = await this.expenseRepository.findOne({
         where: { id: id, user: { id: user.id } },
+        relations: { category: true, subcategory: true },
       });
       return expense;
     } catch (error) {
-      throw new InternalServerErrorException(
+      throw new BadRequestException(
         error.message || 'Error fetching expense. Please try again later.',
       );
     }
@@ -226,6 +241,7 @@ export class ExpenseService {
       if (!expense) {
         throw new BadRequestException('Expense not found');
       }
+      // TODO: delete temp file
       await this.expenseRepository.remove(expense);
 
       await this.logService.create(
@@ -238,6 +254,20 @@ export class ExpenseService {
       throw new InternalServerErrorException(
         'Error deleting expense. Please try again later.',
       );
+    }
+  }
+
+  // Extraer public_id de una URL de Cloudinary
+  extractPublicId(url: string): string | null {
+    try {
+      // Ejemplo:
+      // https://res.cloudinary.com/demo/image/upload/v1720001234/ascencio_tax_inc/temp_receipts/42/receipt_abc123.jpg
+      const parts = url.split('/upload/');
+      const path = parts[1].split('.')[0]; // ascencio_tax_inc/temp_receipts/42/receipt_abc123
+      // Eliminar el prefijo de versión v1720001234/
+      return path.replace(/^v\d+\//, '');
+    } catch {
+      return null;
     }
   }
 }

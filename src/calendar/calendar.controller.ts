@@ -1,13 +1,13 @@
 import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
-import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
+import { calendar_v3 } from 'googleapis';
 
 @Controller('calendar')
 export class CalendarController {
   constructor(private readonly googleCalendarService: CalendarService) {}
 
   @Post('events')
-  async createEvent(@Body() createCalendarEventDto: CreateCalendarEventDto) {
+  async createEvent(@Body() createCalendarEventDto: calendar_v3.Schema$Event) {
     const createdEvent = await this.googleCalendarService.createEvent(
       createCalendarEventDto,
     );

@@ -28,9 +28,7 @@ export class Staff {
   })
   isActive: boolean;
 
-  @ManyToMany(() => Service, (service) => service.staff, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToMany(() => Service, (service) => service.staff)
   @JoinTable()
   services: Service[];
 

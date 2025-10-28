@@ -42,7 +42,7 @@ export class User {
   @Column()
   timeZone: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', default: 'en-CA' })
   locale: string;
 
   @Column('bool', { default: true })

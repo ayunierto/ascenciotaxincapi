@@ -3,6 +3,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  IsTimeZone,
   IsUUID,
   Min,
 } from 'class-validator';
@@ -15,15 +16,13 @@ export class CreateAppointmentDto {
   staffId: string;
 
   @IsISO8601()
-  start!: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
+  start: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
 
-  @IsString()
-  timezone!: string; // IANA
+  @IsISO8601()
+  end: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  durationMin?: number; // opcional si servicio tiene variable
+  @IsTimeZone()
+  timeZone: string; // IANA
 
   @IsString()
   @IsOptional()

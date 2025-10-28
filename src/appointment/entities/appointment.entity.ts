@@ -16,20 +16,15 @@ export class Appointment {
   id: string;
 
   @Column('timestamp with time zone')
-  startDateAndTime: Date;
+  start: Date;
 
   @Column('timestamp with time zone')
-  endDateAndTime: Date;
+  end: Date;
 
   @Column({ default: 'confirmed' })
-  // @Column({
-  //   type: 'enum',
-  //   enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-  //   default: 'pending',
-  // })
-  state: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
-  @Column()
+  @Column({ nullable: true })
   comments: string;
 
   @Column()
@@ -41,9 +36,9 @@ export class Appointment {
   @Column({ nullable: true })
   zoomMeetingLink: string;
 
-  @Column({ nullable: true })
+  @Column({ default: 'app' })
   // "enum[app, admin, imported, api]"
-  source: string;
+  source: 'app' | 'admin' | 'imported' | 'api';
 
   @Column({ nullable: true })
   cancellationReason: string;

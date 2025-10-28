@@ -11,6 +11,7 @@ import { ZoomModule } from 'src/zoom/zoom.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ServicesModule } from 'src/services/services.module';
 import { StaffModule } from 'src/staff/staff.module';
+import { SettingsModule } from 'src/settings/settings.module';
 
 @Module({
   controllers: [AppointmentsController],
@@ -23,6 +24,7 @@ import { StaffModule } from 'src/staff/staff.module';
     NotificationModule,
     ServicesModule,
     StaffModule,
+    SettingsModule,
   ],
   exports: [AppointmentsService, TypeOrmModule],
 })

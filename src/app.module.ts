@@ -25,6 +25,10 @@ import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 // import { UtilityModule } from './utility/utility.module';
 import { SettingsModule } from './settings/settings.module';
+import { AvailabilityModule } from './availability/availability.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { OpenaiModule } from './openai/openai.module';
+import { OcrModule } from './ocr/ocr.module';
 
 @Module({
   imports: [
@@ -65,6 +69,10 @@ import { SettingsModule } from './settings/settings.module';
     PrinterModule,
     NotificationModule,
     SettingsModule,
+    AvailabilityModule,
+    CloudinaryModule,
+    OpenaiModule,
+    OcrModule,
   ],
   controllers: [],
   providers: [],

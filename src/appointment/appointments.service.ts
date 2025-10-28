@@ -9,17 +9,16 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { User } from '../auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, LessThan, MoreThan, Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { DateUtils } from './utils/date.utils';
 import { CalendarService } from 'src/calendar/calendar.service';
 import { ZoomService } from 'src/zoom/zoom.service';
 import { DateTime } from 'luxon';
 import { NotificationService } from 'src/notification/notification.service';
-import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { ServicesService } from 'src/services/services.service';
 import { StaffService } from 'src/staff/staff.service';
+import { SettingsService } from 'src/settings/settings.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -27,43 +26,27 @@ export class AppointmentsService {
 
   constructor(
     @InjectRepository(Appointment)
-    // eslint-disable-next-line no-unused-vars
     private readonly appointmentsRepository: Repository<Appointment>,
     @InjectRepository(Schedule)
-    // eslint-disable-next-line no-unused-vars
     private readonly scheduleRepository: Repository<Schedule>,
-
-    // eslint-disable-next-line no-unused-vars
     private readonly zoomService: ZoomService,
-    // eslint-disable-next-line no-unused-vars
     private readonly calendarService: CalendarService,
-    // eslint-disable-next-line no-unused-vars
     private readonly notificationService: NotificationService,
-    // eslint-disable-next-line no-unused-vars
-    private readonly dateUtils: DateUtils,
-    // eslint-disable-next-line no-unused-vars
     private readonly servicesService: ServicesService,
-    // eslint-disable-next-line no-unused-vars
     private readonly staffService: StaffService,
+    private readonly settingsService: SettingsService,
   ) {}
-
-  /**
-   * Converts a time string in the format "HH:MM:SS" to the total number of minutes in the day.
-   *
-   * @param hour - The time string to convert, in the format "HH:MM:SS".
-   * @returns The total number of minutes in the day corresponding to the given time.
-   */
-  private convertTimeToMinutesOfDay = (time: string): number => {
-    const [hours, minutes, second] = time.split(':').map(Number);
-    return hours * 60 + minutes + second / 60;
-  };
 
   async create(createAppointmentDto: CreateAppointmentDto, user: User) {
     try {
-      const { staffId, serviceId, utcDateTime, timeZone } =
-        createAppointmentDto;
+      const { staffId, serviceId, start, end, timeZone } = createAppointmentDto;
 
-      // Verificar si existe el servicio proporcionado
+      const settings = await this.settingsService.getSettings();
+      if (!settings) {
+        throw new BadRequestException('Settings not found');
+      }
+
+      // 1. Buscar servicio solicitado.
       const service = await this.servicesService.findOne(serviceId);
 
       // Check if the staff member exists
@@ -72,9 +55,7 @@ export class AppointmentsService {
       // 2. Obtener el horario del staff para el día seleccionado
       // 0: Sunday, ..., 6: Saturday. Map 0 Sunday
       const dayOfWeek: number =
-        DateTime.fromISO(utcDateTime, { zone: 'utc' }).weekday === 7
-          ? 0
-          : DateTime.fromISO(utcDateTime, { zone: 'utc' }).weekday;
+        DateTime.fromISO(start, { zone: 'utc' }).weekday % 7;
 
       const schedule = await this.scheduleRepository.findOne({
         where: {
@@ -89,22 +70,18 @@ export class AppointmentsService {
       }
 
       // 3. Establecer fecha y hora del comienzo y fin de la cita
-      const startDateAndTime = DateTime.fromISO(utcDateTime, { zone: 'utc' });
-      const endDateAndTime = startDateAndTime.plus({ minutes: 59 }); // Add 59 minutes
+      const startDateAndTime = DateTime.fromISO(start, { zone: 'utc' });
+      const endDateAndTime = DateTime.fromISO(end, { zone: 'utc' });
 
       // 4. Verificar si la hora seleccionada está dentro del horario laboral
       // 4.1 Establece comienzo y fin de horario segun dia seleccionado
       const startOfSchedule = startDateAndTime.set({
         hour: parseInt(schedule.startTime.split(':')[0]),
         minute: parseInt(schedule.startTime.split(':')[1]),
-        second: 0,
-        millisecond: 0,
       });
       const endOfSchedule = startDateAndTime.set({
         hour: parseInt(schedule.endTime.split(':')[0]),
         minute: parseInt(schedule.endTime.split(':')[1]),
-        second: 0,
-        millisecond: 0,
       });
 
       // 4.2 Retorna un conflicto si la hora de inicio proporcionada en menor a la hora de inicio del horario
@@ -124,8 +101,8 @@ export class AppointmentsService {
       const overlappingAppointment = await this.appointmentsRepository.findOne({
         where: {
           staff: { id: staffId },
-          startDateAndTime: LessThan(endDateAndTime.toJSDate()),
-          endDateAndTime: MoreThan(startDateAndTime.toJSDate()),
+          start: LessThan(endDateAndTime.toJSDate()),
+          end: MoreThan(startDateAndTime.toJSDate()),
         },
       });
 
@@ -146,8 +123,10 @@ export class AppointmentsService {
           join_before_host: true,
           participant_video: true,
         },
-        start_time: startDateAndTime,
-        timezone: 'America/Toronto',
+        start_time: DateTime.fromISO(start, { zone: 'utc' })
+          .setZone(timeZone)
+          .toISO(),
+        timezone: timeZone,
         topic: `Appointment: ${service.name}`,
         type: 2,
       });
@@ -155,17 +134,29 @@ export class AppointmentsService {
       // Create event in calendar
       const eventId = await this.calendarService.createEvent({
         summary: `Appointment: ${service.name}`,
-        description: `
-        Zoom Meeting: ${meeting.join_url} 
-        Staff: ${staff.firstName} ${staff.lastName}
-        Client: ${user.firstName} ${user.lastName}
-        Email: ${user.email}
-        Phone Number: ${user.phoneNumber}
-        `,
-        startTime: startDateAndTime.toISO(),
-        endTime: endDateAndTime.toISO(),
-        timeZone: 'America/Toronto',
         location: `${service.address}`,
+        description: `
+          <p>Zoom Meeting: ${meeting.join_url}</p> 
+          <p>Staff: ${staff.firstName} ${staff.lastName}</p>
+          <p>Client: ${user.firstName} ${user.lastName}</p>
+          <p>Email: ${user.email}</p>
+          <p>Phone Number: ${user.phoneNumber}</p>
+        `,
+        start: {
+          dateTime: startDateAndTime.setZone(timeZone).toISO(),
+          timeZone: timeZone,
+        },
+        end: {
+          dateTime: endDateAndTime.setZone(timeZone).toISO(),
+          timeZone: timeZone,
+        },
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email', minutes: 24 * 60 }, // 24 hours before
+            { method: 'popup', minutes: 10 }, // 10 minutes before
+          ],
+        },
       });
 
       // Save appointment
@@ -173,8 +164,8 @@ export class AppointmentsService {
         user,
         staff,
         service,
-        startDateAndTime: startDateAndTime,
-        endDateAndTime: endDateAndTime,
+        start: startDateAndTime,
+        end: endDateAndTime,
         calendarEventId: typeof eventId === 'string' ? eventId : 'N/A',
         zoomMeetingId: meeting.id || 'N/A',
         zoomMeetingLink: meeting.join_url || 'N/A',
@@ -206,10 +197,10 @@ export class AppointmentsService {
         {
           serviceName: service.name,
           appointmentDate: startDateAndTime
-            .setZone('America/Toronto')
+            .setZone(settings.timeZone)
             .toFormat('yyyy-MM-dd'),
           appointmentTime: startDateAndTime
-            .setZone('America/Toronto')
+            .setZone(settings.timeZone)
             .toFormat('HH:mm a'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
@@ -222,7 +213,7 @@ export class AppointmentsService {
 
       return newAppointment;
     } catch (error) {
-      return error;
+      throw new BadRequestException('Could not create appointment');
     }
   }
 
@@ -248,7 +239,7 @@ export class AppointmentsService {
 
       if (state === 'pending') {
         const appts = await this.appointmentsRepository.find({
-          where: { user: { id: user.id }, startDateAndTime: MoreThan(now) },
+          where: { user: { id: user.id }, start: MoreThan(now) },
           relations: ['staff', 'service'],
         });
         if (!appts) return [];
@@ -257,7 +248,7 @@ export class AppointmentsService {
 
       if (state === 'past') {
         const appts = await this.appointmentsRepository.find({
-          where: { user: { id: user.id }, startDateAndTime: LessThan(now) },
+          where: { user: { id: user.id }, start: LessThan(now) },
           relations: ['staff', 'service'],
         });
         if (!appts) return [];
@@ -266,8 +257,8 @@ export class AppointmentsService {
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while fetching the appointments. Please try again later.',
-        'FETCH_APPOINTMENTS_FAILED',
+        error.message ||
+          'An unexpected error occurred while fetching the appointments. Please try again later.',
       );
     }
   }
@@ -281,108 +272,16 @@ export class AppointmentsService {
     return appointment;
   }
 
-  async getAppointmentsByStaffMember(staffMemberId: string, date: string) {
-    this.appointmentsRepository.find({
-      where: {
-        staff: { id: staffMemberId },
-        startDateAndTime: Between(
-          new Date(`${date}T00:00:00.000Z`),
-          new Date(`${date}T23:59:59.999Z`),
-        ),
-      },
-      relations: ['staff_member'],
-    });
-  }
-
-  async checkAvailability(
-    checkAvailabilityDto: CheckAvailabilityDto,
-    userTimeZone: string = 'America/Toronto',
-  ) {
-    const { date, staffId } = checkAvailabilityDto;
-    const dayOfWeek: number =
-      DateTime.fromISO(date).weekday === 7 ? 0 : DateTime.fromISO(date).weekday; // Map Sunday to 7 for Luxon's weekday
-
-    const schedule = await this.scheduleRepository.findOne({
-      where: { staff: { id: staffId }, dayOfWeek },
-    });
-
-    if (!schedule) return [];
-
-    // Define the start and end dates in the user's time zone
-    const startDateTimeUser = DateTime.fromISO(
-      `${date}T${schedule.startTime}`,
-      { zone: userTimeZone },
-    );
-    const endDateTimeUser = DateTime.fromISO(`${date}T${schedule.endTime}`, {
-      zone: userTimeZone,
-    });
-
-    // Convert UTC for comparisons with appointments and events
-    const startDateTimeUTC = startDateTimeUser.toUTC();
-    const endDateTimeUTC = endDateTimeUser.toUTC();
-
-    const availableSlots: { start: string; end: string }[] = [];
-
-    const nowUTC = DateTime.now().toUTC(); // Hora actual en UTC
-
-    // Iterar por intervalos de una hora
-    let currentDateTimeUTC = startDateTimeUTC;
-
-    while (currentDateTimeUTC < endDateTimeUTC) {
-      const nextDateTimeUTC = currentDateTimeUTC.plus({ hours: 1 });
-
-      // Verify if the current time has already passed
-      if (currentDateTimeUTC < nowUTC) {
-        currentDateTimeUTC = nextDateTimeUTC;
-        continue;
-      }
-
-      const hasAppointment = await this.checkForAppointments(
-        staffId,
-        currentDateTimeUTC.toJSDate(),
-        nextDateTimeUTC.toJSDate(),
-      );
-
-      const hasCalendarEvent = await this.checkForEvents(
-        currentDateTimeUTC.toJSDate(),
-        nextDateTimeUTC.toJSDate(),
-      );
-
-      if (!hasAppointment && !hasCalendarEvent) {
-        availableSlots.push({
-          start: currentDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
-          end: nextDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
-        });
-      }
-
-      currentDateTimeUTC = nextDateTimeUTC;
-    }
-
-    return availableSlots;
-  }
-
-  private async checkForAppointments(
-    staffId: string,
-    startDate: Date,
-    endDate: Date,
-  ) {
-    const appointments =
-      (await this.appointmentsRepository.count({
-        where: {
-          staff: { id: staffId },
-          startDateAndTime: Between(startDate, endDate),
-        },
-      })) > 0;
-
-    return appointments; // True if there's at least one appointment
-  }
-
-  private async checkForEvents(startTime: Date, endTime: Date) {
-    const events = await this.calendarService.checkEventsInRange(
-      startTime.toUTCString(),
-      endTime.toUTCString(),
-    );
-
-    return events.length > 0; // True if there's at least one event
-  }
+  // async getAppointmentsByStaff(staffId: string, date: string) {
+  //   this.appointmentsRepository.find({
+  //     where: {
+  //       staff: { id: staffId },
+  //       start: Between(
+  //         new Date(`${date}T00:00:00.000Z`),
+  //         new Date(`${date}T23:59:59.999Z`),
+  //       ),
+  //     },
+  //     relations: ['staff_member'],
+  //   });
+  // }
 }

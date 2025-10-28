@@ -39,7 +39,4 @@ export class Schedule {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @Column('timestamp with time zone', { nullable: true })
-  deletedAt: Date;
 }
