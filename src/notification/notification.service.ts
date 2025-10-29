@@ -273,6 +273,10 @@ export class NotificationService {
     try {
       await this.mailService.sendMail(mailOptions);
       console.log(`Appointment confirmation email sent to ${recipientEmail}`);
+
+      this.logger.log(
+        `Appointment confirmation email sent to ${recipientEmail}`,
+      );
     } catch (error) {
       console.error(
         `Failed to send appointment confirmation email to ${recipientEmail}:`,

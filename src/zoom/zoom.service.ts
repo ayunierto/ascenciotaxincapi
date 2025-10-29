@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 @Injectable()
 export class ZoomService {
   private ZOOM_OAUTH_ENDPOINT = 'https://zoom.us/oauth/token';
   private ZOOM_API_BASE_URL = 'https://api.zoom.us/v2';
+
+  private readonly logger = new Logger(ZoomService.name);
 
   async createZoomMeeting(body) {
     try {
@@ -22,7 +24,7 @@ export class ZoomService {
         },
       );
 
-      console.log('Meeting created.');
+      this.logger.log('Meeting created successfully');
       return request.data;
     } catch (error) {
       return error;

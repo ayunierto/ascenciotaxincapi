@@ -10,6 +10,7 @@ import { PostsModule } from 'src/blog/posts/posts.module';
 import { CategoriesModule } from 'src/accounting/categories/categories.module';
 import { SubcategoriesModule } from 'src/accounting/subcategories/subcategories.module';
 import { SettingsModule } from 'src/settings/settings.module';
+import { AppVersionsModule } from 'src/app-versions/app-versions.module';
 
 @Module({
   controllers: [SeedController],
@@ -24,6 +25,7 @@ import { SettingsModule } from 'src/settings/settings.module';
     CategoriesModule,
     SubcategoriesModule,
     SettingsModule,
+    AppVersionsModule,
   ],
 })
 export class SeedModule {}

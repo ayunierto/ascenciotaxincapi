@@ -9,6 +9,8 @@ import { CategoriesService } from 'src/accounting/categories/categories.service'
 import { SubcategoriesService } from '../accounting/subcategories/subcategories.service';
 import { Role } from 'src/auth/enums/role.enum';
 import { SettingsService } from 'src/settings/settings.service';
+import { AppVersionsService } from 'src/app-versions/app-versions.service';
+import { AppPlatform } from 'src/app-versions/entities/app-version.entity';
 
 @Injectable()
 export class SeedService {
@@ -21,6 +23,7 @@ export class SeedService {
     private readonly categoriesService: CategoriesService,
     private readonly subcategoriesService: SubcategoriesService,
     private readonly settingsService: SettingsService,
+    private readonly appVersionService: AppVersionsService,
   ) {}
 
   async runSeed() {
@@ -32,11 +35,18 @@ export class SeedService {
         locale: 'en-CA',
       });
 
+      await this.appVersionService.create({
+        platform: AppPlatform.ALL,
+        minSupportedVersion: '1.0.0',
+        latestVersion: '1.0.0',
+        forceUpdate: false,
+      });
+
       // await this.usersService.create({
       //   firstName: 'Alcides',
       //   lastName: 'Turruellas',
       //   email: 'ayunierto@gmail.com',
-      //   password: 'maskmask',
+      //   password: 'Abc123',
       //   timeZone: 'America/Lima',
       //   isActive: true,
       //   isEmailVerified: true,

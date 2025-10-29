@@ -1,6 +1,8 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   OnModuleInit,
 } from '@nestjs/common';
@@ -65,8 +67,8 @@ export class CalendarService implements OnModuleInit {
       this.logger.log(`Event created: ${response.data.htmlLink}`);
       return response.data.id;
     } catch (error) {
-      console.error(error);
-      return new BadRequestException('Error creating event');
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException('Error creating event');
     }
   }
 

@@ -29,6 +29,7 @@ import { AvailabilityModule } from './availability/availability.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { OpenaiModule } from './openai/openai.module';
 import { OcrModule } from './ocr/ocr.module';
+import { AppVersionsModule } from './app-versions/app-versions.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { OcrModule } from './ocr/ocr.module';
     CloudinaryModule,
     OpenaiModule,
     OcrModule,
+    AppVersionsModule,
   ],
   controllers: [],
   providers: [],

@@ -226,7 +226,6 @@ export class AppointmentsService {
   }
 
   async update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
-    console.log({ updateAppointmentDto });
     return `This action updates a #${id} appointment`;
   }
 

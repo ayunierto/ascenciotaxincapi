@@ -39,25 +39,19 @@ export class ExpenseService {
         relations: ['category', 'subcategory'],
       });
 
-      console.warn({ expenses });
-
-      // Crear objeto para almacenar gastos por categoría
       const expensesByCategory: ExpensesByCategory = {};
 
-      // Procesar cada gasto
       expenses.forEach((expense) => {
         const categoryName = expense.category.name;
         const subcategoryName =
           expense.subcategory?.name || 'Without subcategory';
 
-        // Inicializar categoría si no existe
         if (!expensesByCategory[categoryName]) {
           expensesByCategory[categoryName] = {
             total: { gross: 0, hst: 0, net: 0 },
           };
         }
 
-        // Inicializar subcategoría si no existe
         if (!expensesByCategory[categoryName][subcategoryName]) {
           expensesByCategory[categoryName][subcategoryName] = {
             gross: 0,
@@ -66,28 +60,17 @@ export class ExpenseService {
           };
         }
 
-        // Calcular montos
-        // const hst: number = Number(expense.tax);
-        // const net: number = Number(expense.total) + hst;
-
-        // Acumular valores
         expensesByCategory[categoryName][subcategoryName].gross += Number(
           expense.total,
         );
-        // expensesByCategory[categoryName][subcategoryName].hst += Number(hst);
-        // expensesByCategory[categoryName][subcategoryName].net += Number(net);
 
-        // Acumular totales por categoría
         expensesByCategory[categoryName].total.gross += Number(expense.total);
-        // expensesByCategory[categoryName].total.hst += hst;
-        // expensesByCategory[categoryName].total.net += net;
       });
 
       return {
         expensesByCategory,
       };
     } catch (error) {
-      console.error('Error in findAllByDateRange:', error);
       throw error;
     }
   }
@@ -257,14 +240,13 @@ export class ExpenseService {
     }
   }
 
-  // Extraer public_id de una URL de Cloudinary
   extractPublicId(url: string): string | null {
     try {
-      // Ejemplo:
+      // Example:
       // https://res.cloudinary.com/demo/image/upload/v1720001234/ascencio_tax_inc/temp_receipts/42/receipt_abc123.jpg
       const parts = url.split('/upload/');
       const path = parts[1].split('.')[0]; // ascencio_tax_inc/temp_receipts/42/receipt_abc123
-      // Eliminar el prefijo de versión v1720001234/
+      // Delete prefix of version v1720001234/
       return path.replace(/^v\d+\//, '');
     } catch {
       return null;

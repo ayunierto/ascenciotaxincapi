@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -41,10 +42,9 @@ export class CategoriesService {
       });
       return categories;
     } catch (error) {
-      console.error(error);
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while creating category. Please try again later.',
+        'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
@@ -57,9 +57,10 @@ export class CategoriesService {
       }
       return category;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while creating category. Please try again later.',
+        'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
@@ -75,9 +76,10 @@ export class CategoriesService {
       await this.categoryRepository.save(updatedCategory);
       return updatedCategory;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while creating category. Please try again later.',
+        'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }
@@ -89,9 +91,10 @@ export class CategoriesService {
       await this.categoryRepository.remove(category);
       return category;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while creating category. Please try again later.',
+        'An unexpected error occurred while creating category. Please try again later.',
       );
     }
   }

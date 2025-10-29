@@ -92,7 +92,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      console.error(`Database error finding user by reset token:`, error);
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(
         'Failed to find user by reset token.',
       );
@@ -109,8 +109,8 @@ export class UsersService {
 
       return result;
     } catch (error) {
-      console.error(`Database error updating user ${id}:`, error);
-      throw error;
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException('Failed to update user.');
     }
   }
 
