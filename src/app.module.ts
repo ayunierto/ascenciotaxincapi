@@ -27,24 +27,23 @@ import { AvailabilityModule } from './availability/availability.module';
 import { OpenaiModule } from './openai/openai.module';
 import { OcrModule } from './ocr/ocr.module';
 import { AppVersionsModule } from './app-versions/app-versions.module';
+import { NodeMailerModule } from './node-mailer/node-mailer.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       ssl: process.env.STAGE !== 'dev' ? { rejectUnauthorized: false } : false,
 
       type: 'postgres',
-      url: process.env.DB_URL,
-      // host: process.env.DB_HOST,
-      // port: +process.env.DB_PORT,
-      // database: process.env.DB_NAME,
-      // username: process.env.DB_USERNAME,
-      // password: process.env.DB_PASSWORD,
+      // url: process.env.DB_URL,
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
-      synchronize: process.env.STAGE === 'development',
+      synchronize: process.env.STAGE !== 'prod',
     }),
     AuthModule,
     ServicesModule,
@@ -72,6 +71,7 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
     OpenaiModule,
     OcrModule,
     AppVersionsModule,
+    NodeMailerModule,
   ],
   controllers: [],
   providers: [],

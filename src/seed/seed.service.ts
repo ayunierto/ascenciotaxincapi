@@ -28,8 +28,6 @@ export class SeedService {
 
   async runSeed() {
     try {
-      await this.deleteData();
-
       const settings = await this.settingsService.getSettings();
       if (settings) {
         return {
@@ -451,9 +449,5 @@ export class SeedService {
       console.error(error);
       return error.message;
     }
-  }
-
-  private async deleteData() {
-    await this.usersService.removeAll();
   }
 }
