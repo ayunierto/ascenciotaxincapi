@@ -100,9 +100,6 @@ export class AuthService {
       `User created successfully: ${savedUser.email}. Verification code: ${verificationCode}`,
     );
 
-    // Create default account for user
-    // TODO: Create a default account for the user
-
     // Send verification email
     const emailSent = await this.notificationService.sendVerificationEmail(
       savedUser.firstName,

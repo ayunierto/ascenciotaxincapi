@@ -112,7 +112,7 @@ SENDER_NAME="Ascencio Tax Inc."
 ```env
 SLOT_STEP_MINUTES_DEFAULT=15
 BUSINESS_TZ=America/Toronto
-EMAIL_VERIFICATION_EXPIRY=15
+EMAIL_VERIFICATION_CODE_TTL=15
 ```
 
 ### 3. Configurar Servicios Externos (Opcional)

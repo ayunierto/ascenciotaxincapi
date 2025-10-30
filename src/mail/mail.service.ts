@@ -10,6 +10,13 @@ export class MailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
+
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // Use `true` for port 465, `false` for all other ports
+      tls: {
+        rejectUnauthorized: false,
+      },
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -27,12 +34,11 @@ export class MailService {
         html: mailOptions.html,
       });
 
-      this.logger.log(`Correo enviado: ${info.messageId}`);
+      this.logger.log(`Email send: ${info.messageId}`);
       return info;
     } catch (error) {
-      this.logger.error('Error enviando correo', error);
+      this.logger.error('Error sending email', error);
       throw error;
     }
   }
-
 }
