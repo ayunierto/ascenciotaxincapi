@@ -19,14 +19,12 @@ import { ExpenseModule } from './accounting/expenses/expenses.module';
 import { TagsModule } from './accounting/tags/tags.module';
 import { SubcategoriesModule } from './accounting/subcategories/subcategories.module';
 import { LogsModule } from './logs/logs.module';
-import { AwsModule } from './aws/aws.module';
 import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 // import { UtilityModule } from './utility/utility.module';
 import { SettingsModule } from './settings/settings.module';
 import { AvailabilityModule } from './availability/availability.module';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { OpenaiModule } from './openai/openai.module';
 import { OcrModule } from './ocr/ocr.module';
 import { AppVersionsModule } from './app-versions/app-versions.module';
@@ -65,13 +63,11 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
     TagsModule,
     SubcategoriesModule,
     LogsModule,
-    AwsModule,
     ReportsModule,
     PrinterModule,
     NotificationModule,
     SettingsModule,
     AvailabilityModule,
-    CloudinaryModule,
     OpenaiModule,
     OcrModule,
     AppVersionsModule,

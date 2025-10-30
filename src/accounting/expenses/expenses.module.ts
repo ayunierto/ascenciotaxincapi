@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Expense } from './entities/expense.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { LogsModule } from 'src/logs/logs.module';
-import { AwsModule } from 'src/aws/aws.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { SubcategoriesModule } from '../subcategories/subcategories.module';
 import { FilesModule } from 'src/files/files.module';
@@ -19,7 +18,6 @@ import { OpenaiModule } from 'src/openai/openai.module';
     TypeOrmModule.forFeature([Expense]),
     AuthModule,
     LogsModule,
-    AwsModule,
     CategoriesModule,
     SubcategoriesModule,
     FilesModule,

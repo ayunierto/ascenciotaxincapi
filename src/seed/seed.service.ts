@@ -30,9 +30,18 @@ export class SeedService {
     try {
       await this.deleteData();
 
+      const settings = await this.settingsService.getSettings();
+      if (settings) {
+        return {
+          message: 'Seed already executed',
+          status: 'failed',
+        };
+      }
+
       await this.settingsService.create({
         timeZone: 'America/Toronto',
         locale: 'en-CA',
+        executedSeed: true,
       });
 
       await this.appVersionService.create({

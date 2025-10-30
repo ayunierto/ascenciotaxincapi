@@ -1,110 +1,358 @@
-# Api AscencioTaxInc
+# Ascencio Tax Inc. API
 
-AscencioTaxInc
+REST API for Ascencio Tax Inc.'s appointment, client, and service management system. Built with NestJS, PostgreSQL, and multiple third-party integrations (Google Calendar, Zoom, Cloudinary, OpenAI).
 
-## Getting started
+## 📋 Table of Contents
 
-### Requirements
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Running in Development](#-running-in-development)
+- [Database](#-database)
+- [Project Structure](#-project-structure)
+- [Available Scripts](#-available-scripts)
+- [Integrations](#-integrations)
+- [Security](#-security)
+- [Production](#-production)
 
-Before starting, make sure you have at least those components on your workstation:
+## 🔧 Prerequisites
 
-- [NodeJS 20.x](https://nodejs.org/en/download/package-manager)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Nest CLI](https://docs.nestjs.com/cli/overview#installation) command line interface tool
+Before starting, make sure you have installed:
 
-```sh
-# windows
+- **[Node.js 20.x or higher](https://nodejs.org/)** - JavaScript runtime
+- **[Yarn](https://yarnpkg.com/)** - Package manager
+- **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** - To run PostgreSQL in a container
+- **[NestJS CLI](https://docs.nestjs.com/cli/overview)** - Command line interface tool
+
+### Installing NestJS CLI
+
+```bash
+# Windows (run as administrator)
 npm install -g @nestjs/cli
-# Linux and Mac
+
+# Linux / macOS
 sudo npm install -g @nestjs/cli
 ```
 
-> [!NOTE]
-> For a correct installation of the Nest Cli in Windows it is necessary to open the terminal as administrator and in Linux and Mac use the sudo command `sudo npm install -g @nestjs/cli`
+> **Note:** On Windows, it's necessary to run the terminal as administrator. On Linux/Mac use `sudo`.
 
-### Project setup
+## 🚀 Installation
 
-1. Start cloning this repository.
-
-```sh
-git clone https://github.com/ayunierto/ascenciotaxincapi.git
-```
-
-2. The next thing will be to install all the dependencies of the project.
-
-```sh
-cd ./ascenciotaxincapi
-yarn
-```
-
-3. For this application to work correctly, it is necessary to configure the following environment variables, create a new `.env` file.
-
-```sh
-cp .env.example .env
-```
-
-- **`DB_PASSWORD`**: The password used to connect to the database. Be sure to use a safe password.  
-  _Example:_ `MyPassword`
-
-- **`DB_NAME`**: The name of the database that the application will use to store and recover information.  
-  _Example:_ `dbname`
-
-- **`DB_HOST`**: The server address where the database is housed. For local development environments, it can be `localhost`.  
-  _Example:_ `localhost`
-
-- **`DB_PORT`**: The port through which the application will connect to the database. The default value for postgresql is `5432`.  
-  _Example:_ `5432`
-
-- **`DB_USERNAME`**: The username of the database. Generally, this will be the main user to access the database.  
-  _Example:_ `postgres`
-
-- **`JWT_SECRET`**: The secret key used to sign and verify the tokens JWT (JSON Web tokens) in the authentication process. It is important that this key is complex and remains safe.  
-  _Example:_ `thisismysecretpasswordforjwt`
-
-- Credentials to access [Zoom APIs](https://marketplace.zoom.us/user/build) from your app:
-
-  - **`ZOOM_ACCOUNT_ID`**:
-  - **`ZOOM_CLIENT_ID`**:
-  - **`ZOOM_CLIENT_SECRET`**:
-
-- **`GOOGLE_CALENDAR_ACCOUNT`**: Calendar account to use to list, add and delete appointments.
-
-### Create a service account to access Google Calendar events.
-
-1. Create a Google Cloud Console service account:
-
-2. Go to Google Cloud Console.
-   2.1 Go to IAM and Administration> Service Accounts.
-   2.2 Create a service account and set access to Google Calendar API.
-   2.3 Download the JSON file with the credentials of the service account.
-
-3. Share the calendar with the service account:
-
-3.1 Open Google Calendar in the browser.
-3.2 In the calendar configuration you want to access, add the service account as a user and give permission "make changes to events" or "see all the details of the event" (as necessary). 4. Configure authentication in your backend:
-4.1 Copy the credential file in the project root with the name`credentials.json`
-
-### Create and start database container
-
-```sh
-docker-compose up -d
-```
-
-### Compile and run the project
+### 1. Clone the repository
 
 ```bash
-# development
-yarn start
+git clone https://github.com/ayunierto/ascenciotaxincapi.git
+cd ascenciotaxincapi
+```
 
-# development watch mode
+### 2. Install dependencies
+
+```bash
+yarn install
+```
+
+## ⚙️ Configuration
+
+### 1. Setup Environment Variables
+
+Copy the example file and configure your credentials:
+
+```bash
+# Linux / macOS
+cp .env.example .env
+
+# Windows (PowerShell)
+copy .env.example .env
+
+# Windows (CMD)
+copy .env.example .env
+```
+
+### 2. Configure Required Variables
+
+Edit the `.env` file and configure at least the following variables:
+
+#### **Server Configuration**
+```env
+PORT=3000
+STAGE=dev
+```
+
+#### **Database**
+```env
+DB_URL=postgresql://postgres:your_secure_password@localhost:5432/ascencio_tax_db
+DB_PASSWORD=your_secure_password
+DB_NAME=ascencio_tax_db
+```
+
+#### **JWT (Authentication)**
+```env
+# Generate a secure key with:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+JWT_SECRET=your_jwt_secret_minimum_32_characters
+JWT_EXPIRY=60m
+```
+
+#### **Email (Gmail with App Password)**
+```env
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_gmail_app_password
+SENDER_NAME="Ascencio Tax Inc."
+```
+> **Important:** Use a Gmail App Password, not your regular password.
+> [Create App Password](https://support.google.com/accounts/answer/185833)
+
+#### **Business Configuration**
+```env
+SLOT_STEP_MINUTES_DEFAULT=15
+BUSINESS_TZ=America/Toronto
+EMAIL_VERIFICATION_EXPIRY=15
+```
+
+### 3. Configure External Services (Optional)
+
+#### **Cloudinary** (file storage)
+1. Create an account at [Cloudinary](https://console.cloudinary.com/)
+2. Get credentials from the dashboard
+3. Configure in `.env`:
+```env
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+#### **Google Calendar API**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable Google Calendar API
+4. Create a Service Account in "IAM & Admin > Service Accounts"
+5. Download the JSON credentials file
+6. Share your Google Calendar with the Service Account email (give edit permissions)
+7. Configure in `.env`:
+```env
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+GOOGLE_CALENDAR_ID=your_calendar_id@group.calendar.google.com
+```
+
+#### **Zoom API**
+1. Go to [Zoom Marketplace](https://marketplace.zoom.us/)
+2. Create a "Server-to-Server OAuth" app
+3. Get credentials
+4. Configure in `.env`:
+```env
+ZOOM_ACCOUNT_ID=your_account_id
+ZOOM_CLIENT_ID=your_client_id
+ZOOM_CLIENT_SECRET=your_client_secret
+```
+
+#### **OpenAI API**
+1. Create an account at [OpenAI Platform](https://platform.openai.com/)
+2. Generate an API Key
+3. Configure in `.env`:
+```env
+OPENAI_API_KEY=sk-proj-YOUR_API_KEY_HERE
+```
+
+## 💾 Database
+
+### Start PostgreSQL with Docker
+
+```bash
+# Start container in detached mode
+docker-compose up -d
+
+# View container logs
+docker-compose logs -f
+
+# Stop container
+docker-compose down
+
+# Stop and remove data
+docker-compose down -v
+```
+
+### Run Seed (Test Data)
+
+Once the application is running:
+
+```bash
+# Option 1: Via endpoint
+curl http://localhost:3000/api/seed
+
+# Option 2: Open in browser
+http://localhost:3000/api/seed
+```
+
+## 🏃 Running in Development
+
+### Development Mode (with hot-reload)
+
+```bash
+# Start in watch mode (recommended for development)
 yarn start:dev
 
-# production mode
+# The API will be available at:
+# http://localhost:3000
+```
+
+### Other Execution Modes
+
+```bash
+# Development mode (without watch)
+yarn start
+
+# Debug mode (with Node.js inspector)
+yarn start:debug
+
+# Production mode
+yarn build
 yarn start:prod
 ```
 
-### Execute Seed
+## 📁 Project Structure
 
 ```
-http://localhost:3000/api/seed
+ascencio-tax-inc-api/
+├── src/
+│   ├── auth/              # Authentication module
+│   ├── users/             # Users module
+│   ├── appointments/      # Appointments module
+│   ├── calendar/          # Google Calendar integration
+│   ├── zoom/              # Zoom integration
+│   ├── email/             # Email service
+│   ├── cloudinary/        # Storage service
+│   ├── common/            # Common utilities
+│   ├── config/            # App configuration
+│   └── main.ts            # Entry point
+├── .env                   # Environment variables (DO NOT COMMIT)
+├── .env.example           # Variables template
+├── docker-compose.yml     # Docker configuration
+├── package.json           # Project dependencies
+└── README.md              # This file
 ```
+
+## 📜 Available Scripts
+
+```bash
+# Development
+yarn start:dev          # Start with hot-reload
+yarn start:debug        # Start with debugger
+
+# Testing
+yarn test               # Run unit tests
+yarn test:watch         # Tests in watch mode
+yarn test:cov           # Tests with coverage
+yarn test:e2e           # End-to-end tests
+
+# Build
+yarn build              # Build for production
+yarn start:prod         # Run production build
+
+# Linting
+yarn lint               # Check code
+yarn format             # Format code with Prettier
+```
+
+## 🔗 Integrations
+
+This project integrates the following services:
+
+| Service | Purpose | Documentation |
+|----------|-----------|---------------|
+| **PostgreSQL** | Relational database | [Docs](https://www.postgresql.org/docs/) |
+| **Google Calendar API** | Appointment and event management | [Docs](https://developers.google.com/calendar) |
+| **Zoom API** | Virtual meeting creation | [Docs](https://marketplace.zoom.us/docs/api-reference/) |
+| **Cloudinary** | File storage | [Docs](https://cloudinary.com/documentation) |
+| **OpenAI API** | Artificial intelligence | [Docs](https://platform.openai.com/docs) |
+| **Nodemailer** | Email sending | [Docs](https://nodemailer.com/) |
+
+## 🔒 Security
+
+### Best Practices
+
+1. **NEVER** commit the `.env` file to the repository
+2. Use strong and unique passwords for each service
+3. Rotate credentials regularly, especially in production
+4. Use App Passwords for Gmail, not your main password
+5. Generate a random JWT_SECRET of at least 32 characters
+6. Keep dependencies up to date:
+   ```bash
+   yarn upgrade-interactive --latest
+   ```
+
+### Generate Secure JWT Secret
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### Environment Variables per Environment
+
+For different environments, create separate files:
+
+```
+.env.development
+.env.production
+.env.test
+```
+
+And load the appropriate one based on the environment.
+
+## 🚀 Production
+
+### Preparing for Production
+
+1. **Configure production variables** in `.env` or use a secrets manager
+2. **Build the project:**
+   ```bash
+   yarn build
+   ```
+3. **Run in production mode:**
+   ```bash
+   yarn start:prod
+   ```
+
+### Deployment Recommendations
+
+- Use services like **AWS Secrets Manager**, **Azure Key Vault**, or **Google Secret Manager** to manage secrets
+- Configure environment variables in your hosting platform (Railway, Heroku, AWS, etc.)
+- Use **PM2** or similar for process management
+- Implement rate limiting and CORS appropriately
+- Configure structured logging
+- Enable HTTPS/SSL
+
+## 📝 Additional Notes
+
+- The API uses JWT authentication via Bearer Token
+- Endpoints are documented with Swagger (if enabled)
+- The default timezone is `America/Toronto` but can be changed in `.env`
+- Default appointment slots are 15 minutes
+
+## 🆘 Troubleshooting
+
+### Database connection error
+- Verify Docker is running: `docker ps`
+- Check the logs: `docker-compose logs`
+- Verify credentials in `.env`
+
+### Google Calendar authentication error
+- Verify the Service Account has access to the calendar
+- Make sure to keep the `\n` in GOOGLE_PRIVATE_KEY
+- Verify that Google Calendar API is enabled in your project
+
+### Port already in use
+- Change the `PORT` in `.env`
+- Or kill the process using the port:
+  ```bash
+  # Windows
+  netstat -ano | findstr :3000
+  taskkill /PID <PID> /F
+  
+  # Linux/Mac
+  lsof -ti:3000 | xargs kill
+  ```
+
+---
+
+**Developed with ❤️ for Ascencio Tax Inc.**

@@ -17,6 +17,9 @@ export class Setting {
   @Column()
   locale: string;
 
+  @Column({ default: false, type: 'bool' })
+  executedSeed: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

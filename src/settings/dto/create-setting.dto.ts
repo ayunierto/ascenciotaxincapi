@@ -1,4 +1,4 @@
-import { IsLocale, IsTimeZone } from 'class-validator';
+import { IsBoolean, IsLocale, IsTimeZone } from 'class-validator';
 
 export class CreateSettingDto {
   @IsTimeZone()
@@ -6,4 +6,7 @@ export class CreateSettingDto {
 
   @IsLocale()
   locale: string;
+
+  @IsBoolean()
+  executedSeed: boolean;
 }
