@@ -73,12 +73,14 @@ copy .env.example .env
 Edit the `.env` file and configure at least the following variables:
 
 #### **Server Configuration**
+
 ```env
 PORT=3000
-STAGE=dev
+STAGE=development
 ```
 
 #### **Database**
+
 ```env
 DB_URL=postgresql://postgres:your_secure_password@localhost:5432/ascencio_tax_db
 DB_PASSWORD=your_secure_password
@@ -86,6 +88,7 @@ DB_NAME=ascencio_tax_db
 ```
 
 #### **JWT (Authentication)**
+
 ```env
 # Generate a secure key with:
 # node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -94,15 +97,18 @@ JWT_EXPIRY=60m
 ```
 
 #### **Email (Gmail with App Password)**
+
 ```env
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 SENDER_NAME="Ascencio Tax Inc."
 ```
+
 > **Important:** Use a Gmail App Password, not your regular password.
 > [Create App Password](https://support.google.com/accounts/answer/185833)
 
 #### **Business Configuration**
+
 ```env
 SLOT_STEP_MINUTES_DEFAULT=15
 BUSINESS_TZ=America/Toronto
@@ -112,9 +118,11 @@ EMAIL_VERIFICATION_EXPIRY=15
 ### 3. Configure External Services (Optional)
 
 #### **Cloudinary** (file storage)
+
 1. Create an account at [Cloudinary](https://console.cloudinary.com/)
 2. Get credentials from the dashboard
 3. Configure in `.env`:
+
 ```env
 CLOUDINARY_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
@@ -122,6 +130,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 #### **Google Calendar API**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project
 3. Enable Google Calendar API
@@ -129,6 +138,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 5. Download the JSON credentials file
 6. Share your Google Calendar with the Service Account email (give edit permissions)
 7. Configure in `.env`:
+
 ```env
 GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
@@ -136,10 +146,12 @@ GOOGLE_CALENDAR_ID=your_calendar_id@group.calendar.google.com
 ```
 
 #### **Zoom API**
+
 1. Go to [Zoom Marketplace](https://marketplace.zoom.us/)
 2. Create a "Server-to-Server OAuth" app
 3. Get credentials
 4. Configure in `.env`:
+
 ```env
 ZOOM_ACCOUNT_ID=your_account_id
 ZOOM_CLIENT_ID=your_client_id
@@ -147,9 +159,11 @@ ZOOM_CLIENT_SECRET=your_client_secret
 ```
 
 #### **OpenAI API**
+
 1. Create an account at [OpenAI Platform](https://platform.openai.com/)
 2. Generate an API Key
 3. Configure in `.env`:
+
 ```env
 OPENAI_API_KEY=sk-proj-YOUR_API_KEY_HERE
 ```
@@ -258,14 +272,14 @@ yarn format             # Format code with Prettier
 
 This project integrates the following services:
 
-| Service | Purpose | Documentation |
-|----------|-----------|---------------|
-| **PostgreSQL** | Relational database | [Docs](https://www.postgresql.org/docs/) |
-| **Google Calendar API** | Appointment and event management | [Docs](https://developers.google.com/calendar) |
-| **Zoom API** | Virtual meeting creation | [Docs](https://marketplace.zoom.us/docs/api-reference/) |
-| **Cloudinary** | File storage | [Docs](https://cloudinary.com/documentation) |
-| **OpenAI API** | Artificial intelligence | [Docs](https://platform.openai.com/docs) |
-| **Nodemailer** | Email sending | [Docs](https://nodemailer.com/) |
+| Service                 | Purpose                          | Documentation                                           |
+| ----------------------- | -------------------------------- | ------------------------------------------------------- |
+| **PostgreSQL**          | Relational database              | [Docs](https://www.postgresql.org/docs/)                |
+| **Google Calendar API** | Appointment and event management | [Docs](https://developers.google.com/calendar)          |
+| **Zoom API**            | Virtual meeting creation         | [Docs](https://marketplace.zoom.us/docs/api-reference/) |
+| **Cloudinary**          | File storage                     | [Docs](https://cloudinary.com/documentation)            |
+| **OpenAI API**          | Artificial intelligence          | [Docs](https://platform.openai.com/docs)                |
+| **Nodemailer**          | Email sending                    | [Docs](https://nodemailer.com/)                         |
 
 ## 🔒 Security
 
@@ -332,23 +346,27 @@ And load the appropriate one based on the environment.
 ## 🆘 Troubleshooting
 
 ### Database connection error
+
 - Verify Docker is running: `docker ps`
 - Check the logs: `docker-compose logs`
 - Verify credentials in `.env`
 
 ### Google Calendar authentication error
+
 - Verify the Service Account has access to the calendar
 - Make sure to keep the `\n` in GOOGLE_PRIVATE_KEY
 - Verify that Google Calendar API is enabled in your project
 
 ### Port already in use
+
 - Change the `PORT` in `.env`
 - Or kill the process using the port:
+
   ```bash
   # Windows
   netstat -ano | findstr :3000
   taskkill /PID <PID> /F
-  
+
   # Linux/Mac
   lsof -ti:3000 | xargs kill
   ```

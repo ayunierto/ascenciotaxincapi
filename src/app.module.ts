@@ -22,7 +22,6 @@ import { LogsModule } from './logs/logs.module';
 import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
-// import { UtilityModule } from './utility/utility.module';
 import { SettingsModule } from './settings/settings.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { OpenaiModule } from './openai/openai.module';
@@ -31,9 +30,15 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.STAGE || 'development'}`,
+    }),
     TypeOrmModule.forRoot({
-      ssl: process.env.STAGE !== 'dev' ? { rejectUnauthorized: false } : false,
+      ssl:
+        process.env.STAGE !== 'development'
+          ? { rejectUnauthorized: false }
+          : false,
 
       type: 'postgres',
       url: process.env.DB_URL,
@@ -42,8 +47,8 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
       // database: process.env.DB_NAME,
       // username: process.env.DB_USERNAME,
       // password: process.env.DB_PASSWORD,
-      autoLoadEntities: process.env.STAGE === 'dev' ? true : false,
-      synchronize: process.env.STAGE === 'dev' ? true : false,
+      autoLoadEntities: process.env.STAGE === 'development' ? true : false,
+      synchronize: process.env.STAGE === 'development' ? true : false,
     }),
     AuthModule,
     ServicesModule,

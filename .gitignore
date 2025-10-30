@@ -1,5 +1,5 @@
 #custom
-.env
+.env*
 /postgres
 yarn.lock
 credentials.json

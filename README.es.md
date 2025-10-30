@@ -76,7 +76,7 @@ Edita el archivo `.env` y configura al menos las siguientes variables:
 
 ```env
 PORT=3000
-STAGE=dev
+STAGE=development
 ```
 
 #### **Base de Datos**
