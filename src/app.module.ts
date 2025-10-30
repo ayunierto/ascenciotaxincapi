@@ -32,16 +32,9 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [
-        `.env.${process.env.STAGE}`,
-        '.env', // fallback
-      ],
     }),
     TypeOrmModule.forRoot({
-      ssl:
-        process.env.STAGE !== 'development'
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: process.env.STAGE !== 'dev' ? { rejectUnauthorized: false } : false,
 
       type: 'postgres',
       url: process.env.DB_URL,
@@ -50,8 +43,8 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
       // database: process.env.DB_NAME,
       // username: process.env.DB_USERNAME,
       // password: process.env.DB_PASSWORD,
-      autoLoadEntities: process.env.STAGE === 'development' ? true : false,
-      synchronize: process.env.STAGE === 'development' ? true : false,
+      autoLoadEntities: process.env.STAGE === 'dev' ? true : false,
+      synchronize: process.env.STAGE === 'dev' ? true : false,
     }),
     AuthModule,
     ServicesModule,
