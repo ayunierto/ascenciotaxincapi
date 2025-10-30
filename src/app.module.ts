@@ -32,6 +32,10 @@ import { AppVersionsModule } from './app-versions/app-versions.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [
+        `.env.${process.env.STAGE}`,
+        '.env', // fallback
+      ],
     }),
     TypeOrmModule.forRoot({
       ssl:
