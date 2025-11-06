@@ -36,12 +36,11 @@ import { NodeMailerModule } from './node-mailer/node-mailer.module';
       ssl: process.env.STAGE !== 'dev' ? { rejectUnauthorized: false } : false,
 
       type: 'postgres',
-      // url: process.env.DB_URL,
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT,
-      database: process.env.DB_NAME,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: process.env.STAGE !== 'prod',
     }),

@@ -1,11 +1,9 @@
 import {
-  IsInt,
   IsISO8601,
   IsOptional,
   IsString,
   IsTimeZone,
   IsUUID,
-  Min,
 } from 'class-validator';
 
 export class CreateAppointmentDto {
@@ -16,10 +14,10 @@ export class CreateAppointmentDto {
   staffId: string;
 
   @IsISO8601()
-  start: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
+  start: string; // ISO local of user "YYYY-MM-DDTHH:mm"
 
   @IsISO8601()
-  end: string; // ISO local del usuario "YYYY-MM-DDTHH:mm"
+  end: string; // ISO local of user "YYYY-MM-DDTHH:mm"
 
   @IsTimeZone()
   timeZone: string; // IANA
@@ -27,4 +25,8 @@ export class CreateAppointmentDto {
   @IsString()
   @IsOptional()
   comments?: string;
+
+  @IsString()
+  @IsOptional()
+  source?: 'app' | 'admin' | 'imported' | 'api';
 }

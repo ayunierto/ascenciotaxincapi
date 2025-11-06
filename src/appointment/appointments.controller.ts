@@ -15,6 +15,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -30,8 +31,8 @@ export class AppointmentsController {
   }
 
   @Get()
-  findAll() {
-    return this.appointmentsService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.appointmentsService.findAll(paginationDto);
   }
 
   @Get('current-user')
@@ -49,11 +50,13 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
+  @Auth()
   update(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @GetUser() user: User,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.update(id, updateAppointmentDto, user);
   }
 
   @Delete(':id')

@@ -12,7 +12,7 @@ export class ZoomService {
     try {
       const token = (await this.getZoomToken()).access_token;
 
-      const request = await axios.post(
+      const { data } = await axios.post(
         `${this.ZOOM_API_BASE_URL}/users/me/meetings`,
         body,
         {
@@ -25,27 +25,31 @@ export class ZoomService {
       );
 
       this.logger.log('Meeting created successfully');
-      return request.data;
+      return data;
     } catch (error) {
       return error;
     }
   }
 
   async remove(id: string) {
-    const token = (await this.getZoomToken()).access_token;
+    try {
+      const token = (await this.getZoomToken()).access_token;
 
-    const request = await axios.delete(
-      `${this.ZOOM_API_BASE_URL}/meetings/${id}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
+      const request = await axios.delete(
+        `${this.ZOOM_API_BASE_URL}/meetings/${id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    );
+      );
 
-    return request.data;
+      return request.data;
+    } catch (error) {
+      return error;
+    }
   }
 
   /**
