@@ -76,22 +76,22 @@ Edit the `.env` file and configure at least the following variables:
 
 ```env
 PORT=3000
-STAGE=development
+STAGE=dev
 ```
 
 #### **Database**
 
 ```env
-DB_URL=postgresql://postgres:your_secure_password@localhost:5432/ascencio_tax_db
-DB_PASSWORD=your_secure_password
-DB_NAME=ascencio_tax_db
+DB_HOST=your_database_host
+DB_PORT=your_database_port
+DB_USERNAME=your_database_username
+DB_PASSWORD=your_database_password
+DB_NAME=your_database_name
 ```
 
 #### **JWT (Authentication)**
 
 ```env
-# Generate a secure key with:
-# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 JWT_SECRET=your_jwt_secret_minimum_32_characters
 JWT_EXPIRY=60m
 ```
@@ -100,28 +100,29 @@ JWT_EXPIRY=60m
 
 ```env
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_gmail_app_password
+EMAIL_PASS=your_app_specific_password
 SENDER_NAME="Ascencio Tax Inc."
+ENTERPRISE_EMAIL=your_enterprise_notification_email@example.com
 ```
 
-> **Important:** Use a Gmail App Password, not your regular password.
-> [Create App Password](https://support.google.com/accounts/answer/185833)
+#### **MailerSend (Transactional Email)**
+
+```env
+MAILERSEND_API_KEY=mlsn.YOUR_MAILERSEND_API_KEY_HERE
+MAILERSEND_SENDER_EMAIL=support@yourdomain.com
+MAILERSEND_SENDER_EMAIL_REPLY_TO=team@yourdomain.com
+MAILERSEND_SENDER_NAME="Your Company Name"
+```
 
 #### **Business Configuration**
 
 ```env
 SLOT_STEP_MINUTES_DEFAULT=15
 BUSINESS_TZ=America/Toronto
-EMAIL_VERIFICATION_CODE_TTL=15
+EMAIL_VERIFICATION_EXPIRY=15
 ```
 
-### 3. Configure External Services (Optional)
-
 #### **Cloudinary** (file storage)
-
-1. Create an account at [Cloudinary](https://console.cloudinary.com/)
-2. Get credentials from the dashboard
-3. Configure in `.env`:
 
 ```env
 CLOUDINARY_NAME=your_cloud_name
@@ -131,41 +132,24 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 #### **Google Calendar API**
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project
-3. Enable Google Calendar API
-4. Create a Service Account in "IAM & Admin > Service Accounts"
-5. Download the JSON credentials file
-6. Share your Google Calendar with the Service Account email (give edit permissions)
-7. Configure in `.env`:
-
 ```env
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_CONTENT_HERE\n-----END PRIVATE KEY-----\n"
 GOOGLE_CALENDAR_ID=your_calendar_id@group.calendar.google.com
 ```
 
 #### **Zoom API**
 
-1. Go to [Zoom Marketplace](https://marketplace.zoom.us/)
-2. Create a "Server-to-Server OAuth" app
-3. Get credentials
-4. Configure in `.env`:
-
 ```env
-ZOOM_ACCOUNT_ID=your_account_id
-ZOOM_CLIENT_ID=your_client_id
-ZOOM_CLIENT_SECRET=your_client_secret
+ZOOM_ACCOUNT_ID=your_zoom_account_id
+ZOOM_CLIENT_ID=your_zoom_client_id
+ZOOM_CLIENT_SECRET=your_zoom_client_secret
 ```
 
 #### **OpenAI API**
 
-1. Create an account at [OpenAI Platform](https://platform.openai.com/)
-2. Generate an API Key
-3. Configure in `.env`:
-
 ```env
-OPENAI_API_KEY=sk-proj-YOUR_API_KEY_HERE
+OPENAI_API_KEY=sk-proj-YOUR_OPENAI_API_KEY_HERE
 ```
 
 ## 💾 Database
