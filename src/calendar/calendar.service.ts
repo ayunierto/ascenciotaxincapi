@@ -178,12 +178,30 @@ export class CalendarService implements OnModuleInit {
       );
     }
     try {
+      this.logger.log(
+        `Updating Calendar event ${eventId} with details:`,
+        JSON.stringify(
+          {
+            summary: eventDetails.summary,
+            start: eventDetails.start,
+            end: eventDetails.end,
+            location: eventDetails.location,
+          },
+          null,
+          2,
+        ),
+      );
+
       const response = await this.calendar.events.update({
         calendarId: this.calendarId,
         eventId: eventId,
         requestBody: eventDetails,
       });
-      this.logger.log(`Event updated: ${response.data.htmlLink}`);
+
+      this.logger.log(`Event updated successfully: ${response.data.htmlLink}`);
+      this.logger.log(
+        `Updated event start time: ${response.data.start?.dateTime}`,
+      );
       return response.data;
     } catch (error) {
       this.logger.error(

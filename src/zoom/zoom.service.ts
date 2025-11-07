@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { CreateZoomMeetingDto, UpdateZoomMeetingDto } from './dto';
 
 @Injectable()
 export class ZoomService {
@@ -8,7 +9,7 @@ export class ZoomService {
 
   private readonly logger = new Logger(ZoomService.name);
 
-  async createZoomMeeting(body) {
+  async createZoomMeeting(body: CreateZoomMeetingDto) {
     try {
       const token = (await this.getZoomToken()).access_token;
 
@@ -27,7 +28,47 @@ export class ZoomService {
       this.logger.log('Meeting created successfully');
       return data;
     } catch (error) {
-      return error;
+      this.logger.error('Error creating Zoom meeting:', error);
+      throw error;
+    }
+  }
+
+  async updateMeeting(meetingId: string, updateData: UpdateZoomMeetingDto) {
+    try {
+      const token = (await this.getZoomToken()).access_token;
+
+      this.logger.log(
+        `Updating meeting ${meetingId} with data:`,
+        JSON.stringify(updateData, null, 2),
+      );
+
+      const { data } = await axios.patch(
+        `${this.ZOOM_API_BASE_URL}/meetings/${meetingId}`,
+        updateData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      this.logger.log(`Meeting ${meetingId} updated successfully`);
+      return data;
+    } catch (error) {
+      this.logger.error(
+        `Error updating Zoom meeting ${meetingId}:`,
+        error.message,
+      );
+      if (error.response) {
+        this.logger.error(
+          `Zoom API Error Response:`,
+          JSON.stringify(error.response.data, null, 2),
+        );
+        this.logger.error(`Status: ${error.response.status}`);
+      }
+      throw error;
     }
   }
 

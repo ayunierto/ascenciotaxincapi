@@ -28,6 +28,7 @@ import { OpenaiModule } from './openai/openai.module';
 import { OcrModule } from './ocr/ocr.module';
 import { AppVersionsModule } from './app-versions/app-versions.module';
 import { NodeMailerModule } from './node-mailer/node-mailer.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { NodeMailerModule } from './node-mailer/node-mailer.module';
     OcrModule,
     AppVersionsModule,
     NodeMailerModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],

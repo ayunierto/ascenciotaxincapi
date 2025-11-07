@@ -18,11 +18,12 @@ export class CreateServiceDto {
   description: string;
 
   @IsString()
-  @MinLength(3)
-  address: string;
+  @IsOptional()
+  address?: string;
 
   @IsInt()
-  durationMinutes: number;
+  @IsOptional()
+  durationMinutes?: number;
 
   @IsBoolean()
   isAvailableOnline: boolean;

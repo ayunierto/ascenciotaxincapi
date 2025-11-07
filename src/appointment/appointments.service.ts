@@ -19,11 +19,21 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ServicesService } from 'src/services/services.service';
 import { StaffService } from 'src/staff/staff.service';
 import { SettingsService } from 'src/settings/settings.service';
+import {
+  formatAppointmentDescription,
+  getZoomMeetingConfig,
+  validateWorkingHours,
+  validateDatesForUpdate,
+  validateTimeZone,
+} from './utils/appointment.utils';
+import { AppointmentHelper } from './helpers/appointment.helper';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
+
+  private readonly appointmentHelper: AppointmentHelper;
 
   constructor(
     @InjectRepository(Appointment)
@@ -36,10 +46,15 @@ export class AppointmentsService {
     private readonly servicesService: ServicesService,
     private readonly staffService: StaffService,
     private readonly settingsService: SettingsService,
-  ) {}
+  ) {
+    this.appointmentHelper = new AppointmentHelper(
+      this.scheduleRepository,
+      this.staffService,
+      this.servicesService,
+    );
+  }
 
   async create(createAppointmentDto: CreateAppointmentDto, user: User) {
-    console.log({ createAppointmentDto });
     try {
       const { staffId, serviceId, start, end, timeZone, ...rest } =
         createAppointmentDto;
@@ -49,69 +64,35 @@ export class AppointmentsService {
         throw new BadRequestException('Settings not found');
       }
 
-      // 1. Search requested service.
-      const service = await this.servicesService.findOne(serviceId);
+      // Validar la zona horaria
+      const validatedTimeZone = validateTimeZone(timeZone);
 
-      // Check if the staff member exists
-      const staff = await this.staffService.findOne(staffId);
+      // 1. Obtener servicio y personal
+      const { service, staff } =
+        await this.appointmentHelper.getServiceAndStaff(serviceId, staffId);
 
-      // 2. Get staff schedule for the selected day
-      // 0: Sunday, ..., 6: Saturday. Map 0 Sunday
-      const dayOfWeek: number =
-        DateTime.fromISO(start, { zone: 'utc' }).weekday % 7;
-
-      const schedule = await this.scheduleRepository.findOne({
-        where: {
-          staff: { id: staffId },
-          dayOfWeek,
-        },
-      });
-      if (!schedule) {
-        throw new BadRequestException(
-          'The staff has no schedule for the selected day. Please verify information.',
-        );
-      }
-
-      // 3. Set appointment start and end date and time
+      // 2. Set appointment start and end date and time
       const startDateAndTime = DateTime.fromISO(start, { zone: 'utc' });
       const endDateAndTime = DateTime.fromISO(end, { zone: 'utc' });
 
-      // 4. Check if the selected time is within working hours
-      // 4.1 Set start and end of schedule according to selected day
-      // Convertir las horas del horario laboral a la zona horaria de la cita
-      const startOfSchedule = startDateAndTime
-        .set({
-          hour: parseInt(schedule.startTime.split(':')[0]),
-          minute: parseInt(schedule.startTime.split(':')[1]),
-        })
-        .setZone(settings.timeZone, { keepLocalTime: true });
+      // Validar fechas
+      validateDatesForUpdate(startDateAndTime, endDateAndTime, null, null);
 
-      const endOfSchedule = startDateAndTime
-        .set({
-          hour: parseInt(schedule.endTime.split(':')[0]),
-          minute: parseInt(schedule.endTime.split(':')[1]),
-        })
-        .setZone(settings.timeZone, { keepLocalTime: true });
+      // 3. Validar horario y obtener schedule
+      const schedule = await this.appointmentHelper.validateAndGetSchedule(
+        staffId,
+        startDateAndTime,
+      );
 
-      // Registrar información para depuración
-      this.logger.debug(`Start of schedule: ${startOfSchedule.toISO()}`);
-      this.logger.debug(`End of schedule: ${endOfSchedule.toISO()}`);
-      this.logger.debug(`Appointment start: ${startDateAndTime.toISO()}`);
-      this.logger.debug(`Appointment end: ${endDateAndTime.toISO()}`);
+      // 4. Validar horas laborales
+      validateWorkingHours(
+        schedule,
+        startDateAndTime,
+        endDateAndTime,
+        validatedTimeZone,
+      );
 
-      // Validar que la cita esté dentro del horario laboral
-      if (startDateAndTime < startOfSchedule) {
-        throw new ConflictException(
-          `The appointment start time is before staff work hours, staff starts at ${schedule.startTime} and ends at ${schedule.endTime}`,
-        );
-      }
-      if (endDateAndTime > endOfSchedule) {
-        throw new ConflictException(
-          `The appointment end time is after staff working hours, staff finish at ${schedule.endTime} and start at ${schedule.startTime}`,
-        );
-      }
-
-      // 5. Verify if there is an overlap with existing appointments for the selected staff
+      // 5. Verificar conflictos con otras citas
       const overlappingAppointment = await this.appointmentsRepository.findOne({
         where: {
           staff: { id: staffId },
@@ -126,60 +107,53 @@ export class AppointmentsService {
         );
       }
 
-      // Create zoom meeting
-      const meeting = await this.zoomService.createZoomMeeting({
-        agenda: 'Appointments',
-        default_password: false,
-        duration: 60,
-        password: '123456',
-        settings: {
-          host_video: true,
-          join_before_host: true,
-          participant_video: true,
-        },
-        start_time: DateTime.fromISO(start, { zone: 'utc' })
-          .setZone(timeZone)
-          .toISO(),
-        timezone: timeZone,
-        topic: `Appointment: ${service.name}`,
-        type: 2,
-      });
+      // 6. Crear reunión de Zoom
+      const meeting = await this.zoomService.createZoomMeeting(
+        getZoomMeetingConfig(
+          service.name,
+          startDateAndTime.setZone(validatedTimeZone).toISO(),
+          validatedTimeZone,
+        ),
+      );
 
-      // Create event in calendar
+      // 7. Crear evento en el calendario
       const eventId = await this.calendarService.createEvent({
         summary: `Appointment: ${service.name}`,
-        location: `${service.address}`,
-        description: `
-Zoom Meeting: ${meeting.join_url} \n
-Staff: ${staff.firstName} ${staff.lastName}\n
-Client: ${user.firstName} ${user.lastName}\n
-Email: ${user.email}\n
-Phone Number: ${user.phoneNumber}\n
-        `,
+        location: service.address,
+        description: formatAppointmentDescription(
+          meeting.join_url,
+          staff.firstName,
+          staff.lastName,
+          user.firstName,
+          user.lastName,
+          user.email,
+          user.phoneNumber || '',
+        ),
         start: {
-          dateTime: startDateAndTime.setZone(timeZone).toISO(),
-          timeZone: timeZone,
+          dateTime: startDateAndTime.setZone(validatedTimeZone).toISO(),
+          timeZone: validatedTimeZone,
         },
         end: {
-          dateTime: endDateAndTime.setZone(timeZone).toISO(),
-          timeZone: timeZone,
+          dateTime: endDateAndTime.setZone(validatedTimeZone).toISO(),
+          timeZone: validatedTimeZone,
         },
         reminders: {
           useDefault: false,
           overrides: [
-            { method: 'email', minutes: 24 * 60 }, // 24 hours before
-            { method: 'popup', minutes: 10 }, // 10 minutes before
+            { method: 'email', minutes: 24 * 60 },
+            { method: 'popup', minutes: 10 },
           ],
         },
       });
 
-      // Save appointment
+      // 8. Guardar la cita
       const newAppointment = this.appointmentsRepository.create({
         user,
         staff,
         service,
         start: startDateAndTime,
         end: endDateAndTime,
+        timeZone: validatedTimeZone,
         calendarEventId: typeof eventId === 'string' ? eventId : 'N/A',
         zoomMeetingId: meeting.id || 'N/A',
         zoomMeetingLink: meeting.join_url || 'N/A',
@@ -187,16 +161,16 @@ Phone Number: ${user.phoneNumber}\n
       });
       await this.appointmentsRepository.save(newAppointment);
 
-      // Send email notifications to staff and customers
+      // 9. Enviar notificaciones
       await this.notificationService.sendAppointmentConfirmationEmailToClient(
         user.email,
         {
           serviceName: service.name,
           appointmentDate: startDateAndTime
-            .setZone(timeZone)
+            .setZone(validatedTimeZone)
             .toFormat('yyyy-MM-dd'),
           appointmentTime: startDateAndTime
-            .setZone(timeZone)
+            .setZone(validatedTimeZone)
             .toFormat('HH:mm a'),
           clientName: `${user.firstName} ${user.lastName}`,
           location: service.address,
@@ -222,7 +196,7 @@ Phone Number: ${user.phoneNumber}\n
           staffName: `${staff.firstName} ${staff.lastName}`,
           meetingLink: meeting.join_url,
           clientEmail: user.email,
-          clientPhoneNumber: user.phoneNumber,
+          clientPhoneNumber: user.phoneNumber || '',
         },
       );
 
@@ -275,10 +249,12 @@ Phone Number: ${user.phoneNumber}\n
     user: User,
   ) {
     try {
-      const { staffId, serviceId, start, end, timeZone, ...rest } =
-        updateAppointmentDto;
+      const settings = await this.settingsService.getSettings();
+      if (!settings) {
+        throw new BadRequestException('Settings not found');
+      }
 
-      // Buscar la cita existente
+      // 1. Buscar la cita existente
       const appointment = await this.appointmentsRepository.findOne({
         where: { id },
         relations: ['staff', 'service', 'user'],
@@ -288,107 +264,267 @@ Phone Number: ${user.phoneNumber}\n
         throw new BadRequestException('Appointment not found');
       }
 
-      // Validar el servicio y el personal
-      const service = await this.servicesService.findOne(serviceId);
-      const staff = await this.staffService.findOne(staffId);
-
-      // Validar el horario del personal
-      const dayOfWeek: number =
-        DateTime.fromISO(start, { zone: 'utc' }).weekday % 7;
-      const schedule = await this.scheduleRepository.findOne({
-        where: {
-          staff: { id: staffId },
-          dayOfWeek,
-        },
-      });
-
-      if (!schedule) {
-        throw new BadRequestException(
-          'The staff has no schedule for the selected day. Please verify information.',
-        );
-      }
-
-      const startDateAndTime = DateTime.fromISO(start, { zone: 'utc' });
-      const endDateAndTime = DateTime.fromISO(end, { zone: 'utc' });
-
-      const startOfSchedule = startDateAndTime
-        .set({
-          hour: parseInt(schedule.startTime.split(':')[0]),
-          minute: parseInt(schedule.startTime.split(':')[1]),
-        })
-        .setZone(timeZone, { keepLocalTime: true });
-
-      const endOfSchedule = startDateAndTime
-        .set({
-          hour: parseInt(schedule.endTime.split(':')[0]),
-          minute: parseInt(schedule.endTime.split(':')[1]),
-        })
-        .setZone(timeZone, { keepLocalTime: true });
-
-      if (
-        startDateAndTime < startOfSchedule ||
-        endDateAndTime > endOfSchedule
-      ) {
-        throw new ConflictException(
-          `The appointment time is outside staff working hours: ${schedule.startTime} - ${schedule.endTime}`,
-        );
-      }
-
-      // Verificar conflictos con otras citas
-      const overlappingAppointment = await this.appointmentsRepository.findOne({
-        where: {
-          staff: { id: staffId },
-          id: Not(id), // Excluir la cita actual
-          start: LessThan(endDateAndTime.toJSDate()),
-          end: MoreThan(startDateAndTime.toJSDate()),
-        },
-      });
-
-      if (overlappingAppointment) {
-        throw new ConflictException(
-          'The selected time slot is not available. Please choose another time.',
-        );
-      }
-
-      // Actualizar la cita
-      const updatedAppointment = this.appointmentsRepository.merge(
-        appointment,
-        {
-          staff,
-          service,
-          start: startDateAndTime,
-          end: endDateAndTime,
-          ...rest,
-        },
+      const { staffId, serviceId, start, end, timeZone, ...rest } =
+        updateAppointmentDto;
+      const appointmentTimeZone = validateTimeZone(
+        timeZone || appointment.timeZone,
       );
 
-      await this.appointmentsRepository.save(updatedAppointment);
+      // 2. Obtener servicio y personal actualizado usando el helper
+      const { service, staff } =
+        await this.appointmentHelper.getServiceAndStaff(
+          serviceId,
+          staffId,
+          appointment.service,
+          appointment.staff,
+        );
 
-      // Actualizar el evento en el calendario
-      if (appointment.calendarEventId) {
-        await this.calendarService.updateEvent(appointment.calendarEventId, {
-          summary: `Appointment: ${service.name}`,
-          location: `${service.address}`,
-          description: `
-Zoom Meeting: ${appointment.zoomMeetingLink} 
+      // 3. Si se actualizan las fechas, validar disponibilidad
+      if (start && end) {
+        this.logger.log(
+          `Received start: ${start}, end: ${end}, timeZone: ${timeZone}`,
+        );
 
-Staff: ${staff.firstName} ${staff.lastName}
-Client: ${user.firstName} ${user.lastName}
-Email: ${user.email}
-Phone Number: ${user.phoneNumber}
-          `,
-          start: {
-            dateTime: startDateAndTime.setZone(timeZone).toISO(),
-            timeZone: timeZone,
+        const startDateAndTime = DateTime.fromISO(start, { zone: 'utc' });
+        const endDateAndTime = DateTime.fromISO(end, { zone: 'utc' });
+
+        this.logger.log(
+          `Parsed startDateAndTime (UTC): ${startDateAndTime.toISO()}`,
+        );
+        this.logger.log(
+          `Parsed endDateAndTime (UTC): ${endDateAndTime.toISO()}`,
+        );
+        this.logger.log(`appointmentTimeZone: ${appointmentTimeZone}`);
+
+        // Log de las fechas en la zona horaria objetivo
+        this.logger.log(
+          `Start in target timezone: ${startDateAndTime.setZone(appointmentTimeZone).toISO()}`,
+        );
+        this.logger.log(
+          `End in target timezone: ${endDateAndTime.setZone(appointmentTimeZone).toISO()}`,
+        );
+
+        // Validar fechas
+        validateDatesForUpdate(
+          startDateAndTime,
+          endDateAndTime,
+          DateTime.fromJSDate(appointment.start),
+          DateTime.fromJSDate(appointment.end),
+        );
+
+        // Validar horario del personal y obtener schedule
+        const schedule = await this.appointmentHelper.validateAndGetSchedule(
+          staff.id,
+          startDateAndTime,
+        );
+
+        // Validar horas laborales
+        validateWorkingHours(
+          schedule,
+          startDateAndTime,
+          endDateAndTime,
+          appointmentTimeZone,
+        );
+
+        // Verificar conflictos con otras citas
+        const overlappingAppointment =
+          await this.appointmentsRepository.findOne({
+            where: {
+              staff: { id: staff.id },
+              id: Not(id),
+              start: LessThan(endDateAndTime.toJSDate()),
+              end: MoreThan(startDateAndTime.toJSDate()),
+            },
+          });
+
+        if (overlappingAppointment) {
+          throw new ConflictException(
+            'The selected time slot is not available. Please choose another time.',
+          );
+        }
+
+        // 4. Actualizar servicios externos (Zoom y Calendar)
+        await this.appointmentHelper.updateExternalServices(
+          this.zoomService,
+          this.calendarService,
+          appointment,
+          {
+            startDateAndTime,
+            endDateAndTime,
+            timeZone: appointmentTimeZone,
+            serviceName: service.name,
+            serviceAddress: service.address,
+            staffName: {
+              firstName: staff.firstName,
+              lastName: staff.lastName,
+            },
+            userName: {
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            userEmail: user.email,
+            userPhoneNumber: user.phoneNumber,
           },
-          end: {
-            dateTime: endDateAndTime.setZone(timeZone).toISO(),
-            timeZone: timeZone,
+        );
+
+        // 4.1 Fallback: crear recursos externos si faltan IDs válidos
+        if (
+          !appointment.calendarEventId ||
+          appointment.calendarEventId === 'N/A'
+        ) {
+          const newEventId = await this.calendarService.createEvent({
+            summary: `Appointment: ${service.name}`,
+            location: service.address,
+            description: formatAppointmentDescription(
+              appointment.zoomMeetingLink,
+              staff.firstName,
+              staff.lastName,
+              user.firstName,
+              user.lastName,
+              user.email,
+              user.phoneNumber || '',
+            ),
+            start: {
+              dateTime: startDateAndTime.setZone(appointmentTimeZone).toISO(),
+              timeZone: appointmentTimeZone,
+            },
+            end: {
+              dateTime: endDateAndTime.setZone(appointmentTimeZone).toISO(),
+              timeZone: appointmentTimeZone,
+            },
+            reminders: {
+              useDefault: false,
+              overrides: [
+                { method: 'email', minutes: 24 * 60 },
+                { method: 'popup', minutes: 10 },
+              ],
+            },
+          });
+          appointment.calendarEventId =
+            typeof newEventId === 'string' ? newEventId : 'N/A';
+        }
+
+        if (!appointment.zoomMeetingId || appointment.zoomMeetingId === 'N/A') {
+          const meeting = await this.zoomService.createZoomMeeting(
+            getZoomMeetingConfig(
+              service.name,
+              startDateAndTime.setZone(appointmentTimeZone).toISO(),
+              appointmentTimeZone,
+            ),
+          );
+          appointment.zoomMeetingId = meeting.id || 'N/A';
+          appointment.zoomMeetingLink = meeting.join_url || 'N/A';
+        }
+
+        // 5. Actualizar la cita
+        const updatedAppointment = this.appointmentsRepository.merge(
+          appointment,
+          {
+            staff,
+            service,
+            start: startDateAndTime.toJSDate(),
+            end: endDateAndTime.toJSDate(),
+            timeZone: appointmentTimeZone,
+            ...rest,
           },
+        );
+
+        await this.appointmentsRepository.save(updatedAppointment);
+        return updatedAppointment;
+      } else {
+        // Si no se actualizan las fechas, actualizar otros campos y también sincronizar servicios externos
+        const startDateAndTime = DateTime.fromJSDate(appointment.start, {
+          zone: 'utc',
         });
-      }
+        const endDateAndTime = DateTime.fromJSDate(appointment.end, {
+          zone: 'utc',
+        });
 
-      return updatedAppointment;
+        // Actualizar servicios externos (título, ubicación, descripción) aunque el horario no cambie
+        await this.appointmentHelper.updateExternalServices(
+          this.zoomService,
+          this.calendarService,
+          appointment,
+          {
+            startDateAndTime,
+            endDateAndTime,
+            timeZone: appointmentTimeZone,
+            serviceName: service.name,
+            serviceAddress: service.address,
+            staffName: {
+              firstName: staff.firstName,
+              lastName: staff.lastName,
+            },
+            userName: {
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            userEmail: user.email,
+            userPhoneNumber: user.phoneNumber,
+          },
+        );
+
+        // Fallback: crear recursos externos si faltan IDs válidos
+        if (
+          !appointment.calendarEventId ||
+          appointment.calendarEventId === 'N/A'
+        ) {
+          const newEventId = await this.calendarService.createEvent({
+            summary: `Appointment: ${service.name}`,
+            location: service.address,
+            description: formatAppointmentDescription(
+              appointment.zoomMeetingLink,
+              staff.firstName,
+              staff.lastName,
+              user.firstName,
+              user.lastName,
+              user.email,
+              user.phoneNumber || '',
+            ),
+            start: {
+              dateTime: startDateAndTime.setZone(appointmentTimeZone).toISO(),
+              timeZone: appointmentTimeZone,
+            },
+            end: {
+              dateTime: endDateAndTime.setZone(appointmentTimeZone).toISO(),
+              timeZone: appointmentTimeZone,
+            },
+            reminders: {
+              useDefault: false,
+              overrides: [
+                { method: 'email', minutes: 24 * 60 },
+                { method: 'popup', minutes: 10 },
+              ],
+            },
+          });
+          appointment.calendarEventId =
+            typeof newEventId === 'string' ? newEventId : 'N/A';
+        }
+
+        if (!appointment.zoomMeetingId || appointment.zoomMeetingId === 'N/A') {
+          const meeting = await this.zoomService.createZoomMeeting(
+            getZoomMeetingConfig(
+              service.name,
+              startDateAndTime.setZone(appointmentTimeZone).toISO(),
+              appointmentTimeZone,
+            ),
+          );
+          appointment.zoomMeetingId = meeting.id || 'N/A';
+          appointment.zoomMeetingLink = meeting.join_url || 'N/A';
+        }
+
+        const updatedAppointment = this.appointmentsRepository.merge(
+          appointment,
+          {
+            staff,
+            service,
+            ...rest,
+          },
+        );
+
+        await this.appointmentsRepository.save(updatedAppointment);
+        return updatedAppointment;
+      }
     } catch (error) {
       this.logger.error('Error updating appointment', error.stack);
       throw error;
@@ -436,17 +572,4 @@ Phone Number: ${user.phoneNumber}
     await this.calendarService.remove(appointment.calendarEventId);
     return appointment;
   }
-
-  // async getAppointmentsByStaff(staffId: string, date: string) {
-  //   this.appointmentsRepository.find({
-  //     where: {
-  //       staff: { id: staffId },
-  //       start: Between(
-  //         new Date(`${date}T00:00:00.000Z`),
-  //         new Date(`${date}T23:59:59.999Z`),
-  //       ),
-  //     },
-  //     relations: ['staff_member'],
-  //   });
-  // }
 }

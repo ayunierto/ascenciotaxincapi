@@ -56,6 +56,8 @@ export class AvailabilityService {
       throw new Error('Formato de fecha inválido.');
     }
 
+    const now = DateTime.now().setZone(businessTimeZone);
+
     // targetDate ya está definido como DateTime, pero debe ser forzado a la zona del negocio
     const businessDate = targetDate.setZone(businessTimeZone, {
       keepLocalTime: true,
@@ -100,13 +102,11 @@ export class AvailabilityService {
         await this.appointmentsRepository.find({
           where: {
             staff: { id: staffMember.id },
-            status: 'confirmed', // Asumiendo un estado 'confirmed'
+            status: 'confirmed',
             start: Between(dateStart, dateEnd),
-            // Filtros por fecha (usando TypeORM date operators o raw query para PostgreSQL)
           },
         });
 
-      // d) Calcular los rangos de tiempo LIBRE (AvailableTimeRanges)
       let availableIntervals: Interval[] = this.calculateBaseIntervals(
         staffMember.schedules,
         businessDate,
@@ -117,9 +117,6 @@ export class AvailabilityService {
         businessTimeZone,
       );
 
-      // Obtener eventos del calendario externo (Google Calendar, etc.)
-      // y restarlos de los intervalos disponibles
-      // (asumiendo que calendarService devuelve Interval[] en la zona del negocio)
       const calendarEvents = await this.calendarService.checkEventsInRange(
         dateStart.toISOString(),
         dateEnd.toISOString(),
@@ -129,81 +126,26 @@ export class AvailabilityService {
         calendarEvents,
       );
 
-      // e) Generar slots de la duración del servicio
+      // Filtrar intervalos que ya han pasado
+      availableIntervals = availableIntervals.filter(
+        (interval) => interval.end > now,
+      );
+
       this.generateAndConsolidateSlots(
         availableIntervals,
         duration,
         staffMember,
         consolidatedSlots,
       );
-
-      // --- 4. DEVOLVER EL RESULTADO FINAL ---
-
-      // Convertir el mapa a la interfaz AvailableSlot, incluyendo endTimeUTC.
-      return Array.from(
-        consolidatedSlots,
-        ([startTimeUTC, availableStaff]) => ({
-          startTimeUTC,
-          // Recalcular el endTimeUTC basado en la hora de inicio y la duración
-          endTimeUTC: DateTime.fromISO(startTimeUTC, { zone: 'utc' })
-            .plus({ minutes: duration })
-            .toISO()!,
-          availableStaff,
-        }),
-      ).sort((a, b) => a.startTimeUTC.localeCompare(b.startTimeUTC));
     }
 
-    // // Define the start and end dates in the user's time zone
-    // const startDateTimeUser = DateTime.fromISO(
-    //   `${date}T${schedule.startTime}`,
-    //   { zone: userTimeZone },
-    // );
-    // const endDateTimeUser = DateTime.fromISO(`${date}T${schedule.endTime}`, {
-    //   zone: userTimeZone,
-    // });
-
-    // // Convert UTC for comparisons with appointments and events
-    // const startDateTimeUTC = startDateTimeUser.toUTC();
-    // const endDateTimeUTC = endDateTimeUser.toUTC();
-
-    // const availableSlots: { start: string; end: string }[] = [];
-
-    // const nowUTC = DateTime.now().toUTC(); // Hora actual en UTC
-
-    // // Iterar por intervalos de una hora
-    // let currentDateTimeUTC = startDateTimeUTC;
-
-    // while (currentDateTimeUTC < endDateTimeUTC) {
-    //   const nextDateTimeUTC = currentDateTimeUTC.plus({ hours: 1 });
-
-    //   // Verify if the current time has already passed
-    //   if (currentDateTime  UTC < nowUTC) {
-    //     currentDateTimeUTC = nextDateTimeUTC;
-    //     continue;
-    //   }
-
-    //   const hasAppointment = await this.checkForAppointments(
-    //     staffId,
-    //     currentDateTimeUTC.toJSDate(),
-    //     nextDateTimeUTC.toJSDate(),
-    //   );
-
-    //   const hasCalendarEvent = await this.checkForEvents(
-    //     currentDateTimeUTC.toJSDate(),
-    //     nextDateTimeUTC.toJSDate(),
-    //   );
-
-    //   if (!hasAppointment && !hasCalendarEvent) {
-    //     availableSlots.push({
-    //       start: currentDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
-    //       end: nextDateTimeUTC.toISO(), // Store in ISO 8601 (UTC)
-    //     });
-    //   }
-
-    //   currentDateTimeUTC = nextDateTimeUTC;
-    // }
-
-    // return availableSlots;
+    return Array.from(consolidatedSlots, ([startTimeUTC, availableStaff]) => ({
+      startTimeUTC,
+      endTimeUTC: DateTime.fromISO(startTimeUTC, { zone: 'utc' })
+        .plus({ minutes: duration })
+        .toISO()!,
+      availableStaff,
+    })).sort((a, b) => a.startTimeUTC.localeCompare(b.startTimeUTC));
   }
 
   private async checkForAppointments(

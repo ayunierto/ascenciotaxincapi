@@ -21,6 +21,9 @@ export class Appointment {
   @Column('timestamp with time zone')
   end: Date;
 
+  @Column()
+  timeZone: string;
+
   @Column({ default: 'confirmed' })
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
 

@@ -21,10 +21,10 @@ export class Service {
   @Column({ default: '' })
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   address: string;
 
-  @Column('int')
+  @Column('int', { nullable: true })
   durationMinutes: number;
 
   @Column({ default: true })
