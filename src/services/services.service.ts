@@ -2,10 +2,12 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, Repository, IsNull } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Service } from './entities';
@@ -20,87 +22,91 @@ import {
 
 @Injectable()
 export class ServicesService {
+  private readonly logger = new Logger(ServicesService.name);
+
   constructor(
     @InjectRepository(Service)
-    // eslint-disable-next-line no-unused-vars
     private readonly serviceRepository: Repository<Service>,
     @InjectRepository(Staff)
-    // eslint-disable-next-line no-unused-vars
-    private staffRepository: Repository<Staff>,
-    // eslint-disable-next-line no-unused-vars
+    private readonly staffRepository: Repository<Staff>,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(
     createServiceDto: CreateServiceDto,
   ): Promise<CreateServiceResponse> {
-    try {
-      const { staffIds, ...rest } = createServiceDto;
+    const { staffIds, ...serviceData } = createServiceDto;
 
-      const staff = [];
-      if (staffIds && staffIds.length > 0) {
-        staff.push(
-          ...(await this.staffRepository.findBy({
-            id: In(staffIds),
-          })),
-        );
-      }
+    try {
+      this.logger.log(`Creating service: ${serviceData.name}`);
+
+      // Validate and get staff members if provided
+      const staff = await this.validateAndGetStaff(staffIds);
 
       const service = this.serviceRepository.create({
+        ...serviceData,
         staff,
-        ...rest,
       });
 
-      return await this.serviceRepository.save(service);
+      const savedService = await this.serviceRepository.save(service);
+      this.logger.log(`Service created successfully with ID: ${savedService.id}`);
+      
+      return savedService;
     } catch (error) {
-      console.error(error);
+      this.logger.error(`Error creating service: ${error.message}`, error.stack);
+      
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while creating service. Please try again later.',
+        'An unexpected error occurred while creating service. Please try again later.',
       );
     }
   }
 
   async findAll(paginationDto: PaginationDto): Promise<GetServicesResponse> {
+    const { limit = 10, offset = 0 } = paginationDto;
+
     try {
-      const { limit = 10, offset = 0 } = paginationDto;
-      const services = await this.serviceRepository.find({
+      this.logger.log(`Fetching services with pagination - limit: ${limit}, offset: ${offset}`);
+
+      const [services, total] = await this.serviceRepository.findAndCount({
         take: limit,
         skip: offset,
-        relations: {
-          staff: true,
-        },
-        order: {
-          id: 'ASC',
-        },
+        where: { deletedAt: IsNull() }, // Only get non-deleted services
+        relations: ['staff'],
+        order: { createdAt: 'DESC' },
       });
 
-      const total = await this.serviceRepository.count();
-
-      return {
+      const result = {
         count: total,
         pages: Math.ceil(total / limit),
-        services: services,
+        services,
       };
+
+      this.logger.log(`Found ${total} services`);
+      return result;
     } catch (error) {
-      console.error(error);
+      this.logger.error(`Error fetching services: ${error.message}`, error.stack);
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while finding services. Please try again later.',
+        'An unexpected error occurred while finding services. Please try again later.',
       );
     }
   }
 
   async findOne(id: string): Promise<GetServiceResponse> {
+    this.logger.log(`Fetching service with ID: ${id}`);
+
     const service = await this.serviceRepository.findOne({
-      where: {
-        id,
-      },
-      relations: {
-        staff: true,
-      },
+      where: { id, deletedAt: IsNull() },
+      relations: ['staff'],
     });
-    if (!service) throw new NotFoundException('Service not found.');
+
+    if (!service) {
+      this.logger.warn(`Service not found with ID: ${id}`);
+      throw new NotFoundException('Service not found.');
+    }
 
     return service;
   }
@@ -109,45 +115,93 @@ export class ServicesService {
     id: string,
     updateServiceDto: UpdateServiceDto,
   ): Promise<UpdateServiceResponse> {
-    const { staffIds, ...rest } = updateServiceDto;
+    const { staffIds, ...serviceData } = updateServiceDto;
 
     try {
-      const staff: Staff[] = [];
-      if (staffIds && staffIds.length > 0) {
-        staff.push(
-          ...(await this.staffRepository.findBy({
-            id: In(staffIds),
-          })),
-        );
-      }
+      this.logger.log(`Updating service with ID: ${id}`);
+
+      // Check if service exists first
+      await this.findOne(id);
+
+      // Validate and get staff members if provided
+      const staff = await this.validateAndGetStaff(staffIds);
 
       const service = await this.serviceRepository.preload({
         id,
+        ...serviceData,
         staff,
-        ...rest,
       });
-      if (!service) throw new NotFoundException('Service not found.');
 
-      return await this.serviceRepository.save(service);
+      if (!service) {
+        throw new NotFoundException('Service not found.');
+      }
+
+      const updatedService = await this.serviceRepository.save(service);
+      this.logger.log(`Service updated successfully with ID: ${id}`);
+      
+      return updatedService;
     } catch (error) {
+      this.logger.error(`Error updating service with ID ${id}: ${error.message}`, error.stack);
+      
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while updating service. Please try again later.',
+        'An unexpected error occurred while updating service. Please try again later.',
       );
     }
   }
 
   async remove(id: string): Promise<DeleteServiceResponse> {
     try {
+      this.logger.log(`Soft deleting service with ID: ${id}`);
+      
       const service = await this.findOne(id);
-      await this.serviceRepository.remove(service);
-      return service;
+      service.deletedAt = new Date();
+      
+      const deletedService = await this.serviceRepository.save(service);
+      this.logger.log(`Service soft deleted successfully with ID: ${id}`);
+      
+      return deletedService;
     } catch (error) {
-      console.error(error);
+      this.logger.error(`Error deleting service with ID ${id}: ${error.message}`, error.stack);
+      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      
       throw new InternalServerErrorException(
-        error.message ||
-          'An unexpected error occurred while deleting service. Please try again later.',
+        'An unexpected error occurred while deleting service. Please try again later.',
       );
     }
+  }
+
+  /**
+   * Private helper method to validate and retrieve staff members
+   */
+  private async validateAndGetStaff(staffIds?: string[]): Promise<Staff[]> {
+    if (!staffIds || staffIds.length === 0) {
+      return [];
+    }
+
+    this.logger.log(`Validating ${staffIds.length} staff member(s)`);
+
+    const staff = await this.staffRepository.findBy({
+      id: In(staffIds),
+    });
+
+    // Check if all requested staff members were found
+    const foundStaffIds = staff.map(s => s.id);
+    const missingStaffIds = staffIds.filter(id => !foundStaffIds.includes(id));
+
+    if (missingStaffIds.length > 0) {
+      throw new BadRequestException(
+        `Staff member(s) not found with ID(s): ${missingStaffIds.join(', ')}`
+      );
+    }
+
+    this.logger.log(`Successfully validated ${staff.length} staff member(s)`);
+    return staff;
   }
 }
