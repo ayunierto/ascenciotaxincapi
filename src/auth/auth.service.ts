@@ -707,37 +707,55 @@ export class AuthService {
   ): Promise<UpdateProfileResponse> {
     const { password, ...userData } = updateProfileDto;
 
-    let updatedUser: User;
+    this.logger.log(`Update profile attempt for user: ${user.email}`);
 
     try {
-      if (password) {
-        const newPassword = bcrypt.hashSync(password, 10);
+      // Check if password is provided and not empty
+      if (password && password.trim().length > 0) {
+        this.logger.log(`Updating profile with password for user: ${user.email}`);
+        const newPassword = await this.hashPassword(password);
 
-        updatedUser = await this.usersRepository.preload({
+        const updatedUser = await this.usersRepository.preload({
           id: user.id,
           password: newPassword,
           ...userData,
         });
 
+        if (!updatedUser) {
+          this.logger.error(`User not found: ${user.id}`);
+          throw new NotFoundException('User not found');
+        }
+
         await this.usersRepository.save(updatedUser);
+        this.logger.log(`Profile updated successfully with password for user: ${user.email}`);
+        
         return {
           message: 'Profile updated successfully',
           user: UserMapper.toBasicUser(updatedUser),
         };
       }
 
-      updatedUser = await this.usersRepository.preload({
+      // Update profile without password
+      this.logger.log(`Updating profile without password for user: ${user.email}`);
+      const updatedUser = await this.usersRepository.preload({
         id: user.id,
         ...userData,
       });
 
+      if (!updatedUser) {
+        this.logger.error(`User not found: ${user.id}`);
+        throw new NotFoundException('User not found');
+      }
+
       await this.usersRepository.save(updatedUser);
+      this.logger.log(`Profile updated successfully for user: ${user.email}`);
+      
       return {
         message: 'Profile updated successfully',
         user: UserMapper.toBasicUser(updatedUser),
       };
     } catch (error) {
-      console.error(error);
+      this.logger.error(`Failed to update profile for user: ${user.email}`, error);
       throw new InternalServerErrorException(
         `Failed to update profile for user ${user.id}.`,
       );
