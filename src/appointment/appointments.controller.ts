@@ -53,15 +53,7 @@ export class AppointmentsController {
     return this.appointmentsService.findOne(id);
   }
 
-  @Patch(':id')
-  @Auth()
-  update(
-    @Param('id') id: string,
-    @Body() updateAppointmentDto: UpdateAppointmentDto,
-    @GetUser() user: User,
-  ) {
-    return this.appointmentsService.update(id, updateAppointmentDto, user);
-  }
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -105,6 +97,17 @@ export class AppointmentsController {
       message: 'Appointment cancelled successfully',
       appointment: cancelledAppointment,
     };
+  }
+
+
+    @Patch(':id')
+  @Auth()
+  update(
+    @Param('id') id: string,
+    @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @GetUser() user: User,
+  ) {
+    return this.appointmentsService.update(id, updateAppointmentDto, user);
   }
 
 
