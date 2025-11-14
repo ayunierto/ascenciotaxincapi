@@ -24,6 +24,7 @@ import {
   UpdateProfileDto,
   DeleteAccountDto,
 } from './dto/';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -90,21 +91,6 @@ export class AuthController {
     return this.authService.changePassword(changePasswordDto, user);
   }
 
-  @Patch('update-profile')
-  @Auth()
-  updateProfile(
-    @Body() updateProfileDto: UpdateProfileDto,
-    @GetUser() user: User,
-  ) {
-    return this.authService.updateProfile(updateProfileDto, user);
-  }
 
-  @Delete('delete-account')
-  @Auth()
-  deleteAccount(
-    @Body() deleteAccountDto: DeleteAccountDto,
-    @GetUser() user: User,
-  ) {
-    return this.authService.deleteAccount(deleteAccountDto, user);
-  }
+  
 }

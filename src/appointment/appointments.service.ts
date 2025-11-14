@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -576,60 +577,79 @@ export class AppointmentsService {
   }
 
   async cancelAppointment(
-  appointmentId: string,
-  userId: string,
-  cancelDto: CancelAppointmentDto,
-): Promise<Appointment> {
-  // 1. Verificar que la cita existe y pertenece al usuario
-  const appointment = await this.appointmentsRepository.findOne({
-    where: { id: appointmentId, user: { id: userId } },
-    relations: {
-      user: true,
-      staff: true,
-      service: true,
-    },
-  });
+    appointmentId: string,
+    userId: string,
+    cancelDto: CancelAppointmentDto,
+  ): Promise<Appointment> {
+    // 1. Buscar la cita
+    const appointment = await this.appointmentsRepository.findOne({
+      where: { id: appointmentId },
+      relations: ['user', 'service', 'staff'], // Ajusta según tus relaciones
+    });
 
-  if (!appointment) {
-    throw new NotFoundException('Appointment not found');
-  }
-
-  // 2. Verificar que la cita no esté ya cancelada
-  if (appointment.status === 'cancelled') {
-    throw new BadRequestException('Appointment is already cancelled');
-  }
-
-  // 3. Verificar que la cita sea futura (opcional)
-  const now = new Date();
-  if (new Date(appointment.start) < now) {
-    throw new BadRequestException('Cannot cancel past appointments');
-  }
-
-  // 4. Actualizar el estado y guardar razón
-  appointment.status = 'cancelled';
-  appointment.cancellationReason = cancelDto.cancellationReason || 'Cancelled by user';
-  
-  // 5. Opcional: Cancelar eventos externos (Zoom, Google Calendar)
-  try {
-    if (appointment.zoomMeetingId) {
-      await this.zoomService.remove(appointment.zoomMeetingId);
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${appointmentId} not found`);
     }
-    if (appointment.calendarEventId) {
-      await this.calendarService.deleteEvent(appointment.calendarEventId);
+
+    // 2. Verificar que el usuario es el dueño de la cita
+    if (appointment.user.id !== userId) {
+      throw new ForbiddenException('You can only cancel your own appointments');
     }
-  } catch (error) {
-    // Log pero no fallar si los servicios externos fallan
-    console.error('Error cancelling external services:', error);
+
+    // 3. Verificar que la cita no esté ya cancelada
+    if (appointment.status === 'cancelled') {
+      throw new BadRequestException('This appointment is already cancelled');
+    }
+
+    // 4. Verificar que la cita no esté completada
+    if (appointment.status === 'completed') {
+      throw new BadRequestException('Cannot cancel a completed appointment');
+    }
+
+    // 5. Opcional: Verificar tiempo mínimo de cancelación (ej: 24 horas antes)
+    const now = new Date();
+    const appointmentStart = new Date(appointment.start);
+    const hoursUntilAppointment = (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    if (hoursUntilAppointment < 24) {
+      // Puedes lanzar excepción o permitirlo con una nota
+      // throw new BadRequestException('Appointments must be cancelled at least 24 hours in advance');
+    }
+
+    // 6. Actualizar la cita
+    appointment.status = 'cancelled';
+    appointment.cancellationReason = cancelDto.cancellationReason;
+    appointment.cancelledAt = new Date();
+
+    const cancelledAppointment = await this.appointmentsRepository.save(appointment);
+
+    // 7. Opcional: Enviar notificación por email
+    // await this.notificationsService.sendCancellationEmail(appointment);
+
+    // 8. Opcional: Registrar en log/auditoría
+    // await this.logsService.logAppointmentCancellation(appointment, userId);
+
+    return cancelledAppointment;
   }
 
-  // 6. Guardar cambios
-  const cancelledAppointment = await this.appointmentsRepository.save(appointment);
+  // Método auxiliar para verificar si se puede cancelar
+  async canCancelAppointment(appointmentId: string, userId: string): Promise<boolean> {
+    const appointment = await this.appointmentsRepository.findOne({
+      where: { id: appointmentId },
+      relations: { user: true},
+    });
 
-  // 7. Opcional: Enviar notificaciones
-  // await this.notificationService.sendCancellationEmail(appointment);
+    if (!appointment) return false;
+    if (appointment.user.id !== userId) return false;
+    if (appointment.status !== 'confirmed') return false;
 
-  return cancelledAppointment;
-}
+    const now = new Date();
+    const appointmentStart = new Date(appointment.start);
+    const hoursUntilAppointment = (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    // Permitir cancelación si es más de 24 horas antes
+    return hoursUntilAppointment >= 24;
+  }
 
 // Para obtener citas activas (no canceladas)
 async getUserActiveAppointments(userId: string) {

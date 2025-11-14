@@ -43,7 +43,9 @@ export class Appointment {
   // "enum[app, admin, imported, api]"
   source: 'app' | 'admin' | 'imported' | 'api';
 
-  @Column({ nullable: true })
+  
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
   cancellationReason?: string;
 
   @Column({ nullable: true })

@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -17,6 +19,7 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -65,17 +68,44 @@ export class AppointmentsController {
     return this.appointmentsService.remove(id);
   }
 
- // appointments.controller.ts
-@Patch(':id/cancel')
-@Auth()
-async cancelAppointment(
-  @Param('id') id: string,
-  @Body() cancelDto: CancelAppointmentDto,
-  @GetUser() user: User,
-) {
-  return this.appointmentsService.cancelAppointment(id, user.id, cancelDto);
-}
+ @Patch(':id/cancel')
+  @Auth()
 
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel an appointment' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Appointment successfully cancelled',
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Appointment not found',
+  })
+  @ApiResponse({ 
+    status: 403, 
+    description: 'You can only cancel your own appointments',
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Appointment cannot be cancelled (already cancelled or completed)',
+  })
+  async cancelAppointment(
+    @Param('id') id: string,
+    @Body() cancelDto: CancelAppointmentDto,
+    @GetUser() user: User,
+  ) {
+    const userId = user.id; // Asumiendo que el guard añade el usuario a la request
+    const cancelledAppointment = await this.appointmentsService.cancelAppointment(
+      id,
+      userId,
+      cancelDto,
+    );
+
+    return {
+      message: 'Appointment cancelled successfully',
+      appointment: cancelledAppointment,
+    };
+  }
 
 
 }
