@@ -1,10 +1,8 @@
-import { IsUUID, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CancelAppointmentDto {
-  @IsUUID()
-  appointmentId!: string;
-
   @IsOptional()
   @IsString()
-  reason?: string;
+  @MaxLength(500)
+  cancellationReason?: string;
 }

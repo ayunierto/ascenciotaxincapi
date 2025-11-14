@@ -16,6 +16,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -63,4 +64,18 @@ export class AppointmentsController {
   remove(@Param('id') id: string) {
     return this.appointmentsService.remove(id);
   }
+
+ // appointments.controller.ts
+@Patch(':id/cancel')
+@Auth()
+async cancelAppointment(
+  @Param('id') id: string,
+  @Body() cancelDto: CancelAppointmentDto,
+  @GetUser() user: User,
+) {
+  return this.appointmentsService.cancelAppointment(id, user.id, cancelDto);
+}
+
+
+
 }

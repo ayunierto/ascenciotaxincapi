@@ -4,12 +4,13 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { User } from '../auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, MoreThan, Not, Repository } from 'typeorm';
+import { In, LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { CalendarService } from 'src/calendar/calendar.service';
@@ -28,6 +29,7 @@ import {
 } from './utils/appointment.utils';
 import { AppointmentHelper } from './helpers/appointment.helper';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -572,4 +574,79 @@ export class AppointmentsService {
     await this.calendarService.remove(appointment.calendarEventId);
     return appointment;
   }
+
+  async cancelAppointment(
+  appointmentId: string,
+  userId: string,
+  cancelDto: CancelAppointmentDto,
+): Promise<Appointment> {
+  // 1. Verificar que la cita existe y pertenece al usuario
+  const appointment = await this.appointmentsRepository.findOne({
+    where: { id: appointmentId, user: { id: userId } },
+    relations: {
+      user: true,
+      staff: true,
+      service: true,
+    },
+  });
+
+  if (!appointment) {
+    throw new NotFoundException('Appointment not found');
+  }
+
+  // 2. Verificar que la cita no esté ya cancelada
+  if (appointment.status === 'cancelled') {
+    throw new BadRequestException('Appointment is already cancelled');
+  }
+
+  // 3. Verificar que la cita sea futura (opcional)
+  const now = new Date();
+  if (new Date(appointment.start) < now) {
+    throw new BadRequestException('Cannot cancel past appointments');
+  }
+
+  // 4. Actualizar el estado y guardar razón
+  appointment.status = 'cancelled';
+  appointment.cancellationReason = cancelDto.cancellationReason || 'Cancelled by user';
+  
+  // 5. Opcional: Cancelar eventos externos (Zoom, Google Calendar)
+  try {
+    if (appointment.zoomMeetingId) {
+      await this.zoomService.remove(appointment.zoomMeetingId);
+    }
+    if (appointment.calendarEventId) {
+      await this.calendarService.deleteEvent(appointment.calendarEventId);
+    }
+  } catch (error) {
+    // Log pero no fallar si los servicios externos fallan
+    console.error('Error cancelling external services:', error);
+  }
+
+  // 6. Guardar cambios
+  const cancelledAppointment = await this.appointmentsRepository.save(appointment);
+
+  // 7. Opcional: Enviar notificaciones
+  // await this.notificationService.sendCancellationEmail(appointment);
+
+  return cancelledAppointment;
+}
+
+// Para obtener citas activas (no canceladas)
+async getUserActiveAppointments(userId: string) {
+  return this.appointmentsRepository.find({
+    where: { 
+      user: { id: userId },
+      status: Not(In(['cancelled', 'no-show'])),
+    },
+    order: { start: 'ASC' },
+  });
+}
+
+// Para obtener historial incluyendo canceladas
+async getUserAppointmentHistory(userId: string) {
+  return this.appointmentsRepository.find({
+    where: { user: { id: userId } },
+    order: { start: 'DESC' },
+  });
+}
 }

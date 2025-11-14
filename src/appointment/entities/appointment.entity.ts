@@ -44,7 +44,14 @@ export class Appointment {
   source: 'app' | 'admin' | 'imported' | 'api';
 
   @Column({ nullable: true })
-  cancellationReason: string;
+  cancellationReason?: string;
+
+  @Column({ nullable: true })
+  cancelledAt?: Date; // Timestamp de cuándo se canceló
+
+  @Column({ nullable: true })
+  cancelledBy?: string; // 'user' | 'staff' | 'admin'
+
 
   // Relations
   @ManyToOne(() => Service, (service) => service.appointments)
