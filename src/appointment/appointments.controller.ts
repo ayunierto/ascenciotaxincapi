@@ -53,45 +53,22 @@ export class AppointmentsController {
     return this.appointmentsService.findOne(id);
   }
 
-
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.appointmentsService.remove(id);
   }
 
- @Patch(':id/cancel')
+  @Patch(':id/cancel')
   @Auth()
-
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cancel an appointment' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Appointment successfully cancelled',
-  })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Appointment not found',
-  })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'You can only cancel your own appointments',
-  })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Appointment cannot be cancelled (already cancelled or completed)',
-  })
   async cancelAppointment(
     @Param('id') id: string,
     @Body() cancelDto: CancelAppointmentDto,
     @GetUser() user: User,
   ) {
     const userId = user.id; // Asumiendo que el guard añade el usuario a la request
-    const cancelledAppointment = await this.appointmentsService.cancelAppointment(
-      id,
-      userId,
-      cancelDto,
-    );
+    const cancelledAppointment =
+      await this.appointmentsService.cancelAppointment(id, userId, cancelDto);
 
     return {
       message: 'Appointment cancelled successfully',
@@ -99,8 +76,7 @@ export class AppointmentsController {
     };
   }
 
-
-    @Patch(':id')
+  @Patch(':id')
   @Auth()
   update(
     @Param('id') id: string,
@@ -109,6 +85,4 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.update(id, updateAppointmentDto, user);
   }
-
-
 }

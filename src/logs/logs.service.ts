@@ -25,7 +25,6 @@ export class LogsService {
       console.error(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating the log. Please try again later.',
-        'LOG_CREATE_FAILED',
       );
     }
   }
@@ -46,7 +45,6 @@ export class LogsService {
       console.error(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while fetching logs. Please try again later.',
-        'LOG_FIND_FAILED',
       );
     }
   }

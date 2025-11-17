@@ -286,6 +286,66 @@ export class NotificationService {
     }
   }
 
+  async sendCancellationEmail(
+    appointment: AppointmentDetailsDto,
+  ): Promise<void> {
+    const {
+      clientName,
+      clientEmail,
+      staffName,
+      appointmentDate,
+      appointmentTime,
+      serviceName,
+    } = appointment;
+    const subject = 'Appointment Cancellation Notice';
+
+    const htmlBody = `
+      <body style="font-family: sans-serif; margin: 20px; color: #333;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <h1 style="color: #ff4d4f; margin-bottom: 20px; text-align: center;">Appointment Cancelled</h1>
+              <p style="margin-bottom: 10px;">Dear <strong style="font-weight: bold;">${clientName}</strong>,</p>
+              <p style="margin-bottom: 10px;">We regret to inform you that your appointment with <strong style="font-weight: bold;">${staffName}</strong> on <strong>${
+                appointmentDate
+              }</strong> at <strong>${appointmentTime}</strong> for the service <strong>${serviceName}</strong> has been cancelled.</p>
+              <p style="margin-bottom: 10px;">If you have any questions or would like to reschedule, please contact us at your earliest convenience.</p>
+              <p style="margin-bottom: 10px;">We apologize for any inconvenience this may cause.</p>
+              <p style="margin-bottom: 0;">Best regards,<br><strong style="font-weight: bold;">${this.senderName}</strong></p>
+          </div>
+      </body>
+    `;
+
+    const textBody = `
+      Appointment Cancellation Notice:
+      Dear ${clientName},
+      We regret to inform you that your appointment with ${staffName} on ${appointmentDate} at ${appointmentTime} for the service ${serviceName} has been cancelled.
+      If you have any questions or would like to reschedule, please contact us at your earliest convenience.
+      We apologize for any inconvenience this may cause.
+      Best regards,
+      ${this.senderName}
+    `;
+
+    const mailOptions: SendMailOptions = {
+      to: clientEmail,
+      subject: subject,
+      text: textBody,
+      html: htmlBody,
+      clientName,
+    };
+
+    try {
+      await this.mailService.sendMail(mailOptions);
+      console.log(`Appointment cancellation email sent to ${clientEmail}`);
+
+      this.logger.log(`Appointment cancellation email sent to ${clientEmail}`);
+    } catch (error) {
+      console.error(
+        `Failed to send appointment cancellation email to ${clientEmail}:`,
+        error,
+      );
+      // Handle the error as needed
+    }
+  }
+
   // Add other notification methods as needed, e.g.,
   // async sendPasswordChangedConfirmation(recipientEmail: string): Promise<void> { ... }
 }

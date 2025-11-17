@@ -83,26 +83,49 @@ export class ExpenseService {
       const { categoryId, subcategoryId, date, imageUrl, ...rest } =
         createExpenseDto;
 
-      const oldPath = this.extractPublicId(imageUrl);
-      // const oldPath = `ascencio_tax_inc/temp_receipts/${user.id}/${publicId}`;
-      // const newPath = `ascencio_tax_inc/receipts/${user.id}/${publicId}`;
-      const newPath = oldPath.replace('temp_receipts', 'receipts');
-      const updatedImageUrl = imageUrl.replace(oldPath, newPath);
+      // Validar imageUrl nulo
+      let updatedImageUrl = null;
+      if (imageUrl) {
+        const oldPath = this.extractPublicId(imageUrl);
+        if (oldPath) {
+          const newPath = oldPath.replace('temp_receipts', 'receipts');
+          updatedImageUrl = imageUrl.replace(oldPath, newPath);
+          await this.filesService.move(oldPath, newPath);
+        } else {
+          updatedImageUrl = imageUrl;
+        }
+      }
 
-      await this.filesService.move(oldPath, newPath);
+      // Validar si la categoría existe (puede ser nula)
+      let category = null;
+      if (categoryId) {
+        category = await this.categoriesService.findOne(categoryId);
+        if (!category) {
+          throw new BadRequestException('Category not found');
+        }
+      }
 
-      // Validate if the category provided exists
-      const category = await this.categoriesService.findOne(categoryId);
-
-      // Validate if the subcategory provided exists
+      // Validar si la subcategoría existe (puede ser nula)
       let subcategory = null;
       if (subcategoryId) {
         subcategory = await this.subcategoriesService.findOne(subcategoryId);
+        if (!subcategory) {
+          throw new BadRequestException('Subcategory not found');
+        }
+      }
+
+      // Validar fecha nula
+      let expenseDate = null;
+      if (date) {
+        expenseDate = new Date(date);
+        if (isNaN(expenseDate.getTime())) {
+          throw new BadRequestException('Invalid date');
+        }
       }
 
       const newExpense = this.expenseRepository.create({
         category: category,
-        date: new Date(date),
+        date: expenseDate,
         subcategory: subcategory,
         user: user,
         imageUrl: updatedImageUrl,
@@ -112,14 +135,13 @@ export class ExpenseService {
       await this.expenseRepository.save(newExpense);
 
       await this.logService.create(
-        { description: `Expense added: ${category.name}` },
+        { description: `Expense added: ${category?.name ?? 'No category'}` },
         user,
       );
 
       return newExpense;
     } catch (error) {
       console.error(error);
-
       throw new InternalServerErrorException(
         error.message || 'Error creating expense. Please try again later.',
       );

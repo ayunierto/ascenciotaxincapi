@@ -584,11 +584,17 @@ export class AppointmentsService {
     // 1. Buscar la cita
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: appointmentId },
-      relations: ['user', 'service', 'staff'], // Ajusta según tus relaciones
+      relations: {
+        user: true,
+        service: true,
+        staff: true,
+      }, // Ajusta según tus relaciones
     });
 
     if (!appointment) {
-      throw new NotFoundException(`Appointment with ID ${appointmentId} not found`);
+      throw new NotFoundException(
+        `Appointment with ID ${appointmentId} not found`,
+      );
     }
 
     // 2. Verificar que el usuario es el dueño de la cita
@@ -609,11 +615,14 @@ export class AppointmentsService {
     // 5. Opcional: Verificar tiempo mínimo de cancelación (ej: 24 horas antes)
     const now = new Date();
     const appointmentStart = new Date(appointment.start);
-    const hoursUntilAppointment = (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+    const hoursUntilAppointment =
+      (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60); // Convertir a horas
+
     if (hoursUntilAppointment < 24) {
       // Puedes lanzar excepción o permitirlo con una nota
-      // throw new BadRequestException('Appointments must be cancelled at least 24 hours in advance');
+      throw new BadRequestException(
+        'Appointments must be cancelled at least 24 hours in advance. Please contact support for assistance.',
+      );
     }
 
     // 6. Actualizar la cita
@@ -621,22 +630,44 @@ export class AppointmentsService {
     appointment.cancellationReason = cancelDto.cancellationReason;
     appointment.cancelledAt = new Date();
 
-    const cancelledAppointment = await this.appointmentsRepository.save(appointment);
+    const cancelledAppointment =
+      await this.appointmentsRepository.save(appointment);
 
     // 7. Opcional: Enviar notificación por email
-    // await this.notificationsService.sendCancellationEmail(appointment);
+    await this.notificationService.sendCancellationEmail({
+      appointmentDate: DateTime.fromJSDate(appointment.start)
+        .setZone(appointment.timeZone)
+        .toFormat('yyyy-MM-dd'),
+      appointmentTime: DateTime.fromJSDate(appointment.start)
+        .setZone(appointment.timeZone)
+        .toFormat('hh:mm a'),
+      clientName: appointment.user.firstName + ' ' + appointment.user.lastName,
+      clientEmail: appointment.user.email,
+      staffName: appointment.staff.firstName + ' ' + appointment.staff.lastName,
+      serviceName: appointment.service.name,
+      clientPhoneNumber: appointment.user.phoneNumber || '',
+      location: appointment.service.address || '',
+      meetingLink: appointment.zoomMeetingLink || '',
+    });
 
     // 8. Opcional: Registrar en log/auditoría
     // await this.logsService.logAppointmentCancellation(appointment, userId);
+
+    // 9. Remove calendar event and zoom meeting
+    await this.calendarService.remove(appointment.calendarEventId);
+    await this.zoomService.remove(appointment.zoomMeetingId);
 
     return cancelledAppointment;
   }
 
   // Método auxiliar para verificar si se puede cancelar
-  async canCancelAppointment(appointmentId: string, userId: string): Promise<boolean> {
+  async canCancelAppointment(
+    appointmentId: string,
+    userId: string,
+  ): Promise<boolean> {
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: appointmentId },
-      relations: { user: true},
+      relations: { user: true },
     });
 
     if (!appointment) return false;
@@ -645,28 +676,29 @@ export class AppointmentsService {
 
     const now = new Date();
     const appointmentStart = new Date(appointment.start);
-    const hoursUntilAppointment = (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+    const hoursUntilAppointment =
+      (appointmentStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+
     // Permitir cancelación si es más de 24 horas antes
     return hoursUntilAppointment >= 24;
   }
 
-// Para obtener citas activas (no canceladas)
-async getUserActiveAppointments(userId: string) {
-  return this.appointmentsRepository.find({
-    where: { 
-      user: { id: userId },
-      status: Not(In(['cancelled', 'no-show'])),
-    },
-    order: { start: 'ASC' },
-  });
-}
+  // Para obtener citas activas (no canceladas)
+  async getUserActiveAppointments(userId: string) {
+    return this.appointmentsRepository.find({
+      where: {
+        user: { id: userId },
+        status: Not(In(['cancelled', 'no-show'])),
+      },
+      order: { start: 'ASC' },
+    });
+  }
 
-// Para obtener historial incluyendo canceladas
-async getUserAppointmentHistory(userId: string) {
-  return this.appointmentsRepository.find({
-    where: { user: { id: userId } },
-    order: { start: 'DESC' },
-  });
-}
+  // Para obtener historial incluyendo canceladas
+  async getUserAppointmentHistory(userId: string) {
+    return this.appointmentsRepository.find({
+      where: { user: { id: userId } },
+      order: { start: 'DESC' },
+    });
+  }
 }

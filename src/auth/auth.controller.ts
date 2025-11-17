@@ -91,6 +91,21 @@ export class AuthController {
     return this.authService.changePassword(changePasswordDto, user);
   }
 
+  @Patch('update-profile')
+  @Auth()
+  updateProfile(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @GetUser() user: User,
+  ) {
+    return this.authService.updateProfile(updateProfileDto, user);
+  }
 
-  
+  @Post('delete-account')
+  @Auth()
+  deleteAccount(
+    @Body() deleteAccountDto: DeleteAccountDto,
+    @GetUser() user: User,
+  ) {
+    return this.authService.deleteAccount(deleteAccountDto, user);
+  }
 }

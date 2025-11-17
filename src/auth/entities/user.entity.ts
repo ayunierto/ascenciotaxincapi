@@ -72,6 +72,9 @@ export class User {
   @Column('timestamp with time zone', { nullable: true })
   lastLoginAt: Date;
 
+  @Column('timestamp with time zone', { nullable: true })
+  deletedAt: Date;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 

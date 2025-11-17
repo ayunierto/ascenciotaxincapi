@@ -64,13 +64,60 @@ export class AuthService {
   async signUp(signUpDto: SignUpDto): Promise<SignUpResponse> {
     this.logger.log(`Sign up attempt of: ${signUpDto.email}`);
 
-    // Check if user already exists
+    // 1. Check if user already exists and user is not deleted
     const existingUser = await this.usersRepository.findOneBy({
       email: signUpDto.email,
     });
-    if (existingUser) {
+
+    // If deletedAt is not null, allow to create account again
+    if (existingUser && existingUser.deletedAt) {
+      existingUser.deletedAt = null;
+      existingUser.password = await this.hashPassword(signUpDto.password);
+      existingUser.verificationCode = this.generateNumericCode(6);
+      existingUser.verificationCodeExpiresAt = DateTime.utc()
+        .plus({ minutes: this.emailVerificationCodeTTL })
+        .toJSDate();
+      const updatedUser = await this.usersRepository.save(existingUser);
+      if (!updatedUser) {
+        this.logger.error('Failed to update deleted user in the database');
+        throw new InternalServerErrorException(
+          'Failed to update user. Please try again later.',
+        );
+      }
+      this.logger.log(
+        `Deleted user reactivated successfully: ${updatedUser.email}. Verification code: ${updatedUser.verificationCode}`,
+      );
+
+      // Send verification email
+      const emailSent = await this.notificationService.sendVerificationEmail(
+        updatedUser.firstName,
+        updatedUser.email,
+        updatedUser.verificationCode,
+        this.emailVerificationCodeTTL,
+      );
+      if (!emailSent) {
+        this.logger.error(
+          `Failed to send verification email to: ${updatedUser.email}. Please check your configuration.`,
+        );
+        throw new InternalServerErrorException(
+          'Failed to send verification email. Please contact support.',
+        );
+      }
+      this.logger.log(
+        `Verification email sent successfully to: ${updatedUser.email}`,
+      );
+
+      return {
+        message:
+          'User reactivated successfully. Please check your email for verification.',
+        user: UserMapper.toBasicUser(updatedUser),
+      };
+    }
+
+    // If user exists and is not deleted, throw conflict exception
+        if (existingUser) {
       this.logger.warn(`Sign up failed - email already exists`);
-      throw new ConflictException('Email already exists, please login.');
+      throw new ConflictException('Email already exists, please login instead or contact support if you need help.');
     }
 
     // Hash the password
@@ -300,11 +347,20 @@ export class AuthService {
       throw new UnauthorizedException('Login failed, invalid credentials');
     }
 
+    // Check if user is deleted
+    if (user.deletedAt !== null) {
+      this.logger.warn(`Login failed, user is deleted: ${email}`);
+      throw new UnauthorizedException(
+        'Login failed, invalid credentials',
+        'User Deleted',
+      );
+    }
+
     // Check if user is active
     if (!user.isActive) {
       this.logger.warn(`Login failed, user is inactive: ${email}`);
       throw new UnauthorizedException(
-        'Login failed, user is inactive',
+        'Login failed, user is inactive. Please contact support.',
         'User Inactive',
       );
     }
@@ -352,6 +408,7 @@ export class AuthService {
           message: 'If this email is registered, a reset code has been sent.',
         };
       }
+
 
       // Check if user is active
       if (!user.isActive) {
@@ -655,9 +712,11 @@ export class AuthService {
       throw new BadRequestException('Invalid password');
     }
 
-    // Delete user
-    await this.usersRepository.remove(existingUser);
-    this.logger.log(`Account deleted successfully for user: ${user.email}`);
+    // Inactivar usuario y establecer deletedAt
+    existingUser.isActive = false;
+    existingUser.deletedAt = DateTime.utc().toJSDate();
+    await this.usersRepository.save(existingUser);
+    this.logger.log(`Account inactivated (soft deleted) for user: ${user.email}`);
 
     return {
       message:
