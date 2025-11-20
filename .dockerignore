@@ -1,0 +1,11 @@
+dist/
+node_modules/
+postgres/
+credentials.json
+.env
+.vscode/
+database/
+yarn.lock
+.github/
+docs/
+credentials.json
