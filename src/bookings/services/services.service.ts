@@ -82,7 +82,9 @@ export class ServicesService {
         take: limit,
         skip: offset,
         where: { deletedAt: IsNull() }, // Only get non-deleted services
-        relations: ['staff'],
+        relations: {
+          staffMembers: true,
+        },
         order: { createdAt: 'DESC' },
       });
 
@@ -110,7 +112,9 @@ export class ServicesService {
 
     const service = await this.serviceRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['staff'],
+      relations: {
+        staffMembers: true,
+      },
     });
 
     if (!service) {
