@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { ServicesService } from 'src/services/services.service';
 import { UsersService } from '../users/users.service';
-import { ScheduleService } from 'src/schedule/schedule.service';
-import { StaffService } from 'src/staff/staff.service';
+import { ScheduleService } from 'src/bookings/schedules/schedule.service';
+import { StaffMembersService } from 'src/bookings/staff-members/staff-members.service';
 import { PostsService } from '../blog/posts/posts.service';
 import { CategoriesService } from 'src/accounting/categories/categories.service';
 import { SubcategoriesService } from '../accounting/subcategories/subcategories.service';
@@ -11,6 +10,7 @@ import { Role } from 'src/auth/enums/role.enum';
 import { SettingsService } from 'src/settings/settings.service';
 import { AppVersionsService } from 'src/app-versions/app-versions.service';
 import { AppPlatform } from 'src/app-versions/entities/app-version.entity';
+import { ServicesService } from 'src/bookings/services/services.service';
 
 @Injectable()
 export class SeedService {
@@ -18,7 +18,7 @@ export class SeedService {
     private readonly usersService: UsersService,
     private readonly servicesService: ServicesService,
     private readonly scheduleService: ScheduleService,
-    private readonly staffService: StaffService,
+    private readonly staffService: StaffMembersService,
     private readonly postsService: PostsService,
     private readonly categoriesService: CategoriesService,
     private readonly subcategoriesService: SubcategoriesService,

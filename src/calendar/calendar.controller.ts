@@ -16,7 +16,7 @@ export class CalendarController {
 
   @Get('events')
   async listEvents() {
-    const listEvents = await this.googleCalendarService.listEvents();
+    const listEvents = await this.googleCalendarService.listUpcomingEvents();
     return listEvents;
   }
 

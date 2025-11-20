@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ExpenseService } from './expenses.service';
-import { ExpenseController } from './expenses.controller';
+import { ExpensesService } from './expenses.service';
+import { ExpensesController } from './expenses.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Expense } from './entities/expense.entity';
 import { AuthModule } from 'src/auth/auth.module';
@@ -12,8 +12,8 @@ import { OcrModule } from 'src/ocr/ocr.module';
 import { OpenaiModule } from 'src/openai/openai.module';
 
 @Module({
-  controllers: [ExpenseController],
-  providers: [ExpenseService],
+  controllers: [ExpensesController],
+  providers: [ExpensesService],
   imports: [
     TypeOrmModule.forFeature([Expense]),
     AuthModule,
@@ -24,6 +24,6 @@ import { OpenaiModule } from 'src/openai/openai.module';
     OcrModule,
     OpenaiModule,
   ],
-  exports: [ExpenseService],
+  exports: [ExpensesService],
 })
-export class ExpenseModule {}
+export class ExpensesModule {}

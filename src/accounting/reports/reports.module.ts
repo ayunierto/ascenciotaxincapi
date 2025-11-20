@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Report } from './entities/report.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { PrinterModule } from 'src/printer/printer.module';
-import { ExpenseModule } from '../expenses/expenses.module';
+import { ExpensesModule } from '../expenses/expenses.module';
 
 @Module({
   controllers: [ReportsController],
@@ -14,7 +14,7 @@ import { ExpenseModule } from '../expenses/expenses.module';
     TypeOrmModule.forFeature([Report]),
     AuthModule,
     PrinterModule,
-    ExpenseModule,
+    ExpensesModule,
   ],
 })
 export class ReportsModule {}

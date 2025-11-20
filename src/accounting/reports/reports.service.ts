@@ -11,7 +11,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
-import { ExpenseService } from '../expenses/expenses.service';
+import { ExpensesService } from '../expenses/expenses.service';
 
 @Injectable()
 export class ReportsService {
@@ -20,7 +20,7 @@ export class ReportsService {
     private readonly reportRepository: Repository<Report>,
 
     private readonly printer: PrinterService,
-    private readonly expenseService: ExpenseService,
+    private readonly expensesService: ExpensesService,
   ) {}
 
   async generatePdfReport(
@@ -29,7 +29,7 @@ export class ReportsService {
   ): Promise<PDFKit.PDFDocument> {
     const { startDate, endDate } = createReportDto;
 
-    const expensesData = await this.expenseService.findAllByDateRange(
+    const expensesData = await this.expensesService.findAllByDateRange(
       new Date(startDate),
       new Date(endDate),
       user,

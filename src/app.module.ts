@@ -2,33 +2,32 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { ServicesModule } from './services/services.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
-import { StaffModule } from './staff/staff.module';
-import { AppointmentsModule } from './appointment/appointments.module';
-import { ScheduleModule } from './schedule/schedule.module';
+import { StaffMembersModule } from './bookings/staff-members/staff-members.module';
+import { AppointmentsModule } from './bookings/appointments/appointments.module';
+import { ScheduleModule } from './bookings/schedules/schedule.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ZoomModule } from './zoom/zoom.module';
 import { MailModule } from './mail/mail.module';
 import { PostsModule } from './blog/posts/posts.module';
 import { CategoriesModule } from './accounting/categories/categories.module';
-import { ExpenseModule } from './accounting/expenses/expenses.module';
-import { TagsModule } from './accounting/tags/tags.module';
+import { ExpensesModule } from './accounting/expenses/expenses.module';
 import { SubcategoriesModule } from './accounting/subcategories/subcategories.module';
 import { LogsModule } from './logs/logs.module';
 import { ReportsModule } from './accounting/reports/reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { NotificationModule } from './notification/notification.module';
 import { SettingsModule } from './settings/settings.module';
-import { AvailabilityModule } from './availability/availability.module';
+import { AvailabilityModule } from './bookings/availability/availability.module';
 import { OpenaiModule } from './openai/openai.module';
 import { OcrModule } from './ocr/ocr.module';
 import { AppVersionsModule } from './app-versions/app-versions.module';
 import { NodeMailerModule } from './node-mailer/node-mailer.module';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { DashboardModule } from './accounting/dashboard/dashboard.module';
+import { ServicesModule } from './bookings/services/services.module';
 
 @Module({
   imports: [
@@ -51,7 +50,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     UsersModule,
     SeedModule,
     FilesModule,
-    StaffModule,
+    StaffMembersModule,
     AppointmentsModule,
     ScheduleModule,
     CalendarModule,
@@ -59,8 +58,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     MailModule,
     PostsModule,
     CategoriesModule,
-    ExpenseModule,
-    TagsModule,
+    ExpensesModule,
     SubcategoriesModule,
     LogsModule,
     ReportsModule,

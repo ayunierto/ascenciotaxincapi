@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put } from '@nestjs/common';
 import { AppVersionsService } from './app-versions.service';
 import { CreateAppVersionDto } from './dto/create-app-version.dto';
 import { UpdateAppVersionDto } from './dto/update-app-version.dto';

@@ -9,7 +9,7 @@ import {
 import { Role } from '../enums/role.enum';
 import { Log } from 'src/logs/entities/log.entity';
 import { Post } from 'src/blog/posts/entities/post.entity';
-import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { Appointment } from 'src/bookings/appointments/entities/appointment.entity';
 import { Expense } from 'src/accounting/expenses/entities/expense.entity';
 import { Report } from 'src/accounting/reports/entities/report.entity';
 

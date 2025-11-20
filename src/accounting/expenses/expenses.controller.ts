@@ -11,7 +11,7 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
-import { ExpenseService } from './expenses.service';
+import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -26,9 +26,9 @@ import { OcrService } from 'src/ocr/ocr.service';
 import { OpenaiService } from 'src/openai/openai.service';
 
 @Controller('expenses')
-export class ExpenseController {
+export class ExpensesController {
   constructor(
-    private readonly expenseService: ExpenseService,
+    private readonly expensesService: ExpensesService,
     private readonly filesService: FilesService,
     private readonly ocrService: OcrService,
     private readonly openaiService: OpenaiService,
@@ -37,19 +37,19 @@ export class ExpenseController {
   @Post()
   @Auth()
   create(@Body() createExpenseDto: CreateExpenseDto, @GetUser() user: User) {
-    return this.expenseService.create(createExpenseDto, user);
+    return this.expensesService.create(createExpenseDto, user);
   }
 
   @Get()
   @Auth()
   findAll(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.expenseService.findAll(paginationDto, user);
+    return this.expensesService.findAll(paginationDto, user);
   }
 
   @Get(':id')
   @Auth()
   findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.findOne(id, user);
+    return this.expensesService.findOne(id, user);
   }
 
   @Patch(':id')
@@ -59,13 +59,13 @@ export class ExpenseController {
     @Body() updateExpenseDto: UpdateExpenseDto,
     @GetUser() user: User,
   ) {
-    return this.expenseService.update(id, updateExpenseDto, user);
+    return this.expensesService.update(id, updateExpenseDto, user);
   }
 
   @Delete(':id')
   @Auth()
   remove(@Param('id') id: string, @GetUser() user: User) {
-    return this.expenseService.remove(id, user);
+    return this.expensesService.remove(id, user);
   }
 
   @Post('upload-receipt-image')

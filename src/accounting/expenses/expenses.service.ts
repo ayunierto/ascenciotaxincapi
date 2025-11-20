@@ -19,7 +19,7 @@ import { SubcategoriesService } from '../subcategories/subcategories.service';
 import { FilesService } from 'src/files/files.service';
 
 @Injectable()
-export class ExpenseService {
+export class ExpensesService {
   constructor(
     @InjectRepository(Expense)
     private readonly expenseRepository: Repository<Expense>,

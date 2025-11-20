@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Min, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class DeleteAccountDto {
   @IsString()

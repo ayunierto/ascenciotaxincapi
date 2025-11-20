@@ -4,6 +4,7 @@
 yarn.lock
 credentials.json
 package-lock.json
+/database
 
 # compiled output
 /dist
