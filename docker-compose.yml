@@ -1,55 +1,55 @@
 services:
-  app:
-    build: .
-    container_name: ascencio-tax-api
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /usr/src/app
-          ignore:
-            - node_modules
-            - postgres
-            - database
-        - action: rebuild
-          path: package.json
+  # app:
+  #   build: .
+  #   container_name: ascencio-tax-api
+  #   develop:
+  #     watch:
+  #       - action: sync
+  #         path: .
+  #         target: /usr/src/app
+  #         ignore:
+  #           - node_modules
+  #           - postgres
+  #           - database
+  #       - action: rebuild
+  #         path: package.json
 
-    ports:
-      - '3000:3000'
-    depends_on:
-      - db
-    command: sh -c "npm run start:dev"
-    environment:
-      PORT: ${PORT}
-      STAGE: ${STAGE}
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRY: ${JWT_EXPIRY}
-      EMAIL_VERIFICATION_EXPIRY: ${EMAIL_VERIFICATION_EXPIRY}
-      CLOUDINARY_NAME: ${CLOUDINARY_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
-      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
-      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
-      ZOOM_ACCOUNT_ID: ${ZOOM_ACCOUNT_ID}
-      ZOOM_CLIENT_ID: ${ZOOM_CLIENT_ID}
-      ZOOM_CLIENT_SECRET: ${ZOOM_CLIENT_SECRET}
-      BUSINESS_TZ: ${BUSINESS_TZ}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      ENTERPRISE_EMAIL: ${ENTERPRISE_EMAIL}
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASS: ${EMAIL_PASS}
-      SENDER_NAME: ${SENDER_NAME}
-      MAILERSEND_API_KEY: ${MAILERSEND_API_KEY}
-      MAILERSEND_SENDER_EMAIL: ${MAILERSEND_SENDER_EMAIL}
-      MAILERSEND_SENDER_EMAIL_REPLY_TO: ${MAILERSEND_SENDER_EMAIL_REPLY_TO}
-      MAILERSEND_SENDER_NAME: ${MAILERSEND_SENDER_NAME}
-      SLOT_STEP_MINUTES_DEFAULT: ${SLOT_STEP_MINUTES_DEFAULT}
+  #   ports:
+  #     - '3000:3000'
+  #   depends_on:
+  #     - db
+  #   command: sh -c "npm run start:dev"
+  #   environment:
+  #     PORT: ${PORT}
+  #     STAGE: ${STAGE}
+  #     DB_HOST: db
+  #     DB_PORT: 5432
+  #     DB_USERNAME: postgres
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME: ${DB_NAME}
+  #     JWT_SECRET: ${JWT_SECRET}
+  #     JWT_EXPIRY: ${JWT_EXPIRY}
+  #     EMAIL_VERIFICATION_EXPIRY: ${EMAIL_VERIFICATION_EXPIRY}
+  #     CLOUDINARY_NAME: ${CLOUDINARY_NAME}
+  #     CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+  #     CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+  #     GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
+  #     GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+  #     GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
+  #     ZOOM_ACCOUNT_ID: ${ZOOM_ACCOUNT_ID}
+  #     ZOOM_CLIENT_ID: ${ZOOM_CLIENT_ID}
+  #     ZOOM_CLIENT_SECRET: ${ZOOM_CLIENT_SECRET}
+  #     BUSINESS_TZ: ${BUSINESS_TZ}
+  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
+  #     ENTERPRISE_EMAIL: ${ENTERPRISE_EMAIL}
+  #     EMAIL_USER: ${EMAIL_USER}
+  #     EMAIL_PASS: ${EMAIL_PASS}
+  #     SENDER_NAME: ${SENDER_NAME}
+  #     MAILERSEND_API_KEY: ${MAILERSEND_API_KEY}
+  #     MAILERSEND_SENDER_EMAIL: ${MAILERSEND_SENDER_EMAIL}
+  #     MAILERSEND_SENDER_EMAIL_REPLY_TO: ${MAILERSEND_SENDER_EMAIL_REPLY_TO}
+  #     MAILERSEND_SENDER_NAME: ${MAILERSEND_SENDER_NAME}
+  #     SLOT_STEP_MINUTES_DEFAULT: ${SLOT_STEP_MINUTES_DEFAULT}
   db:
     image: postgres:14.3
     restart: always
@@ -62,16 +62,15 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data
 
-  auth-redis:
-    container_name: ascencio-tax-redis
-    image: redis:7.2 # Usamos la imagen oficial de Redis
-    restart: always
-    volumes:
-      - redis_data:/data # Persistimos los datos de Redis
-    command: redis-server --appendonly yes # Habilitamos persistencia
-    ports:
-      - '6379:6379'
-
-volumes:
-  redis_data: # Definimos el volumen para Redis
+  # auth-redis:
+  #   container_name: ascencio-tax-redis
+  #   image: redis:7.2 # Usamos la imagen oficial de Redis
+  #   restart: always
+  #   volumes:
+  #     - redis_data:/data # Persistimos los datos de Redis
+  #   command: redis-server --appendonly yes # Habilitamos persistencia
+  #   ports:
+  #     - '6379:6379'
+# volumes:
+#   redis_data: # Definimos el volumen para Redis
 
